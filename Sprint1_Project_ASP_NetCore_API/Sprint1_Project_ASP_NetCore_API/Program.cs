@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Sprint1_Project_ASP_NetCore_API.Filters;
-using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
-using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
+﻿using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
+using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
+using Sprint1_Project_ASP_NetCore_API.Filters;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace Sprint1_Project_ASP_NetCore_API
@@ -19,58 +19,31 @@ namespace Sprint1_Project_ASP_NetCore_API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services
-                .AddLogFilterAttrib() 
-                .AddCORS()
-                .AddControllers(options =>
-                { 
-                    // Определяем профили кеширования
-                    options.CacheProfiles.Add("Default", new CacheProfile
-                    {
-                        Duration = 60,
-                        Location = ResponseCacheLocation.Any
-                    });
-
-                    options.CacheProfiles.Add("Never", new CacheProfile
-                    {
-                        NoStore = true,
-                        Location = ResponseCacheLocation.None
-                    }); 
-
-                    options.CacheProfiles.Add("LongTerm", new CacheProfile
-                    {
-                        Duration = 3600, // 1 час
-                        Location = ResponseCacheLocation.Any,
-                        VaryByHeader = "Accept-Language"
-                    });
-                });
-
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+                .AddLogFilterAttrib()  // Конфигурирование аттрибута фильтрации для логирования  (Action Filter)
+                .AddCorsPolicies() // Конфигурирование политики CORS
+                .AddControllersWithCacheProfiles() // Конфигурирование контроллеров с профилями кеширований
+                .AddEndpointsApiExplorer() // Нужен для генерации метаданных для Swagger/Open Api
+                .AddSwaggerGen(); 
 
             var app = builder.Build();
-
-            // Конфигурация HTTP request pipeline
+             
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-                app.UseCors("AllowAll");
+                app.UseCors($"{CorsPoliticType.AllowAll}");
             }
             else
             {
-                app.UseCors("Production");  
+                app.UseCors($"{CorsPoliticType.Production}");
             }
 
-            app.UseHttpsRedirection();
-            app.UseRouting();
-            // Подключаем наш custom middleware
-            app.UseRequestLogging();
-
-            app.UseAuthorization();
-
-            app.MapProducts();
-            app.MapControllers();
-
+            app.UseHttpsRedirection(); // Перенаправление на Https
+            app.UseRouting();          // Анализ URL и вычисление конечного Endpoint (Без него маршрута к контроллеру не будет)    
+            app.UseHttpLogger();       // Middleware Http логгера  
+            app.UseAuthorization();    // Использовать систему авторизации 
+            app.MapProducts();         // Использовать набор маленьких endpoints (ручек) для товаров  
+            app.MapControllers();      // Использовать набор контроллеров 
             app.Run();
         }
     }

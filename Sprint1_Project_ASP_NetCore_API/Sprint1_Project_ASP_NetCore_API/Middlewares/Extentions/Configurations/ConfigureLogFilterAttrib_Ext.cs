@@ -4,7 +4,7 @@
 namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 
 
-public static class LogFilter_Ext
+public static class ConfigureLogFilterAttrib_Ext
 {
 
     /// <summary>
