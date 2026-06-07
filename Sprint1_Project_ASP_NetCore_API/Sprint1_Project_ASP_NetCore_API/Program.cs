@@ -1,10 +1,14 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
-using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
-using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
-using Sprint1_Project_ASP_NetCore_API.Filters;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Mvc;
+using Sprint1_Project_ASP_NetCore_API.Filters;
+using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
+using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
+using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
+
+[assembly: ApiController] // Все контроллеры будут API 
+
 
 
 namespace Sprint1_Project_ASP_NetCore_API
@@ -23,18 +27,35 @@ namespace Sprint1_Project_ASP_NetCore_API
                 .AddCorsPolicies() // Конфигурирование политики CORS
                 .AddControllersWithCacheProfiles() // Конфигурирование контроллеров с профилями кеширований
                 .AddEndpointsApiExplorer() // Нужен для генерации метаданных для Swagger/Open Api
-                .AddSwaggerGen(); 
-
+                .AddSwaggerGen();
+            
             var app = builder.Build();
-             
+            //builder.Services.AddScoped<object>(provider =>
+            //{
+            //    var config = provider.GetRequiredService<IConfiguration>();
+            //    var connectionString = config.GetConnectionString("Orders");
+            //    return Results.Ok();//  new  (connectionString);
+            //});
             if (app.Environment.IsDevelopment())
             {
+                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI();
                 app.UseCors($"{CorsPoliticType.AllowAll}");
+
+                builder.Host.UseDefaultServiceProvider(options =>
+                {
+                    // Проверяет Captive Dependency во время выполнения
+                    options.ValidateScopes = true;
+
+                    // Проверяет корректность всех регистраций при старте приложения
+                    options.ValidateOnBuild = true;
+                });
+
             }
             else
             {
+                app.UseExceptionHandler("/Error");
                 app.UseCors($"{CorsPoliticType.Production}");
             }
 
@@ -80,10 +101,10 @@ namespace Sprint1_Project_ASP_NetCore_API
 //    .Validate(s => !string.IsNullOrEmpty(s.BaseUrl) && s.BaseUrl.StartsWith("https://"),
 //    "BaseUrl должен использовать HTTPS")
 //    .ValidateOnStart();
- 
+
 // Для сложной логики можно вынести валидацию
 // IWebHostEnvironment - текущее окружение (ASPNETCORE_ENVIRONMENT)  (По умолчанию Production)
- 
+
 //public class PaymentApiSettingsValidator : IValidateOptions<PaymentApiSettings>
 //{
 //    public ValidateOptionsResult Validate(string name, PaymentApiSettings options)
@@ -107,4 +128,60 @@ namespace Sprint1_Project_ASP_NetCore_API
 //Используйте, когда нужна реакция на изменения без перезапуска.
 
 
+// Регистрация именованного клиента с настройками
+//builder.Services.AddHttpClient("StripeApi", client =>
+//{
+//    client.BaseAddress = new Uri("https://api.stripe.com/v1/");
+//    client.Timeout = TimeSpan.FromSeconds(30);
+//    client.DefaultRequestHeaders.Add("Accept", "application/json");
+//    client.DefaultRequestHeaders.Add("User-Agent", "MyApp/1.0");
+//});
+// Это будет внедрено как IHttpClientFactory 
+// У него есть метод CreateClient(с указанием имени - StripeApi) 
 
+// Регистрация Typed HttpClient
+// Можно так же явно прокинуть HttpClient с указанием в какой сервис его опрокинуть
+//builder.Services.AddHttpClient<IPaymentService, StripePaymentService>(client =>
+//{
+//    client.BaseAddress = new Uri("https://api.stripe.com/v1/");
+//    client.Timeout = TimeSpan.FromSeconds(30);
+//})
+//.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+//{
+//    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+//});
+
+// Регистрация - в основном это и пригодиться 
+// services.Configure<EmailSettings>(configuration.GetSection("Email"));
+
+//// Пример использования привязки из маршрута
+//[HttpGet("{street}")]
+//public Address GetAddress([FromRoute] string street)
+
+
+// Возвращаемый результат 
+// Класс ApiResult c возвращаемыми данными
+// Наследуемся от базового класса с основными параметрами
+public class ApiResult<T> : ApiBaseResult
+{
+    // Возвращаемые данные метода
+    public required T Data { get; set; }
+}
+
+// Класс ApiResult без возвращаемых данных
+// Наследуемся от базового класса с основными параметрами
+public class ApiResult : ApiBaseResult { }
+
+// Базовый класс с основными параметрами
+public class ApiBaseResult
+{
+    // Флаг, указывающий на успешность выполненного запроса
+    public required bool Success { get; set; }
+    // Возвращаемый HTTP-код
+    public required HttpStatusCode StatusCode { get; set; }
+    // Дата и время ответа
+    public DateTime DateTime { get; set; } = DateTime.UtcNow;
+    // Кастомное сообщение с дополнительной информацией
+    // Здесь может быть информация об ошибке в случае неуспеха
+    public required string Message { get; set; }
+}
