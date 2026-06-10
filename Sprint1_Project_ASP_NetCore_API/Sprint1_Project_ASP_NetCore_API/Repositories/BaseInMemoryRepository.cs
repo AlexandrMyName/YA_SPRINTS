@@ -65,8 +65,9 @@ namespace Sprint1_Project_ASP_NetCore_API.Repositories
             if (!_items.TryGetValue(item.Id, out var result))
             {
                 return ResultEntity<T>.Fail($"Ошибка обновления модели <{typeof(T)}>. Модель с указанным идентификатором не найдена");
-            } 
-            result = item; 
+            }
+            _items[item.Id] = item;
+
             return ResultEntity<T>.Ok(item, "Успешно");
         }
 
@@ -110,9 +111,8 @@ namespace Sprint1_Project_ASP_NetCore_API.Repositories
                 return ResultEntity<T>.Fail(string.Join(", ", itemsNotUpdated));
             }
 
-            foreach (var i in items){
-                _items.TryGetValue(i.Id, out var itemExisted);
-                itemExisted = i;
+            foreach (var i in items){ 
+                _items[i.Id] = i;
             } 
             return ResultEntity<T>.Ok("Успешно");
         }

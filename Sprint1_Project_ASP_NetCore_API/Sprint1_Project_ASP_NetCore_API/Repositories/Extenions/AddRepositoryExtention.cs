@@ -14,8 +14,8 @@ public static class AddRepositoryExtention
     /// <returns></returns>
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        
-        services.AddSingleton<IRepository<Event>, BaseInMemoryRepository<Event>>(); 
+        services.AddSingleton<IRepository<IEvent>, BaseInMemoryRepository<IEvent>>();
+       // services.AddSingleton<IRepository<IEvent>, BaseInMemoryRepository<Event>>(); 
         return services;
     }  
 }

@@ -78,12 +78,4 @@ D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_Ne
 D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.AspNetCore.Mvc.Versioning.dll
 D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\AutoMapper.dll
 D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.Extensions.Logging.Abstractions.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.Extensions.Options.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.Extensions.Primitives.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
-D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\System.Diagnostics.DiagnosticSource.dll
+D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer.dll

@@ -45,7 +45,7 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
             if (eventEntity.IsSuccesfuly)
             {
                 _logger.LogInformation($"Получена модель {eventEntity?.Data?.Title}");
-                return ResultDto<EventDto>.Ok(_mapper.Map<EventDto>(eventEntity?.Data), eventEntity?.Message ?? "");
+                return ResultDto<EventDto>.Ok(_mapper.Map<EventDto>((Event)eventEntity?.Data), eventEntity?.Message ?? "");
             }
 
             return ResultDto<EventDto>.Fail(  eventEntity?.Reason ?? "");  

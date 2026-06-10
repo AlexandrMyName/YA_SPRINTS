@@ -9,7 +9,7 @@ namespace Sprint1_Project_ASP_NetCore_API.Controllers;
  
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "v1")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")] 
 public class EventsController : ControllerBase
 {
 
@@ -28,12 +28,12 @@ public class EventsController : ControllerBase
     /// Метод возвращает событие по идентификатору
     /// </summary>
     /// <param name="index">Параметр индекса, для получения события</param>
-    /// <response code="200">Возвращается JSON-структура ApiResult<EventDto> с деталями ответа
+    /// <response code="200">Возвращается JSON-структура с деталями ответа
     /// и HTTP статус-кодом 200 Ok в случае успеха</response>
     [ProducesResponseType(typeof(ApiResult<EventDto>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet("{index:guid}")] 
-    public async Task<ApiResult<EventDto>> GetById([FromRoute] Guid index)
+    public async Task<ApiResult<EventDto>> Get([FromRoute] Guid index)
     {
         try
         {
@@ -46,12 +46,11 @@ public class EventsController : ControllerBase
             return ApiResult<EventDto>.ServerError<EventDto>(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR"); 
         }  
     }
-
-
+     
     /// <summary>
     /// Метод возвращает список всех событий
     /// </summary>  
-    /// <response code="200">Возвращается JSON-структура ApiResult<IEnumerable<EventDto>> с деталями ответа
+    /// <response code="200">Возвращается JSON-структура ApiResult с деталями ответа
     /// и HTTP статус-кодом 200 Ok в случае успеха</response>
     [ProducesResponseType(typeof(ApiResult<IEnumerable<EventDto>>), StatusCodes.Status200OK)]
     [Produces("application/json")]
@@ -146,7 +145,7 @@ public class EventsController : ControllerBase
     public async Task<ApiResult> UpdateRange([FromBody] IEnumerable<EventDto> dtos)
     {
         try
-        {
+        { 
             List<string> notExistedEvents = new(0);
 
             foreach (var d in dtos)
@@ -208,7 +207,7 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpDelete("{index:guid}")]
-    public async Task<ApiResult> Update([FromRoute] Guid index)
+    public async Task<ApiResult> Delete([FromRoute] Guid index)
     {
         try
         { 

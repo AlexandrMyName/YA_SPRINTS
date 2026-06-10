@@ -17,9 +17,9 @@ public static class ConfigureControllersWithCacheProfiles_Ext
     { 
 
         services.AddControllers(options =>
-        { 
-
-            options.Filters.Add<ValidateInputModelAttribute>();
+        {
+           
+            options.Filters.Add<ValidateInputModelAttribute>(); // Кастомный Middleware валидации входящих и исходящих данных
 
             // Определяем профили кеширования
             options.CacheProfiles.Add("Default", new CacheProfile
@@ -41,7 +41,7 @@ public static class ConfigureControllersWithCacheProfiles_Ext
                 VaryByHeader = "Accept-Language"
             });
         }).ConfigureApiBehaviorOptions(options =>
-        {
+        { 
             // Эта опция отключает автоматическую проверку валидации 
             options.SuppressModelStateInvalidFilter = true;
 

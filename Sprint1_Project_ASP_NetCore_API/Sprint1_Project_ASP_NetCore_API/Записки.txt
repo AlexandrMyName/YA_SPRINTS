@@ -1,0 +1,91 @@
+﻿ 
+    #region Полезное 
+    // Для конфигурации IOptions <> - Singltone 
+    // IOptionsSnapshot<T> — Scoped-настройки (Перезагружает Options при каждом подключении Get и т.д.) 
+
+    // Связываем секцию конфигурации с классом
+    //builder.Services.Configure<AppSettings>(
+    //    builder.Configuration.GetSection("AppSettings"));
+
+    //builder.Services.Configure<PaymentApiSettings>(
+    //    builder.Configuration.GetSection("ExternalServices:PaymentApi"));
+
+    // + Валидация настроек 
+    //public class PaymentApiSettings
+    //{
+    //    [Required, Url]
+    //    public string BaseUrl { get; set; }
+
+    //    [Range(1, 300)]
+    //    public int Timeout { get; set; }
+    //}
+
+    //builder.Services.AddOptions<PaymentApiSettings>()
+    //    .Bind(builder.Configuration.GetSection("ExternalServices:PaymentApi"))
+    //    .ValidateDataAnnotations()
+    //    .ValidateOnStart();
+
+    // Или так 
+    //builder.Services.AddOptions<PaymentApiSettings>()
+    //    .Bind(builder.Configuration.GetSection("ExternalServices:PaymentApi"))
+    //    .Validate(s => !string.IsNullOrEmpty(s.BaseUrl) && s.BaseUrl.StartsWith("https://"),
+    //    "BaseUrl должен использовать HTTPS")
+    //    .ValidateOnStart();
+
+    // Для сложной логики можно вынести валидацию
+    // IWebHostEnvironment - текущее окружение (ASPNETCORE_ENVIRONMENT)  (По умолчанию Production)
+
+    //public class PaymentApiSettingsValidator : IValidateOptions<PaymentApiSettings>
+    //{
+    //    public ValidateOptionsResult Validate(string name, PaymentApiSettings options)
+    //    {
+    //        if (string.IsNullOrEmpty(options.BaseUrl))
+    //            return ValidateOptionsResult.Fail("BaseUrl обязателен");
+
+    //        if (!Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out var uri) || uri.Scheme != "https")
+    //            return ValidateOptionsResult.Fail("BaseUrl должен быть HTTPS URL");
+
+    //        return ValidateOptionsResult.Success;
+    //    }
+    //} 
+
+    //builder.Services.AddSingleton<IValidateOptions<PaymentApiSettings>, PaymentApiSettingsValidator>();
+
+    //IOptionsMonitor < T > — Реактивные настройки
+    //Отслеживает изменения в реальном времени.
+    //Можно подписаться на события изменения через OnChange.
+    //Работает в Singleton-сервисах.
+    //Используйте, когда нужна реакция на изменения без перезапуска.
+
+
+    // Регистрация именованного клиента с настройками
+    //builder.Services.AddHttpClient("StripeApi", client =>
+    //{
+    //    client.BaseAddress = new Uri("https://api.stripe.com/v1/");
+    //    client.Timeout = TimeSpan.FromSeconds(30);
+    //    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    //    client.DefaultRequestHeaders.Add("User-Agent", "MyApp/1.0");
+    //});
+    // Это будет внедрено как IHttpClientFactory 
+    // У него есть метод CreateClient(с указанием имени - StripeApi) 
+
+    // Регистрация Typed HttpClient
+    // Можно так же явно прокинуть HttpClient с указанием в какой сервис его опрокинуть
+    //builder.Services.AddHttpClient<IPaymentService, StripePaymentService>(client =>
+    //{
+    //    client.BaseAddress = new Uri("https://api.stripe.com/v1/");
+    //    client.Timeout = TimeSpan.FromSeconds(30);
+    //})
+    //.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    //{
+    //    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+    //});
+
+    // Регистрация - в основном это и пригодиться 
+    // services.Configure<EmailSettings>(configuration.GetSection("Email"));
+
+    //// Пример использования привязки из маршрута
+    //[HttpGet("{street}")]
+    //public Address GetAddress([FromRoute] string street)
+    #endregion
+ 
