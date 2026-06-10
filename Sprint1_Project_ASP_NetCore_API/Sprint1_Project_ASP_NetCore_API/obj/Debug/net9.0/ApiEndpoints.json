@@ -138,16 +138,6 @@
     ]
   },
   {
-    "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController",
-    "Method": "GetAll",
-    "RelativePath": "api/Products",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.UsersController",
     "Method": "GetAll",
     "RelativePath": "api/Users",
@@ -188,6 +178,64 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController",
+    "Method": "GetAll",
+    "RelativePath": "api/v{version}/Products",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "index",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "version",
+        "Type": "",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController",
+    "Method": "GetAll",
+    "RelativePath": "api/v{version}/Products/{index}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "index",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "version",
+        "Type": "",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.WeatherForecastController",

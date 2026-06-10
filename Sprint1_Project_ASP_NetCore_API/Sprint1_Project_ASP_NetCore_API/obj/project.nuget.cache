@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "BmJ/382WOG0=",
+  "dgSpecHash": "y6pIlCP5fWU=",
   "success": true,
   "projectFilePath": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Honor\\.nuget\\packages\\microsoft.aspnetcore.mvc.versioning\\5.1.0\\microsoft.aspnetcore.mvc.versioning.5.1.0.nupkg.sha512",
     "C:\\Users\\Honor\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.11\\microsoft.aspnetcore.openapi.9.0.11.nupkg.sha512",
     "C:\\Users\\Honor\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "C:\\Users\\Honor\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512",

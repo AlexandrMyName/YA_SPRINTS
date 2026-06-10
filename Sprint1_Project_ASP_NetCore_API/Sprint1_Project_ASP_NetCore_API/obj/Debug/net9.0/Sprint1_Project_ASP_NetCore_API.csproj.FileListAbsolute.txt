@@ -73,3 +73,6 @@ D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_Ne
 D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\obj\Debug\net9.0\Sprint1_Project_ASP_NetCore_API.genruntimeconfig.cache
 D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\obj\Debug\net9.0\ref\Sprint1_Project_ASP_NetCore_API.dll
 D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\appsettings.Production.json
+D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Sprint1_Project_ASP_NetCore_API.xml
+D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\obj\Debug\net9.0\Sprint1_Project_ASP_NetCore_API.xml
+D:\Projects\YA\YA_SPRINTS\Sprint1_Project_ASP_NetCore_API\Sprint1_Project_ASP_NetCore_API\bin\Debug\net9.0\Microsoft.AspNetCore.Mvc.Versioning.dll

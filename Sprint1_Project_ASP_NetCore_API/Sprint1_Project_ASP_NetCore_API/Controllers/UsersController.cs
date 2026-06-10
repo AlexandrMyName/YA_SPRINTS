@@ -7,8 +7,12 @@ namespace Sprint1_Project_ASP_NetCore_API.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
+    /// <summary>
+    /// ТЕСТ 1
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
-    [ResponseCache(CacheProfileName = "Default")]
+    [ResponseCache(CacheProfileName = "Default")] 
     public IActionResult GetAll()
     {
         return Ok(new[] { "User1", "User2", "User3" });

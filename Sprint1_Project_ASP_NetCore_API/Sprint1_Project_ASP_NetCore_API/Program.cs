@@ -27,8 +27,9 @@ namespace Sprint1_Project_ASP_NetCore_API
                 .AddCorsPolicies() // Конфигурирование политики CORS
                 .AddControllersWithCacheProfiles() // Конфигурирование контроллеров с профилями кеширований
                 .AddEndpointsApiExplorer() // Нужен для генерации метаданных для Swagger/Open Api
-                .AddSwaggerGen();
-            
+                .AddSwaggerGenWithDocumentation() // Конфигурирование Swagger
+                .AddApiVersioning();    // Добавляет верссионирование проекта
+
             var app = builder.Build();
             //builder.Services.AddScoped<object>(provider =>
             //{
@@ -46,12 +47,10 @@ namespace Sprint1_Project_ASP_NetCore_API
                 builder.Host.UseDefaultServiceProvider(options =>
                 {
                     // Проверяет Captive Dependency во время выполнения
-                    options.ValidateScopes = true;
-
+                    options.ValidateScopes = true; 
                     // Проверяет корректность всех регистраций при старте приложения
                     options.ValidateOnBuild = true;
-                });
-
+                }); 
             }
             else
             {
@@ -159,29 +158,7 @@ namespace Sprint1_Project_ASP_NetCore_API
 //public Address GetAddress([FromRoute] string street)
 
 
-// Возвращаемый результат 
-// Класс ApiResult c возвращаемыми данными
-// Наследуемся от базового класса с основными параметрами
-public class ApiResult<T> : ApiBaseResult
-{
-    // Возвращаемые данные метода
-    public required T Data { get; set; }
-}
+ 
 
-// Класс ApiResult без возвращаемых данных
-// Наследуемся от базового класса с основными параметрами
-public class ApiResult : ApiBaseResult { }
-
-// Базовый класс с основными параметрами
-public class ApiBaseResult
-{
-    // Флаг, указывающий на успешность выполненного запроса
-    public required bool Success { get; set; }
-    // Возвращаемый HTTP-код
-    public required HttpStatusCode StatusCode { get; set; }
-    // Дата и время ответа
-    public DateTime DateTime { get; set; } = DateTime.UtcNow;
-    // Кастомное сообщение с дополнительной информацией
-    // Здесь может быть информация об ошибке в случае неуспеха
-    public required string Message { get; set; }
-}
+ 
+ 

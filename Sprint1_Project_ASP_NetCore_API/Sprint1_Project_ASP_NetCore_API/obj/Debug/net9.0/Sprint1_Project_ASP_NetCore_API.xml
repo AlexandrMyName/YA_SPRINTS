@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Sprint1_Project_ASP_NetCore_API</name>
+    </assembly>
+    <members>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController.GetAll(System.Int32)">
+            <summary>
+            Метод возвращает список продуктов
+            </summary>
+            <param name="index">Параметр индекса, для получения номера здания</param>
+            <response code="200">Возвращается JSON-структура ApiBaseResult с деталями ответа
+            и HTTP статус-кодом 200 Ok в случае успеха</response>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.UsersController.GetAll">
+            <summary>
+            ТЕСТ 1
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.Success">
+            <summary>
+            Флаг, указывающий на успешность выполненного запроса
+            </summary>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.StatusCode">
+            <summary>
+            Возвращаемый HTTP-код
+            </summary>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.DateTime">
+            <summary>
+            Дата и время ответа
+            </summary>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.Message">
+            <summary>
+            Кастомное сообщение с дополнительной информацией
+            Здесь может быть информация об ошибке в случае неуспеха
+            </summary>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.Data">
+            <summary>
+            Возвращаемые данные метода
+            </summary>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations.ConfigureLogFilterAttrib_Ext.AddLogFilterAttrib(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Добавляет фильтр 
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.HttpLoggerMiddlewareExtensions.UseHttpLogger(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            Добавляет RequestLoggingMiddleware в конвейер обработки запросов
+            </summary>
+        </member>
+    </members>
+</doc>
