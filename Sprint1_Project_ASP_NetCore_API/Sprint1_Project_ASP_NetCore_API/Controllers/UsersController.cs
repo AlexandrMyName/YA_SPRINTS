@@ -1,12 +1,23 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Sprint1_Project_ASP_NetCore_API.Filters;
+﻿using Sprint1_Project_ASP_NetCore_API.Filters;
+using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
+
 
 namespace Sprint1_Project_ASP_NetCore_API.Controllers;
 
-[ApiController]
+ 
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
+
+    public UsersController(IMapper mapper)
+    { 
+
+        _mapper = mapper;
+    }
+
+    private readonly IMapper _mapper;
+     
     /// <summary>
     /// ТЕСТ 1
     /// </summary>

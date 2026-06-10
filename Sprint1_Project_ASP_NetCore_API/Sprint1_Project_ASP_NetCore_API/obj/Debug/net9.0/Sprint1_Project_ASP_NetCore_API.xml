@@ -4,6 +4,11 @@
         <name>Sprint1_Project_ASP_NetCore_API</name>
     </assembly>
     <members>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController">
+            <summary>
+            
+            </summary> 
+        </member>
         <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController.GetAll(System.Int32)">
             <summary>
             Метод возвращает список продуктов
@@ -15,6 +20,17 @@
         <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.UsersController.GetAll">
             <summary>
             ТЕСТ 1
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Dtos.IApiResult">
+            <summary>
+            Базовый интерфейс для работы с ApiResult
+            </summary>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.IApiResult.GetData">
+            <summary>
+            Получить прикреплённые данные
             </summary>
             <returns></returns>
         </member>
@@ -39,10 +55,89 @@
             Здесь может быть информация об ошибке в случае неуспеха
             </summary>
         </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.GetData">
+            <summary>
+            Получить прикреплённые данные
+            </summary>
+            <returns></returns>
+        </member>
         <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.Data">
             <summary>
             Возвращаемые данные метода
             </summary>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.GetData">
+            <summary>
+            Получить прикреплённые данные  
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.Ok``1(``0)">
+            <summary>
+            OK - 200
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.Created``1(``0)">
+            <summary>
+            Created - 201
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.NotFound``1(``0)">
+            <summary>
+            NotFounded - 404
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.ServerError``1(``0)">
+            <summary>
+            Internal Server Error - 500
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Dtos.EntitiesDtos.EventDto">
+            <summary>
+            Модель для Entity (DTO) -> EventDto
+            </summary>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.EntitiesDtos.EventDto.Description">
+            <summary>
+            Описание  
+            </summary>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute">
+            <summary>
+            ActionFilter - Валидация входных и выходных данных
+            </summary>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            Валидация входных данных
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
+            <summary>
+            Валидация выходных данных
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations.ConfigureControllersWithCacheProfiles_Ext.AddControllersWithCacheAndValidation(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Добавляет поддержку контроллеров с настройками кеширования 
+            и автоматической валидацией входных и выходных данных
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
         </member>
         <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations.ConfigureLogFilterAttrib_Ext.AddLogFilterAttrib(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>

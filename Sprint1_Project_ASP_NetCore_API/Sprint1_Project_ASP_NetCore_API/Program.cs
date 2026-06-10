@@ -1,12 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Sprint1_Project_ASP_NetCore_API.Filters;
-using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
-using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
+﻿using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
-using System.ComponentModel.DataAnnotations;
-using System.Net;
-
+using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
+using Microsoft.AspNetCore.Mvc;
 [assembly: ApiController] // Все контроллеры будут API 
 
 
@@ -25,11 +20,12 @@ namespace Sprint1_Project_ASP_NetCore_API
             builder.Services
                 .AddLogFilterAttrib()  // Конфигурирование аттрибута фильтрации для логирования  (Action Filter)
                 .AddCorsPolicies() // Конфигурирование политики CORS
-                .AddControllersWithCacheProfiles() // Конфигурирование контроллеров с профилями кеширований
+                .AddControllersWithCacheAndValidation() // Конфигурирование контроллеров с профилями кеширований и валидацией (ActionFilter)
                 .AddEndpointsApiExplorer() // Нужен для генерации метаданных для Swagger/Open Api
                 .AddSwaggerGenWithDocumentation() // Конфигурирование Swagger
-                .AddApiVersioning();    // Добавляет верссионирование проекта
-
+                .AddApiVersioning()               // Добавляет верссионирование проекта
+                .AddAutoMapper(typeof(Program));  // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
+             
             var app = builder.Build();
             //builder.Services.AddScoped<object>(provider =>
             //{
