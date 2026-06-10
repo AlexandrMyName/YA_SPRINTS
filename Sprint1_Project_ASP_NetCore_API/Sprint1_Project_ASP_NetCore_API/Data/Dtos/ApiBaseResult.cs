@@ -2,7 +2,7 @@
 using System.Net;
 
 
-namespace Sprint1_Project_ASP_NetCore_API.Dtos;
+namespace Sprint1_Project_ASP_NetCore_API.Data.Dtos;
 
 /// <summary>
 /// Базовый интерфейс для работы с ApiResult
@@ -47,44 +47,55 @@ public abstract class ApiBaseResult : IApiResult
 public class ApiResult : ApiBaseResult {
 
      
-    public static ApiResult Ok()
+    public static ApiResult Ok(string msg)
     {
         return new()
         {
-            Message = "",
+            Message = msg,
             StatusCode = HttpStatusCode.OK,
             Success = true,
             DateTime = System.DateTime.UtcNow,
         };
     }
 
-    public static ApiResult Created()
+    public static ApiResult Fail(string reason)
     {
         return new()
         {
-            Message = "",
+            Message = reason,
+            StatusCode = (HttpStatusCode) 400,
+            Success = true,
+            DateTime = System.DateTime.UtcNow,
+        };
+    }
+
+    public static ApiResult Created(string msg)
+    {
+        return new()
+        {
+            Message = msg,
             StatusCode = HttpStatusCode.Created,
             Success = true,
             DateTime = System.DateTime.UtcNow,
         };
     }
 
-    public static ApiResult NotFound()
+    public static ApiResult NotFound(string reason)
     {
         return new()
         {
-            Message = "",
+            Message = reason,
             StatusCode = HttpStatusCode.NotFound,
             Success = false,
             DateTime = System.DateTime.UtcNow,
         };
     }
 
-    public static ApiResult ServerError()
+    public static ApiResult ServerError(string reason)
     {
         return new()
         {
-            Message = "",
+            Message = reason,
             StatusCode = HttpStatusCode.InternalServerError,
             Success = false,
             DateTime = System.DateTime.UtcNow,
@@ -99,9 +110,8 @@ public class ApiResult<T> : ApiBaseResult
 
     /// <summary>
     /// Возвращаемые данные метода
-    /// </summary>
-    [NotNull]
-    public required T Data { get; set; }
+    /// </summary> 
+    public T? Data { get; set; }
 
     /// <summary>
     /// Получить прикреплённые данные  
@@ -115,12 +125,12 @@ public class ApiResult<T> : ApiBaseResult
     /// <typeparam name="T"></typeparam>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static ApiResult<T> Ok<T>(T data)
+    public static ApiResult<T> Ok<T>(T data, string msg)
     {
         return new()
         {
             Data = data,
-            Message = "",
+            Message = msg,
             StatusCode = HttpStatusCode.OK,
             Success = true,
             DateTime = System.DateTime.UtcNow,
@@ -151,12 +161,12 @@ public class ApiResult<T> : ApiBaseResult
     /// <typeparam name="T"></typeparam>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static ApiResult<T> NotFound<T>(T data)
+    public static ApiResult<T> NotFound<T>( string reason)
     {
         return new()
         {
-            Data = data,
-            Message = "",
+            Data = default(T),
+            Message = reason,
             StatusCode = HttpStatusCode.NotFound,
             Success = false,
             DateTime = System.DateTime.UtcNow,
@@ -169,12 +179,12 @@ public class ApiResult<T> : ApiBaseResult
     /// <typeparam name="T"></typeparam>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static ApiResult<T> ServerError<T>(T data)
+    public static ApiResult<T> ServerError<T>(string exception)
     {
         return new()
         {
-            Data = data,
-            Message = "",
+            Data = default(T),
+            Message = exception,
             StatusCode = HttpStatusCode.InternalServerError,
             Success = false,
             DateTime = System.DateTime.UtcNow,

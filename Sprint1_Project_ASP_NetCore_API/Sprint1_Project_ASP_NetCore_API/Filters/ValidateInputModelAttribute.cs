@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Sprint1_Project_ASP_NetCore_API.Dtos;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Filters;

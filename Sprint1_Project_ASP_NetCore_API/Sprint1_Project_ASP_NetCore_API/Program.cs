@@ -2,6 +2,8 @@
 using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
 using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions;
 using Microsoft.AspNetCore.Mvc;
+using Sprint1_Project_ASP_NetCore_API.Repositories.Extenions;
+using Sprint1_Project_ASP_NetCore_API.Services.Extentions;
 [assembly: ApiController] // Все контроллеры будут API 
 
 
@@ -24,15 +26,12 @@ namespace Sprint1_Project_ASP_NetCore_API
                 .AddEndpointsApiExplorer() // Нужен для генерации метаданных для Swagger/Open Api
                 .AddSwaggerGenWithDocumentation() // Конфигурирование Swagger
                 .AddApiVersioning()               // Добавляет верссионирование проекта
-                .AddAutoMapper(typeof(Program));  // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
-             
+                .AddAutoMapper(typeof(Program))   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
+                .AddRepositories() // Добавляет репозитории в контейнер зависимостей
+                .AddServices(); // Добавляет сервисы в контейнер зависимостей
+
             var app = builder.Build();
-            //builder.Services.AddScoped<object>(provider =>
-            //{
-            //    var config = provider.GetRequiredService<IConfiguration>();
-            //    var connectionString = config.GetConnectionString("Orders");
-            //    return Results.Ok();//  new  (connectionString);
-            //});
+            
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -65,6 +64,8 @@ namespace Sprint1_Project_ASP_NetCore_API
     }
 }
 
+
+#region Полезное
 // Для конфигурации IOptions <> - Singltone 
 // IOptionsSnapshot<T> — Scoped-настройки (Перезагружает Options при каждом подключении Get и т.д.) 
 
@@ -152,9 +153,8 @@ namespace Sprint1_Project_ASP_NetCore_API
 //// Пример использования привязки из маршрута
 //[HttpGet("{street}")]
 //public Address GetAddress([FromRoute] string street)
+#endregion
 
 
- 
 
- 
- 
+

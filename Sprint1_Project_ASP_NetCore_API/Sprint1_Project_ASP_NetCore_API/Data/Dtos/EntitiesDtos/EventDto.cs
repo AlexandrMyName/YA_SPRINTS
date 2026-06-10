@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sprint1_Project_ASP_NetCore_API.Dtos.EntitiesDtos;
+namespace Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 
 /// <summary>
 /// Модель для Entity (DTO) -> EventDto
 /// </summary>
-public class EventDto
+public class EventDto : IEntityDto
 {
     [Required(ErrorMessage = "Идентификатор события обязателен")]
     /// <summary>

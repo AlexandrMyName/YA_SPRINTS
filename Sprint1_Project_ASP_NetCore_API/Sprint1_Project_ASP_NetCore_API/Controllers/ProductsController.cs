@@ -1,6 +1,6 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Dtos;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Controllers;
