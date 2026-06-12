@@ -95,7 +95,7 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
             return ResultDto<EventDto>.Fail(eventEntity?.Reason ?? "");
         }
 
-        public bool IsExisted(Guid id) => _eventsReposytory.IsExisted(id);
+        
 
         public async Task<IResultDto<EventDto>> AddRangeAsync(IEnumerable<EventDto> items)
         {
@@ -124,5 +124,10 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
             }
             return ResultDto<EventDto>.Fail(eventEntity?.Reason ?? "");
         }
+
+
+        public bool IsExisted(Guid id) => _eventsReposytory.IsExisted(id);
+
+        public bool IsExistedByTitle(string name) => _eventsReposytory.IsExistedByTitle(name); 
     }
 }

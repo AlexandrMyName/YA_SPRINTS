@@ -80,9 +80,9 @@ public class EventsController : ControllerBase
         try
         {
             dto.Id = index;
-            if (_eventsService.IsExisted(index))
-            {
-                return Conflict("Уже существует сущность c таким идентификатором");
+            if (_eventsService.IsExisted(index) || _eventsService.IsExistedByTitle(dto.Title))
+            { 
+                return Conflict("Уже существует сущность c таким идентификатором или названием");
             }
 
 
@@ -111,7 +111,12 @@ public class EventsController : ControllerBase
         { 
             foreach (var d in dtos) {
                 d.Id = Guid.NewGuid();
-                while (_eventsService.IsExisted(d.Id)) d.Id = Guid.NewGuid(); 
+                while (_eventsService.IsExisted(d.Id)) d.Id = Guid.NewGuid();
+
+                if (_eventsService.IsExistedByTitle(d.Title))
+                {
+                    return Conflict("Уже существует событие с таким названием: " + d.Title);
+                }
             }
              
             var result = await _eventsService.AddRangeAsync(dtos); 
@@ -147,11 +152,12 @@ public class EventsController : ControllerBase
                     notExistedEvents.Add($"{d.Id}:{d.Title}");
                 }
             }
-
+            
+            // В будущем добавить проверку на уникальность названия. Если необходимо его заменить
             if (notExistedEvents.Count > 0)
             {
                 return NotFound("Не существуют указанные сущности: " + string.Join(", ", notExistedEvents));
-            }
+            } 
 
             var result = await _eventsService.UpdateRangeAsync(dtos);
             if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
@@ -181,7 +187,9 @@ public class EventsController : ControllerBase
             {
                 return NotFound("Не существует указанная сущность");
             }
-             
+
+            // В будущем добавить проверку на уникальность названия. Если необходимо его заменить
+
             var result = await _eventsService.UpdateAsync(dto);
             if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
 

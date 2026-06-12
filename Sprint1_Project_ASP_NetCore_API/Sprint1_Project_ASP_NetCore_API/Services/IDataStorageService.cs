@@ -19,5 +19,6 @@ public interface IDataStorageService<T> where T : class, IEntityDto
     Task<IResultDto<T>> UpdateAsync(T item); 
     Task<IResultDto<T>> UpdateRangeAsync(IEnumerable<T> items); 
     Task<IResultDto<T>> DeleteAsync(Guid id); 
-    bool IsExisted(Guid id);
+    bool IsExisted(Guid id); 
+    bool IsExistedByTitle(string name);
 }

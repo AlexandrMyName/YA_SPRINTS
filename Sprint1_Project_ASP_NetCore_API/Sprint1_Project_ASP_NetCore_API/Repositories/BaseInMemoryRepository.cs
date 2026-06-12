@@ -72,7 +72,7 @@ namespace Sprint1_Project_ASP_NetCore_API.Repositories
         }
 
 
-        public bool IsExisted(Guid id) => _items.ContainsKey(id);
+         
 
         public async Task<IResultEntity<T>> AddRangeAsync(IEnumerable<T> items)
         {
@@ -115,6 +115,35 @@ namespace Sprint1_Project_ASP_NetCore_API.Repositories
                 _items[i.Id] = i;
             } 
             return ResultEntity<T>.Ok("Успешно");
+        }
+
+
+        public bool IsExisted(Guid id) => _items.ContainsKey(id);
+
+        public bool IsExistedByTitle(string name)
+        {
+
+            foreach(var i in _items) {
+
+               var properties =  i.GetType().GetProperties();
+
+               var titleProperty = properties.Where(p => string.Equals(p.Name, "Title")).FirstOrDefault();
+
+                if(titleProperty != null) {
+
+                    var value = titleProperty.GetValue(i);
+
+                    if (value != null && value is string vStr )
+                    {
+                        if(string.Equals(vStr, name))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+            }
+            return false;
         }
     }
 }

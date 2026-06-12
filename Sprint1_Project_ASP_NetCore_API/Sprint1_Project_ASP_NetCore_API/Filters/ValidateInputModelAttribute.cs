@@ -50,6 +50,43 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
                 Title = "Ошибка валидации входных данных"
             });
         }
+        else
+        {
+            var dtos = context.ActionArguments.Values.OfType<IEnumerable<EventDto>>().FirstOrDefault();
+            string errorStr = "";
+            if (dtos == null) return;
+
+            var errors = new List<string>();
+            var titlesSet = new HashSet<string>();
+
+            foreach (var d in dtos)
+            {
+                if (d.StartAt >= d.EndAt)
+                {
+                    errors.Add($"Дата начала не может быть позже или равна дате окончания. Проверьте событие с названием: {d.Title}");
+                }
+
+                if (!titlesSet.Add(d.Title)) 
+                {
+                    errors.Add($"В передаваемых событиях название не должно повторяться: {d.Title}");
+                }
+            }
+            if (errors.Any())
+            {
+                var modelState = new ModelStateDictionary();
+                foreach (var error in errors)
+                { 
+                    modelState.AddModelError("", error); // пустой ключ = общая ошибка модели
+                }
+                context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Ошибка валидации входных данных"
+                });
+            }
+
+
+        }
     }
 
     /// <summary>

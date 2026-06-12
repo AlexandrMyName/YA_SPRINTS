@@ -17,4 +17,5 @@ public interface IRepository<T> where T : class, IEntity
     Task<IResultEntity<T>> DeleteAsync(Guid id);
 
     bool IsExisted(Guid id);
+    bool IsExistedByTitle(string name);
 }
