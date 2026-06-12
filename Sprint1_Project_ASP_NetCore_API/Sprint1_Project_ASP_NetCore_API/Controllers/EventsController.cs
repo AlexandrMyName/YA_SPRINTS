@@ -89,7 +89,7 @@ public class EventsController : ControllerBase
             var result = await _eventsService.AddAsync(dto);
             if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
 
-            return Ok(result?.Message ?? "");
+            return StatusCode(201, result?.Message ?? "");
         }
         catch (Exception ex)
         {
@@ -121,8 +121,7 @@ public class EventsController : ControllerBase
              
             var result = await _eventsService.AddRangeAsync(dtos); 
             if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
-
-            return Ok(result?.Message ?? "");
+            return StatusCode(201, result?.Message ?? "");
         } 
         catch (Exception ex)
         {
