@@ -3,80 +3,36 @@
   "WorkspaceRootPath": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\controllers\\productscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\controllers\\eventscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\controllers\\eventscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\swaggergen_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\swaggergen_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\services\\dataservices\\eventsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\services\\dataservices\\eventsservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\filters\\validateinputmodelattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\filters\\validateinputmodelattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\repositories\\baseinmemoryrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\repositories\\baseinmemoryrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\repositories\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\repositories\\irepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\services\\idatastorageservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\services\\idatastorageservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\dtos\\apibaseresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\dtos\\apibaseresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\configurelogfilterattrib_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\configurelogfilterattrib_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\configurecontrollerswithcacheprofiles_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\configurecontrollerswithcacheprofiles_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\filters\\logfilterattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\filters\\logfilterattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\controllers\\configcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\controllers\\configcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\httploggermiddlewareextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\httploggermiddlewareextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\configurecors_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\configurations\\configurecors_ext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\endpoints\\productsendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\endpoints\\productsendpoints.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\requestloggingmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\requestloggingmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\extentions\\requesttimemiddlewareextention.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\extentions\\requesttimemiddlewareextention.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\sprint1_project_asp_netcore_api\\sprint1_project_asp_netcore_api\\middlewares\\requesttimingmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj|solutionrelative:sprint1_project_asp_netcore_api\\middlewares\\requesttimingmiddleware.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -86,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -95,249 +51,99 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "SwaggerGen_Ext.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\SwaggerGen_Ext.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\SwaggerGen_Ext.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\SwaggerGen_Ext.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\SwaggerGen_Ext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwBAAAAAqAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T05:30:52.164Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "UsersController.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\UsersController.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Controllers\\UsersController.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\UsersController.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Controllers\\UsersController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.554Z",
+              "Title": "Sprint1_Project_ASP_NetCore_API",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-06-12T14:39:57.84Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Program.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Program.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Program.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Program.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAwwB0AAAAvAAAAAAAAAA==",
+              "Title": "EventsService.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Services\\DataServices\\EventsService.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Services\\DataServices\\EventsService.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Services\\DataServices\\EventsService.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Services\\DataServices\\EventsService.cs",
+              "ViewState": "AgIAAGQAAAAAAAAAAAAIwIIAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.534Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-12T14:14:24.585Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IRepository.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Repositories\\IRepository.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Repositories\\IRepository.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Repositories\\IRepository.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Repositories\\IRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-12T14:14:12.808Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "IDataStorageService.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Services\\IDataStorageService.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Services\\IDataStorageService.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Services\\IDataStorageService.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Services\\IDataStorageService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-12T14:13:56.308Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ProductsController.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\ProductsController.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Controllers\\ProductsController.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\ProductsController.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Controllers\\ProductsController.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABMAAAAiAAAAAAAAAA==",
+              "Title": "EventsController.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAmwG0AAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.559Z",
+              "WhenOpened": "2026-06-12T11:21:52.709Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "ApiBaseResult.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Dtos\\ApiBaseResult.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Dtos\\ApiBaseResult.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Dtos\\ApiBaseResult.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Dtos\\ApiBaseResult.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAjAAAAAAAAAA==",
+              "Title": "ValidateInputModelAttribute.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Filters\\ValidateInputModelAttribute.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Filters\\ValidateInputModelAttribute.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Filters\\ValidateInputModelAttribute.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Filters\\ValidateInputModelAttribute.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEcAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-10T05:35:26.7Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Sprint1_Project_ASP_NetCore_API.csproj",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAiAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-06-05T06:19:38.66Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-12T11:40:15.406Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
-              "Title": "ConfigureLogFilterAttrib_Ext.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureLogFilterAttrib_Ext.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureLogFilterAttrib_Ext.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureLogFilterAttrib_Ext.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureLogFilterAttrib_Ext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAA0AAAAAAAAAA==",
+              "Title": "BaseInMemoryRepository.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Repositories\\BaseInMemoryRepository.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Repositories\\BaseInMemoryRepository.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Repositories\\BaseInMemoryRepository.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Repositories\\BaseInMemoryRepository.cs",
+              "ViewState": "AgIAAFwAAAAAAAAAAAAuwJQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.534Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "LogFilterAttribute.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Filters\\LogFilterAttribute.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Filters\\LogFilterAttribute.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Filters\\LogFilterAttribute.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Filters\\LogFilterAttribute.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.558Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "Sprint1_Project_ASP_NetCore_API.http",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.http",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.http",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.http",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API.http",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
-              "WhenOpened": "2026-06-05T05:51:45.562Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-12T14:14:26.722Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 7,
-              "Title": "ConfigureControllersWithCacheProfiles_Ext.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureControllersWithCacheProfiles_Ext.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureControllersWithCacheProfiles_Ext.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureControllersWithCacheProfiles_Ext.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureControllersWithCacheProfiles_Ext.cs",
-              "ViewState": "AgIAAB8AAAAAAAAAAAAuwDsAAAAAAAAAAAAAAA==",
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Program.cs",
+              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Program.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Program.cs",
+              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Program.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.477Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\appsettings.json",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\appsettings.json",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\appsettings.json",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAnAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-06-05T05:51:45.57Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "RequestLoggingMiddleware.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestLoggingMiddleware.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestLoggingMiddleware.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestLoggingMiddleware.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestLoggingMiddleware.cs",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAQwB0AAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.549Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "ConfigController.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\ConfigController.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Controllers\\ConfigController.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\ConfigController.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Controllers\\ConfigController.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAowCwAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T06:22:38.843Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "HttpLoggerMiddlewareExtensions.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\HttpLoggerMiddlewareExtensions.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\HttpLoggerMiddlewareExtensions.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\HttpLoggerMiddlewareExtensions.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\HttpLoggerMiddlewareExtensions.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.552Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "ConfigureCors_Ext.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureCors_Ext.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureCors_Ext.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureCors_Ext.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Configurations\\ConfigureCors_Ext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.529Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "ProductsEndpoints.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Endpoints\\ProductsEndpoints.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Endpoints\\ProductsEndpoints.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Endpoints\\ProductsEndpoints.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\Endpoints\\ProductsEndpoints.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAA1AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.555Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "WeatherForecastController.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\WeatherForecastController.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Controllers\\WeatherForecastController.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Controllers\\WeatherForecastController.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Controllers\\WeatherForecastController.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAAwBQAAAAuAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.565Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "RequestTimeMiddlewareExtention.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\RequestTimeMiddlewareExtention.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\RequestTimeMiddlewareExtention.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\RequestTimeMiddlewareExtention.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\Extentions\\RequestTimeMiddlewareExtention.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAABAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.568Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "RequestTimingMiddleware.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestTimingMiddleware.cs",
-              "RelativeDocumentMoniker": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestTimingMiddleware.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Sprint1_Project_ASP_NetCore_API\\Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestTimingMiddleware.cs",
-              "RelativeToolTip": "Sprint1_Project_ASP_NetCore_API\\Middlewares\\RequestTimingMiddleware.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-05T05:51:45.572Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-10T16:32:54.58Z"
             }
           ]
         }

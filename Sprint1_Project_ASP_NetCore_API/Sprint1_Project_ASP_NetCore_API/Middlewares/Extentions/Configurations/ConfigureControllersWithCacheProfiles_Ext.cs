@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Sprint1_Project_ASP_NetCore_API.Filters;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
@@ -6,12 +7,20 @@ namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 
 public static class ConfigureControllersWithCacheProfiles_Ext
 {
-
-    public static IServiceCollection AddControllersWithCacheProfiles(this IServiceCollection services)
+    /// <summary>
+    /// Добавляет поддержку контроллеров с настройками кеширования 
+    /// и автоматической валидацией входных и выходных данных
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddControllersWithCacheAndValidation(this IServiceCollection services)
     { 
 
         services.AddControllers(options =>
         {
+           
+            options.Filters.Add<ValidateInputModelAttribute>(); // Кастомный Middleware валидации входящих и исходящих данных
+
             // Определяем профили кеширования
             options.CacheProfiles.Add("Default", new CacheProfile
             {
@@ -32,7 +41,7 @@ public static class ConfigureControllersWithCacheProfiles_Ext
                 VaryByHeader = "Accept-Language"
             });
         }).ConfigureApiBehaviorOptions(options =>
-        {
+        { 
             // Эта опция отключает автоматическую проверку валидации 
             options.SuppressModelStateInvalidFilter = true;
 

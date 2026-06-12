@@ -4,57 +4,191 @@
         <name>Sprint1_Project_ASP_NetCore_API</name>
     </assembly>
     <members>
-        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.ProductsController.GetAll(System.Int32)">
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.Get(System.Guid)">
             <summary>
-            Метод возвращает список продуктов
+            Метод возвращает событие по идентификатору
             </summary>
-            <param name="index">Параметр индекса, для получения номера здания</param>
-            <response code="200">Возвращается JSON-структура ApiBaseResult с деталями ответа
+            <param name="index">Параметр индекса, для получения события</param>
+            <response code="200">Возвращается JSON-структура с деталями ответа
             и HTTP статус-кодом 200 Ok в случае успеха</response>
         </member>
-        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.UsersController.GetAll">
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.GetAll">
             <summary>
-            ТЕСТ 1
+            Метод возвращает список всех событий
+            </summary>  
+            <response code="200">Возвращается JSON-структура ApiResult с деталями ответа
+            и HTTP статус-кодом 200 Ok в случае успеха</response>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.Create(System.Guid,Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto)">
+            <summary>
+            Метод добавляет событие
+            </summary>  
+            <response code="200">Возвращается JSON-структура ApiResult
+            и HTTP статус-кодом 200 Created в случае успеха</response>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.CreateRange(System.Collections.Generic.IEnumerable{Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto})">
+            <summary>
+            Метод добавляет - коллекцию событий
+            </summary>  
+            <response code="201">Возвращается JSON-структура ApiResult
+            и HTTP статус-кодом 201 Created в случае успеха</response>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.UpdateRange(System.Collections.Generic.IEnumerable{Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto})">
+            <summary>
+            Метод обновляет список - коллекция событий
+            </summary>  
+            <response code="200">Возвращается JSON-структура ApiResult
+            и HTTP статус-кодом 200 Created в случае успеха</response>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.Update(System.Guid,Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto)">
+            <summary>
+            Метод обновляет событие
+            </summary>  
+            <response code="200">Возвращается JSON-структура ApiResult
+            и HTTP статус-кодом 200 Created в случае успеха</response>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Controllers.EventsController.Delete(System.Guid)">
+            <summary>
+            Метод удаляет событие
+            </summary>  
+            <response code="200">Возвращается JSON-структура ApiResult
+            и HTTP статус-кодом 200 Created в случае успеха</response>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Data.Dtos.IApiResult">
+            <summary>
+            Базовый интерфейс для работы с ApiResult
+            </summary>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.IApiResult.GetData">
+            <summary>
+            Получить прикреплённые данные
             </summary>
             <returns></returns>
         </member>
-        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.Success">
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiBaseResult.Success">
             <summary>
             Флаг, указывающий на успешность выполненного запроса
             </summary>
         </member>
-        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.StatusCode">
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiBaseResult.StatusCode">
             <summary>
             Возвращаемый HTTP-код
             </summary>
         </member>
-        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.DateTime">
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiBaseResult.DateTime">
             <summary>
             Дата и время ответа
             </summary>
         </member>
-        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiBaseResult.Message">
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiBaseResult.Message">
             <summary>
             Кастомное сообщение с дополнительной информацией
             Здесь может быть информация об ошибке в случае неуспеха
             </summary>
         </member>
-        <member name="P:Sprint1_Project_ASP_NetCore_API.Dtos.ApiResult`1.Data">
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiBaseResult.GetData">
+            <summary>
+            Получить прикреплённые данные
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult`1.Data">
             <summary>
             Возвращаемые данные метода
+            </summary> 
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult`1.GetData">
+            <summary>
+            Получить прикреплённые данные  
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult`1.Ok``1(``0,System.String)">
+            <summary>
+            OK - 200
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult`1.Created``1(``0)">
+            <summary>
+            Created - 201
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult`1.NotFound``1(System.String)">
+            <summary>
+            NotFounded - 404
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult`1.ServerError``1(System.String)">
+            <summary>
+            Internal Server Error - 500
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto">
+            <summary>
+            Модель для Entity (DTO) -> EventDto
             </summary>
         </member>
-        <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations.ConfigureLogFilterAttrib_Ext.AddLogFilterAttrib(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+        <member name="P:Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto.Description">
             <summary>
-            Добавляет фильтр 
+            Описание  
+            </summary>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute">
+            <summary>
+            ActionFilter - Валидация входных и выходных данных
+            </summary>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            Валидация входных данных
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
+            <summary>
+            Валидация выходных данных
+            </summary>
+            <param name="context"></param>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations.ConfigureControllersWithCacheProfiles_Ext.AddControllersWithCacheAndValidation(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Добавляет поддержку контроллеров с настройками кеширования 
+            и автоматической валидацией входных и выходных данных
             </summary>
             <param name="services"></param>
             <returns></returns>
         </member>
-        <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.HttpLoggerMiddlewareExtensions.UseHttpLogger(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Repositories.Extenions.AddRepositoryExtention.AddRepositories(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
-            Добавляет RequestLoggingMiddleware в конвейер обработки запросов
+            Добавляет репозитории в контейнер зависимостей
             </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Sprint1_Project_ASP_NetCore_API.Services.Extentions.AddServicesExtention.AddServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Добавляет сервисы в контейнер зависимостей
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Sprint1_Project_ASP_NetCore_API.Services.IDataStorageService`1">
+            <summary>
+            Интерфейс для сервиса взаимодействия с данными 
+            </summary>
+            <typeparam name="T"></typeparam>
         </member>
     </members>
 </doc>
