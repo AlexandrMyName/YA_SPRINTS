@@ -1,15 +1,5 @@
 [
   {
-    "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.ConfigController",
-    "Method": "GetSettings",
-    "RelativePath": "api/Config/settings",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.EventsController",
     "Method": "GetAll",
     "RelativePath": "api/v1/Events",
@@ -24,30 +14,6 @@
           "application/json"
         ],
         "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.EventsController",
-    "Method": "CreateRange",
-    "RelativePath": "api/v1/Events",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "dtos",
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, Sprint1_Project_ASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult",
-        "MediaTypes": [
-          "application/json"
-        ],
-        "StatusCode": 201
       }
     ]
   },
@@ -178,6 +144,30 @@
           "application/json"
         ],
         "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Sprint1_Project_ASP_NetCore_API.Controllers.EventsController",
+    "Method": "CreateRange",
+    "RelativePath": "api/v1/Events/range",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dtos",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, Sprint1_Project_ASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 201
       }
     ]
   }

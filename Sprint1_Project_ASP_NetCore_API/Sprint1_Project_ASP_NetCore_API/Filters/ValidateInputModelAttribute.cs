@@ -1,8 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Filters;
@@ -28,6 +31,24 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
                 Title = "Ошибка валидации входных данных"
             };
             context.Result = new BadRequestObjectResult(problem);
+            return;
+        }
+         
+        // Дополнительная бизнес-валидация для EventDto
+        var dto = context.ActionArguments.Values.OfType<EventDto>().FirstOrDefault();
+        if (dto != null && dto.StartAt >= dto.EndAt)
+        {
+            var error = new ValidationResult(
+                "Дата начала не может быть позже или равна дате окончания",
+                new[] { nameof(dto.StartAt), nameof(dto.EndAt) }
+            );
+            var modelState = new ModelStateDictionary();
+            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
+            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Ошибка валидации входных данных"
+            });
         }
     }
 
@@ -40,9 +61,9 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
 
         if (context.Exception != null || context.Result == null) return;
          
-        if (context.Result is IApiResult objectResult)
+        if (context.Result is ObjectResult objectResult)
         {
-            var responseData = objectResult.GetData();
+            var responseData = objectResult.Value;
             var errors = new List<ValidationResult?>();
 
             // Валидация всех свойств объекта через рефлексию
@@ -60,6 +81,21 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
     {
 
         if (obj == null) return;
+
+
+        if (obj is EventDto eventDto)
+        {
+
+            if (eventDto.StartAt >= eventDto.EndAt)
+            {
+                errors.Add(new ValidationResult(
+                        "Дата начала не может быть позже или равна дате окончания",
+                        new[] { nameof(eventDto.StartAt), nameof(eventDto.EndAt) }
+                    ));
+                // Тут нужна ошибка
+            }
+        }
+        else return;
 
         var type = obj.GetType();
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);

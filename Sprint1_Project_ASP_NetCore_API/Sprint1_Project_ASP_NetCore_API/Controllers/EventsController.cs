@@ -1,6 +1,7 @@
 ﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
 using Sprint1_Project_ASP_NetCore_API.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -33,18 +34,16 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult<EventDto>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet("{index:guid}")] 
-    public async Task<ApiResult<EventDto>> Get([FromRoute] Guid index)
+    public async Task<IActionResult> Get([FromRoute] Guid index)
     {
         try
         {
-            var eventDto = await _eventsService.GetByIdAsync(index);
-            return eventDto.IsSuccesfuly ? ApiResult<EventDto>.Ok(eventDto?.Data ?? new EventDto()
-            { Title = "", EndAt = default, StartAt = default, Id = default}, eventDto?.Message ?? "")
-            : ApiResult<EventDto>.NotFound<EventDto>(eventDto.Reason ?? "");
+            var eventDto = await _eventsService.GetByIdAsync(index); 
+            return eventDto.IsSuccesfuly ? Ok(eventDto.Data) : NotFound(eventDto.Reason);
         }
         catch (Exception ex) {
-            return ApiResult<EventDto>.ServerError<EventDto>(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR"); 
-        }  
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR"); 
+        }   
     }
      
     /// <summary>
@@ -55,17 +54,16 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult<IEnumerable<EventDto>>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet] 
-    public async Task<ApiResult<IEnumerable<EventDto>>> GetAll()
+    public async Task<IActionResult> GetAll()
     {
         try
         {
-            var eventDtos = await _eventsService.GetAllAsync();
-            return ApiResult<IEnumerable<EventDto>>.Ok(eventDtos, "Получено элементов: " + eventDtos.Count().ToString()); 
+            var eventDtos = await _eventsService.GetAllAsync(); 
+            return Ok(eventDtos); 
         }
         catch (Exception ex)
         {
-            return ApiResult<IEnumerable<EventDto>>
-                .ServerError<IEnumerable<EventDto>>(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
         }
     }
 
@@ -77,23 +75,25 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status201Created)]
     [Produces("application/json")]
     [HttpPost("{index:guid}")]
-    public async Task<ApiResult> Create([FromRoute] Guid index, [FromBody] EventDto dto)
+    public async Task<IActionResult> Create([FromRoute] Guid index, [FromBody] EventDto dto)
     {
         try
         {
             dto.Id = index;
             if (_eventsService.IsExisted(index))
             {
-                return ApiResult.Fail("Уже существует указанная сущность");
+                return Conflict("Уже существует сущность c таким идентификатором");
             }
 
-            var result = await _eventsService.AddAsync(dto);
 
-            return result.IsSuccesfuly ? ApiResult.Created(result?.Message ?? "") : ApiResult.NotFound(result.Reason ?? "");
+            var result = await _eventsService.AddAsync(dto);
+            if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+
+            return Ok(result?.Message ?? "");
         }
         catch (Exception ex)
         {
-            return ApiResult.ServerError(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
         }
     }
 
@@ -104,32 +104,24 @@ public class EventsController : ControllerBase
     /// и HTTP статус-кодом 201 Created в случае успеха</response>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status201Created)]
     [Produces("application/json")]
-    [HttpPost]
-    public async Task<ApiResult> CreateRange([FromBody] IEnumerable<EventDto> dtos)
+    [HttpPost("range")]
+    public async Task<IActionResult> CreateRange([FromBody] IEnumerable<EventDto> dtos)
     {
         try
-        {
-            List<string> existedEvents = new(0);
-
+        { 
             foreach (var d in dtos) {
-                if (_eventsService.IsExisted(d.Id))
-                {
-                    existedEvents.Add($"{d.Id}:{d.Title}");
-                }
+                d.Id = Guid.NewGuid();
+                while (_eventsService.IsExisted(d.Id)) d.Id = Guid.NewGuid(); 
             }
+             
+            var result = await _eventsService.AddRangeAsync(dtos); 
+            if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
 
-            if (existedEvents.Count > 0)
-            {
-                return ApiResult.Fail("Уже существуют указанные сущности: " + string.Join(", ", existedEvents));
-            }
-
-            var result = await _eventsService.AddRangeAsync(dtos);
-
-            return result.IsSuccesfuly ? ApiResult.Created(result?.Message ?? "") : ApiResult.NotFound(result.Reason ?? "");
+            return Ok(result?.Message ?? "");
         } 
         catch (Exception ex)
         {
-            return ApiResult.ServerError(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
         }
     }
 
@@ -142,7 +134,7 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpPut]
-    public async Task<ApiResult> UpdateRange([FromBody] IEnumerable<EventDto> dtos)
+    public async Task<IActionResult> UpdateRange([FromBody] IEnumerable<EventDto> dtos)
     {
         try
         { 
@@ -158,16 +150,17 @@ public class EventsController : ControllerBase
 
             if (notExistedEvents.Count > 0)
             {
-                return ApiResult.Fail("Не существуют указанные сущности: " + string.Join(", ", notExistedEvents));
+                return NotFound("Не существуют указанные сущности: " + string.Join(", ", notExistedEvents));
             }
 
             var result = await _eventsService.UpdateRangeAsync(dtos);
+            if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
 
-            return result.IsSuccesfuly ? ApiResult.Ok(result?.Message ?? "") : ApiResult.NotFound(result.Reason ?? "");
+            return Ok(result?.Message ?? "");
         }
         catch (Exception ex)
         {
-            return ApiResult.ServerError(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
         }
     }
      
@@ -179,23 +172,24 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpPut("{index:guid}")]
-    public async Task<ApiResult> Update([FromRoute] Guid index, [FromBody] EventDto dto)
+    public async Task<IActionResult> Update([FromRoute] Guid index, [FromBody] EventDto dto)
     {
         try
         {
             dto.Id = index;
             if (!_eventsService.IsExisted(index))
             {
-                return ApiResult.Fail("Не существует указанная сущность");
+                return NotFound("Не существует указанная сущность");
             }
              
             var result = await _eventsService.UpdateAsync(dto);
+            if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
 
-            return result.IsSuccesfuly ? ApiResult.Ok(result?.Message ?? "") : ApiResult.NotFound(result.Reason ?? "");
+            return Ok(result?.Message ?? "");
         }
         catch (Exception ex)
         {
-            return ApiResult.ServerError(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
         }
     }
      
@@ -207,21 +201,20 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpDelete("{index:guid}")]
-    public async Task<ApiResult> Delete([FromRoute] Guid index)
+    public async Task<IActionResult> Delete([FromRoute] Guid index)
     {
         try
         { 
-            if (!_eventsService.IsExisted(index))
-            {
-                return ApiResult.Fail("Не существует указанная сущность");
-            }
-
+            if (!_eventsService.IsExisted(index)) return NotFound("Не существует указанная сущность");
+          
             var result = await _eventsService.DeleteAsync(index); 
-            return result.IsSuccesfuly ? ApiResult.Ok(result?.Message ?? "") : ApiResult.NotFound(result.Reason ?? "");
+            if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось удалить");
+
+            return Ok(result?.Message ?? "");
         }
         catch (Exception ex)
         {
-            return ApiResult.ServerError(_environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
         }
     }
 
