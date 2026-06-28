@@ -9,7 +9,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult\u00601[[System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, Sprint1_Project_ASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Type": "Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult\u00601[[System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, SprintASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "MediaTypes": [
           "application/json"
         ],
@@ -27,7 +27,7 @@
     "Parameters": [
       {
         "Name": "dtos",
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, Sprint1_Project_ASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, SprintASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
@@ -57,7 +57,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, Sprint1_Project_ASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "Sprint1_Project_ASP_NetCore_API.Data.Dtos.ApiResult\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, SprintASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "application/json"
         ],
@@ -157,7 +157,7 @@
     "Parameters": [
       {
         "Name": "dtos",
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, Sprint1_Project_ASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto, SprintASP_NetCore_API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
