@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.7.11903.348 stable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API", "Sprint1_Project_ASP_NetCore_API\SprintASP_NetCore_API.csproj", "{DB076136-062B-4E3C-893A-156820016ACA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API", "Sprints_ASP_NetCore_API\SprintASP_NetCore_API.csproj", "{DB076136-062B-4E3C-893A-156820016ACA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
