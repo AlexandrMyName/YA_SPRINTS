@@ -1,4 +1,4 @@
-# 🚀 YA Sprint One – Event Management API
+# 🚀 YA Sprints – Event Management API
 
 RESTful API для управления событиями. Проект выполнен в рамках учебного спринта.  
 Реализованы базовые CRUD-операции, валидация входных/выходных данных, версионирование, Swagger-документация, in‑memory репозиторий.
@@ -19,7 +19,7 @@ RESTful API для управления событиями. Проект вып�
 
 ### 🛠 Клонирование, сборка и запуск
 - git clone https://github.com/AlexandrMyName/YA_SPRINTS.git
-- cd YA_SPRINTS/sprint-1/Sprint1_Project_ASP_NetCore_API
+- cd YA_SPRINTS/Sprints_Project_ASP_NetCore_API/Sprints_ASP_NetCore_API
 - dotnet restore
 - dotnet build
 - dotnet run
@@ -60,7 +60,7 @@ json
 Рекомендуется использовать Swagger UI (доступен после запуска) или Postman / Insomnia.
  
 ### 📁 Структура проекта (основные папки)
-- `Sprint1_Project_ASP_NetCore_API/`
+- `Sprints_ASP_NetCore_API/`
   - `Controllers/`
   - `Data/`
     - `Dtos/`
