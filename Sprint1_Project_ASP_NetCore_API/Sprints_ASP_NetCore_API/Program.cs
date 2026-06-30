@@ -1,11 +1,12 @@
 ﻿ 
+using Microsoft.AspNetCore.Mvc;
 using Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations; 
 using Sprint1_Project_ASP_NetCore_API.Repositories.Extenions;
 using Sprint1_Project_ASP_NetCore_API.Services.Extentions;
 using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Mvc;
 using System.Linq.Expressions;
 using System.Reflection;
+using YourNamespace.Middleware;
 
 
 [assembly: ApiController] // Все контроллеры будут API 
@@ -85,6 +86,10 @@ namespace Sprint1_Project_ASP_NetCore_API
 
             builder.Services 
                 .AddCorsPolicies() // Конфигурирование политики CORS
+             
+                
+                
+                
                 .AddControllersWithCacheAndValidation() // Конфигурирование контроллеров с профилями кеширований и валидацией (ActionFilter)
                 .AddEndpointsApiExplorer()   // Тестовые ендпоинты (minimal API) -> пока отключил
                 .AddSwaggerGenWithDocumentation()  // Нужен для генерации метаданных Ыдля Swagger/Open Api 
@@ -94,12 +99,16 @@ namespace Sprint1_Project_ASP_NetCore_API
                 .AddServices(); // Добавляет сервисы в контейнер зависимостей
 
             var app = builder.Build();
+
             
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(opt => {  });
+
+                app.UseMiddleware<GlobalExceptionMiddleware>();
+
                 app.UseCors($"{CorsPoliticType.AllowAll}");
 
                 builder.Host.UseDefaultServiceProvider(options =>

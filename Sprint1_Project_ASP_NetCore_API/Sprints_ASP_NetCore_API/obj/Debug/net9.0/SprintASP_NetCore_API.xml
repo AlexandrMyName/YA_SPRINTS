@@ -154,13 +154,11 @@
             <summary>
             Валидация входных данных
             </summary>
-            <param name="context"></param>
         </member>
         <member name="M:Sprint1_Project_ASP_NetCore_API.Filters.ValidateInputModelAttribute.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
             <summary>
             Валидация выходных данных
             </summary>
-            <param name="context"></param>
         </member>
         <member name="M:Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations.ConfigureControllersWithCacheProfiles_Ext.AddControllersWithCacheAndValidation(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>

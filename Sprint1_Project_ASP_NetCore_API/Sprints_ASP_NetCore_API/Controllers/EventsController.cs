@@ -56,6 +56,7 @@ public class EventsController : ControllerBase
     [HttpGet] 
     public async Task<IActionResult> GetAll()
     {
+        throw new Exception("ОШИБКА ФЫВФЫВФЫВ");
         try
         {
             var eventDtos = await _eventsService.GetAllAsync(); 

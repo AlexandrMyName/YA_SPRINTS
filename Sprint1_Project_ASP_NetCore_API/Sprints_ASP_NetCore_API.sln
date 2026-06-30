@@ -1,9 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 18
-VisualStudioVersion = 18.7.11903.348 stable
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36717.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API", "Sprints_ASP_NetCore_API\SprintASP_NetCore_API.csproj", "{DB076136-062B-4E3C-893A-156820016ACA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{4283838A-3679-47D5-8B02-158C9553E52F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DynamicLibs", "DynamicLibs", "{36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "reflectionPropertyAccessor_Lib", "reflectionPropertyAccessor_Lib\reflectionPropertyAccessor_Lib.csproj", "{C6E4DE67-5FED-4970-AAD6-6391158FB182}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "queryBuilder_Lib", "queryBuilder_Lib\queryBuilder_Lib.csproj", "{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dataBase_autoMigration_Lib", "dataBase_autoMigration_Lib\dataBase_autoMigration_Lib.csproj", "{88791357-E078-418F-92EF-0FE0B2B45A13}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +25,30 @@ Global
 		{DB076136-062B-4E3C-893A-156820016ACA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB076136-062B-4E3C-893A-156820016ACA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB076136-062B-4E3C-893A-156820016ACA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4283838A-3679-47D5-8B02-158C9553E52F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4283838A-3679-47D5-8B02-158C9553E52F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4283838A-3679-47D5-8B02-158C9553E52F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4283838A-3679-47D5-8B02-158C9553E52F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6E4DE67-5FED-4970-AAD6-6391158FB182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6E4DE67-5FED-4970-AAD6-6391158FB182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6E4DE67-5FED-4970-AAD6-6391158FB182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6E4DE67-5FED-4970-AAD6-6391158FB182}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88791357-E078-418F-92EF-0FE0B2B45A13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88791357-E078-418F-92EF-0FE0B2B45A13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88791357-E078-418F-92EF-0FE0B2B45A13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88791357-E078-418F-92EF-0FE0B2B45A13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C6E4DE67-5FED-4970-AAD6-6391158FB182} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
+		{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
+		{88791357-E078-418F-92EF-0FE0B2B45A13} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AEEC30C4-F1E7-4B71-BE22-D28291FC6191}
