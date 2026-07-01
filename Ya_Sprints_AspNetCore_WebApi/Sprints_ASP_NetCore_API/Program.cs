@@ -85,11 +85,7 @@ namespace Sprint1_Project_ASP_NetCore_API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services 
-                .AddCorsPolicies() // Конфигурирование политики CORS
-             
-                
-                
-                
+                .AddCorsPolicies() // Конфигурирование политики CORS 
                 .AddControllersWithCacheAndValidation() // Конфигурирование контроллеров с профилями кеширований и валидацией (ActionFilter)
                 .AddEndpointsApiExplorer()   // Тестовые ендпоинты (minimal API) -> пока отключил
                 .AddSwaggerGenWithDocumentation()  // Нужен для генерации метаданных Ыдля Swagger/Open Api 
@@ -99,20 +95,16 @@ namespace Sprint1_Project_ASP_NetCore_API
                 .AddServices(); // Добавляет сервисы в контейнер зависимостей
 
             var app = builder.Build();
-
-            
+             
             if (app.Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(opt => {  });
-
-                app.UseMiddleware<GlobalExceptionMiddleware>();
-
+                app.UseSwaggerUI(opt => { }); 
+                app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
                 app.UseCors($"{CorsPoliticType.AllowAll}");
 
-                builder.Host.UseDefaultServiceProvider(options =>
-                {
+                builder.Host.UseDefaultServiceProvider(options => {
                     // Проверяет Captive Dependency во время выполнения
                     options.ValidateScopes = true; 
                     // Проверяет корректность всех регистраций при старте приложения

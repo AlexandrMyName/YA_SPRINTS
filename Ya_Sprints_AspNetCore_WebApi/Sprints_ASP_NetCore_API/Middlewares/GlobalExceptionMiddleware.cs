@@ -23,23 +23,17 @@ public class GlobalExceptionMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        try
-        {
-          
-            await _next(context);
-        }
+        try { await _next(context); }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Необработанная ошибка: {Message}", ex.Message);
 
             // Если ответ уже начат – не можем его изменить, только логируем
-            if (context.Response.HasStarted)
-            {
+            if (context.Response.HasStarted){
                 _logger.LogWarning("Невозможно обработать ошибку, так как ответ уже начал передаваться клиенту.");
                 // Завершаем обработку, чтобы не выбросить исключение повторно
                 return;
-            }
-
+            }  
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -60,10 +54,10 @@ public class GlobalExceptionMiddleware
 
         var problemDetails = new
         {
-            Type = "https://tools.ietf.org/html/rfc7807",
-            Title = "Не предвиденная ошибка сервера",
-            Status = statusCode,
-            Detail = exception.Message,
+            Type     = "https://tools.ietf.org/html/rfc7807",
+            Title    = "Не предвиденная ошибка сервера",
+            Status   = statusCode,
+            Detail   = exception.Message,
             Instance = context.Request.Path,
         };
 
