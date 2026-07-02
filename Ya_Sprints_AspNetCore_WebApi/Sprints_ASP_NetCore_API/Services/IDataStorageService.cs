@@ -1,6 +1,8 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+﻿using Microsoft.EntityFrameworkCore.Internal;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprint1_Project_ASP_NetCore_API.Data.Entities;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Services;
@@ -9,10 +11,10 @@ namespace Sprint1_Project_ASP_NetCore_API.Services;
 /// Интерфейс для сервиса взаимодействия с данными 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IDataStorageService<T> where T : class, IEntityDto
-{
-
+public interface IDataStorageService<T> where T : class, IEntityDto  
+{ 
     Task<IEnumerable<T>> GetAllAsync();
+    Task<IEnumerable<T>> GetFilteredAsync(IEntityFilter<T> filter);
     Task<IResultDto<T>> GetByIdAsync(Guid id);
     Task<IResultDto<T>> AddAsync(T item); 
     Task<IResultDto<T>> AddRangeAsync(IEnumerable<T> items); 

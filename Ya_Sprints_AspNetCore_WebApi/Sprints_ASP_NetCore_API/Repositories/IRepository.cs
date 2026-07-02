@@ -1,15 +1,18 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal;
+﻿using Microsoft.EntityFrameworkCore.Internal;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprint1_Project_ASP_NetCore_API.Data.Entities;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Repositories;
 
 
-public interface IRepository<T> where T : class, IEntity 
+public interface IRepository<T> where T : class, IEntity  
 {
 
     Task<IEnumerable<T>>   GetAllAsync();
-    Task<IResultEntity<T>> GetByIdAsync(Guid id);
+    Task<IEnumerable<T>> GetFilteredAsync(IEntityFilter<T> filter);
+    Task<IResultEntity<T>> GetByIdAsync(Guid id); 
     Task<IResultEntity<T>> AddAsync(T item);
     Task<IResultEntity<T>> AddRangeAsync(IEnumerable<T> items);
     Task<IResultEntity<T>> UpdateAsync(T item);

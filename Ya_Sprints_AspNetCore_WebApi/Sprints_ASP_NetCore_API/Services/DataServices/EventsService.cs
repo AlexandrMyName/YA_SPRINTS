@@ -1,8 +1,13 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+﻿using AutoMapper;
+using dynamicQueryBuilder;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprint1_Project_ASP_NetCore_API.Data.Entities;
 using Sprint1_Project_ASP_NetCore_API.Repositories;
-using AutoMapper;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
+using System.Globalization;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
@@ -10,10 +15,10 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
 
    
 
-    public class EventsService : IDataStorageService<EventDto>
+    public class EventsService : IDataStorageService<EventDto, EventFilterDto>
     {
 
-        public EventsService(IServiceScopeFactory scopeFactory, IRepository<IEvent> eventsRepository, ILogger<EventsService> logger, IMapper mapper)
+        public EventsService(IServiceScopeFactory scopeFactory, IRepository<IEvent, IEntityFilter> eventsRepository, ILogger<EventsService> logger, IMapper mapper)
         {
             _scopeFactory = scopeFactory;
             _eventsReposytory = eventsRepository;
@@ -23,7 +28,7 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
 
 
         private readonly IServiceScopeFactory _scopeFactory; // на будущее когда БД появится мб. переместить лучше в репозиторий
-        private readonly IRepository<IEvent> _eventsReposytory;
+        private readonly IRepository<IEvent, IEntityFilter> _eventsReposytory;
         private readonly ILogger<EventsService> _logger;
         private readonly IMapper _mapper;
 
@@ -36,6 +41,18 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
             // действие с Entity (на будущее)
             return events.Select(e=>_mapper.Map<EventDto>(e)).ToList();
         }
+         
+        public async Task<IEnumerable<EventDto>> GetFilteredAsync(EventFilterDto filter)
+        {
+
+            _logger.LogInformation("Запрос с фильтрацией для {Entity}", typeof(EventFilterDto).Name);
+            _logger.LogInformation("Запрос всех событий");
+            var events = await _eventsReposytory.GetFilteredAsync(filter);
+            _logger.LogInformation($"Количество: {events.Count()} данных");
+            // действие с Entity (на будущее)
+            return events.Select(e => _mapper.Map<EventDto>(e)).ToList();
+        }
+
 
         public async Task<IResultDto<EventDto>> GetByIdAsync(Guid id)
         {
@@ -128,6 +145,8 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
 
         public bool IsExisted(Guid id) => _eventsReposytory.IsExisted(id);
 
-        public bool IsExistedByTitle(string name) => _eventsReposytory.IsExistedByTitle(name); 
+        public bool IsExistedByTitle(string name) => _eventsReposytory.IsExistedByTitle(name);
+
+        
     }
 }

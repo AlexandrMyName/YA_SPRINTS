@@ -1,5 +1,6 @@
 ﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprint1_Project_ASP_NetCore_API.Data.Entities;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 
@@ -7,7 +8,7 @@ using System.Security.Cryptography;
 namespace Sprint1_Project_ASP_NetCore_API.Repositories
 {
 
-    public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
+    public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity  
     { 
 
         private ConcurrentDictionary<Guid,T> _items = new(); 
@@ -145,5 +146,14 @@ namespace Sprint1_Project_ASP_NetCore_API.Repositories
             }
             return false;
         }
+
+        
+        public Task<IEnumerable<T>> GetFilteredAsync(IEntityFilter<T> filter)
+        { 
+            var query = filter.Apply(_items.Values.AsQueryable<T>());
+            var result = query.ToList(); // или .ToArray()
+            return Task.FromResult(result.AsEnumerable());
+        }
+             
     }
 }

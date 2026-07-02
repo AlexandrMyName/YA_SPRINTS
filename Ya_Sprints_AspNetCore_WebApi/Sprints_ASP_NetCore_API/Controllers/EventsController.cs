@@ -1,8 +1,11 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
-using Sprint1_Project_ASP_NetCore_API.Services;
+﻿using dynamicQueryBuilder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
+using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using Sprint1_Project_ASP_NetCore_API.Services;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Controllers;
@@ -54,12 +57,29 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult<IEnumerable<EventDto>>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet] 
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] EventFilterDto? filter = null)
     {
-        throw new Exception("ОШИБКА ФЫВФЫВФЫВ");
+
         try
         {
-            var eventDtos = await _eventsService.GetAllAsync(); 
+            var eventDtos = await _eventsService.GetAllAsync();
+            if (filter != null)
+            {
+
+                IEnumerable<EventDto> filteredDatas = eventDtos;
+                DynamicQueryBuilder<EventDto>.ApplyFilter(filteredDatas,)
+                if (filter.From.HasValue)
+                    filteredDatas = filteredDatas.Where(x => x.StartAt >= filter.From.Value);
+
+                if (filter.To.HasValue)
+                    filteredDatas = filteredDatas.Where(x => x.EndAt <= filter.To.Value);
+
+                if (!string.IsNullOrEmpty(filter.Title))
+                    filteredDatas = filteredDatas.Where(x => x.Title != null && x.Title.Contains(filter.Title));
+
+
+
+            }
             return Ok(eventDtos); 
         }
         catch (Exception ex)

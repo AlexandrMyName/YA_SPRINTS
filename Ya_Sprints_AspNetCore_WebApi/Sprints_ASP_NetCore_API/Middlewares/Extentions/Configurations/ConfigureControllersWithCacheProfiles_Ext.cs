@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Sprint1_Project_ASP_NetCore_API.Filters;
+using SprintASP_NetCore_API.Filters.ActionFilters;
 
 
 namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;

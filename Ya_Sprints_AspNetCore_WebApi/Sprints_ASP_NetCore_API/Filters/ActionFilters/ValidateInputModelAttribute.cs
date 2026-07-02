@@ -7,7 +7,9 @@ using reflectionPropertyAccessor_Lib;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections;
 
-namespace Sprint1_Project_ASP_NetCore_API.Filters;
+
+namespace SprintASP_NetCore_API.Filters.ActionFilters;
+
 
 /// <summary>
 /// ActionFilter - Валидация входных и выходных данных
@@ -20,6 +22,7 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
     /// </summary>
     public override void OnActionExecuting(ActionExecutingContext context)
     {
+
         // 1. Стандартная валидация ModelState
         if (!context.ModelState.IsValid)
         {
@@ -44,13 +47,13 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
         var collectionDtos = context.ActionArguments.Values.OfType<IEnumerable<EventDto>>().FirstOrDefault();
         if (collectionDtos != null)
         {
-            if (!CheckInputData_EventDtos(context, collectionDtos))
-                return;
+            if (!CheckInputData_EventDtos(context, collectionDtos)) return;
         }
     }
 
     private static bool CheckInputData_EventDtos(ActionExecutingContext context, IEnumerable<EventDto>? dtos)
     {
+
         if (dtos == null) return true;
 
         var errors = new List<string>();
@@ -113,6 +116,7 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
     /// </summary>
     public override void OnActionExecuted(ActionExecutedContext context)
     {
+
         if (context.Exception != null || context.Result == null)
             return;
 
@@ -126,15 +130,11 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             {
                 foreach (var item in enumerable)
                 {
-                    if (item != null)
-                        ValidatorHelper.ValidateObjectRecursive(item, errors);
+                    if (item != null) ValidatorHelper.ValidateObjectRecursive(item, errors);
                 }
             }
-            else
-            {
-                ValidatorHelper.ValidateObjectRecursive(responseData, errors);
-            }
-
+            else ValidatorHelper.ValidateObjectRecursive(responseData, errors);
+            
             if (errors.Any())
             {
                 var errorMessages = errors
@@ -147,6 +147,8 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
         }
     }
 
+
+    [Obsolete("Логика перенесена в ValidatorHelper")]
     private void ValidateObjectRecursive(object obj, List<ValidationResult?> errors, string propertyPath = "")
         => ValidatorHelper.ValidateObjectRecursive(obj, errors, propertyPath);
 }

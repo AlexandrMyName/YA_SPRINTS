@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Sprint1_Project_ASP_NetCore_API.Filters
+namespace SprintASP_NetCore_API.Filters.ActionFilters
 {
     public class LogFilterAttribute : ActionFilterAttribute
     {
