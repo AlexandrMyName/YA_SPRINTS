@@ -36,7 +36,7 @@ RESTful API для управления событиями. Проект вып�
 
 ```bash
 git clone https://github.com/AlexandrMyName/YA_SPRINTS.git
-cd YA_SPRINTS/Sprints_Project_ASP_NetCore_API/Sprints_ASP_NetCore_API
+cd YA_SPRINTS/Ya_Sprints_AspNetCore_WebApi
 dotnet restore
 dotnet build
 dotnet run
@@ -334,83 +334,6 @@ Ya_Sprints_AspNetCore_WebApi/
 ```
 ---
 
-### 🔍 Ключевые зависимости и взаимодействия
-```
- ```mermaid
-graph TB
-    subgraph Presentation["🎨 Presentation Layer"]
-        A[EventsController]
-        B[ValidateInputModelAttribute]
-        C[GlobalExceptionMiddleware]
-        D[LogFilterAttribute]
-    end
-    
-    subgraph Business["⚙️ Business Layer"]
-        E[EventsService]
-        F[IDataStorageService]
-        G[IMapper]
-    end
-    
-    subgraph Data["💾 Data Layer"]
-        H[IRepository]
-        I[BaseInMemoryRepository]
-        J[IQueryable]
-    end
-    
-    subgraph DTO["📦 DTO Layer"]
-        K[EventDto]
-        L[EventFilterDto]
-        M[PaginatedResult]
-        N[IEntityFilter]
-    end
-    
-    subgraph Libraries["📚 Own Libraries"]
-        O[queryBuilder_Lib]
-        P[reflectionPropertyAccessor_Lib]
-        Q[dataBase_autoMigration_Lib]
-    end
-    
-    subgraph Validation["✅ Validation"]
-        R[ValidatorHelper]
-        S[ModelState]
-    end
-    
-    %% Связи
-    A -->|HTTP Request| E
-    E -->|GetQueryAsync| H
-    H -->|returns| I
-    I -->|returns| J
-    E -->|Map| G
-    G -->|maps| K
-    E -->|Apply| L
-    E -->|returns| M
-    
-    %% Фильтры и Middleware
-    A -.->|Before Action| B
-    A -.->|After Action| B
-    A -.->|Global| C
-    A -.->|Log| D
-    
-    %% Библиотеки
-    E -->|uses| O
-    B -->|uses| P
-    E -->|uses| P
-    O -->|builds| J
-    P -->|optimizes| B
-    P -->|optimizes| O
-    
-    %% Валидация
-    B -->|uses| R
-    B -->|checks| S
-    L -->|validates| S
-    K -->|validates| S
-    
-    %% DTO связи
-    E -->|returns| M
-    M -->|contains| K
-    E -->|receives| L
-    L -->|implements| N
-```
 ### 🔄 Поток данных
 ```
 1. HTTP Request
