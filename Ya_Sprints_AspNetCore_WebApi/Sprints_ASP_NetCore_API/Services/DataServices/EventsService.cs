@@ -2,33 +2,38 @@
 using dynamicQueryBuilder;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprint1_Project_ASP_NetCore_API.Data.Entities;
-using Sprint1_Project_ASP_NetCore_API.Repositories;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
+using Sprints_Project_ASP_NetCore_API.Repositories;
+using SprintASP_NetCore_API.Data.Dtos;
+using SprintASP_NetCore_API.Data.Dtos.Filters; 
 using System.Globalization;
 
 
-namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
+namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
 {
 
    
 
-    public class EventsService : IDataStorageService<EventDto, EventFilterDto>
+    public class EventsService : IDataStorageService<EventDto>
     {
 
-        public EventsService(IServiceScopeFactory scopeFactory, IRepository<IEvent, IEntityFilter> eventsRepository, ILogger<EventsService> logger, IMapper mapper)
+        public EventsService(
+            IServiceScopeFactory scopeFactory,
+            IRepository<IEvent> eventsRepository, 
+            ILogger<EventsService> logger, 
+            IMapper mapper)
         {
             _scopeFactory = scopeFactory;
             _eventsReposytory = eventsRepository;
             _logger = logger;
             _mapper = mapper;
         }
-
-
+         
         private readonly IServiceScopeFactory _scopeFactory; // на будущее когда БД появится мб. переместить лучше в репозиторий
-        private readonly IRepository<IEvent, IEntityFilter> _eventsReposytory;
+         
+        private readonly IRepository<IEvent> _eventsReposytory;
         private readonly ILogger<EventsService> _logger;
         private readonly IMapper _mapper;
 
@@ -41,16 +46,51 @@ namespace Sprint1_Project_ASP_NetCore_API.Services.DataServices
             // действие с Entity (на будущее)
             return events.Select(e=>_mapper.Map<EventDto>(e)).ToList();
         }
-         
-        public async Task<IEnumerable<EventDto>> GetFilteredAsync(EventFilterDto filter)
+
+
+        public async Task<PaginatedResult<EventDto>> GetFilteredAsync(IEntityFilter<IEntity> filter)
         {
 
-            _logger.LogInformation("Запрос с фильтрацией для {Entity}", typeof(EventFilterDto).Name);
-            _logger.LogInformation("Запрос всех событий");
-            var events = await _eventsReposytory.GetFilteredAsync(filter);
-            _logger.LogInformation($"Количество: {events.Count()} данных");
-            // действие с Entity (на будущее)
-            return events.Select(e => _mapper.Map<EventDto>(e)).ToList();
+            var filterEvents = filter as EventFilterDto;
+
+            _logger.LogInformation("Запрос с фильтрацией и пагинацией для {Entity}", filterEvents.GetType().Name);
+
+            // Получаем IQueryable
+            var query = await _eventsReposytory.GetQueryAsync();
+
+            // Применяем фильтрацию 
+            var filteredQuery = filter.Apply(query) as IQueryable<IEvent>;
+
+            if (filteredQuery == null)
+            {
+                throw new InvalidOperationException("Не удалось преминить фильтр");
+            }
+
+            // Получаем общее количество (ДО пагинации!)
+            var totalCount = filteredQuery.Count();
+
+            // Применяем пагинацию отдельно
+            if (filterEvents.Page.HasValue && filterEvents.PageSize.HasValue)
+            {
+                filteredQuery = filteredQuery
+                    .Skip((filterEvents.Page.Value - 1) * filterEvents.PageSize.Value)
+                    .Take(filterEvents.PageSize.Value);
+            }
+
+            // Получаем данные
+            var items = filteredQuery.ToList();
+
+            // Маппим в DTO
+            var dtos = items.Select(e => _mapper.Map<EventDto>(e)).ToList();
+
+            _logger.LogInformation($"Возвращено {dtos.Count} элементов из {totalCount}");
+
+            return PaginatedResult<EventDto>.Create(
+                dtos,
+                totalCount,
+                filterEvents.Page ?? 1,
+                filterEvents.PageSize ?? totalCount
+            );
         }
 
 

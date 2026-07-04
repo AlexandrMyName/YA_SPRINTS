@@ -1,8 +1,7 @@
-﻿using Microsoft.OpenApi.Models;
-using Sprint1_Project_ASP_NetCore_API.Filters;
+﻿using Microsoft.OpenApi.Models; 
 using System.Reflection;
 
-namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations
+namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations
 {
     public static class SwaggerGen_Ext
     {

@@ -1,4 +1,4 @@
-﻿namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
+﻿namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Endpoints;
 
 
 public static class ProductsEndpoints

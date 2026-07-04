@@ -1,4 +1,4 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Entities;
+﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
 
 
 namespace SprintASP_NetCore_API.Repositories

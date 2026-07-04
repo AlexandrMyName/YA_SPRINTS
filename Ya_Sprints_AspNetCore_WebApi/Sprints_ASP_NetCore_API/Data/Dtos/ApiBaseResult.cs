@@ -2,7 +2,7 @@
 using System.Net;
 
 
-namespace Sprint1_Project_ASP_NetCore_API.Data.Dtos;
+namespace Sprints_Project_ASP_NetCore_API.Data.Dtos;
 
 /// <summary>
 /// Базовый интерфейс для работы с ApiResult

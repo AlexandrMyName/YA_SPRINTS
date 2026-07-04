@@ -1,7 +1,7 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Entities;
+﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
 
 
-namespace Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal
+namespace Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal
 {
 
 #pragma warning disable
@@ -15,7 +15,7 @@ namespace Sprint1_Project_ASP_NetCore_API.Data.Dtos.Internal
         T? Data { get; }
     }
 
-    public class ResultEntity<T> : IResultEntity<T> where T : class, IEntity
+    public class ResultEntity<T> : IResultEntity<T>  where T : class, IEntity
     {
 
         public static implicit operator bool(ResultEntity<T> resultDto) =>  resultDto.IsSuccesfuly;

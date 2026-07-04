@@ -1,6 +1,6 @@
 ﻿
 
-namespace Sprint1_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
+namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 
 
 public static class ConfigureCors_Ext

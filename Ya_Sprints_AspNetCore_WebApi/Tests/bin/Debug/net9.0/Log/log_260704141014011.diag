@@ -1,0 +1,48 @@
+2026-07-04T14:10:14.0177089+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Version: 1.9.1+cb5afc3bb9bb01ebd75b57f89e8358b914ee2a49
+2026-07-04T14:10:14.0263655+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging mode: asynchronous
+2026-07-04T14:10:14.0273509+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging level: Information
+2026-07-04T14:10:14.0273558+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION CreateBuilderAsync entry time: 14:10:13.996
+2026-07-04T14:10:14.0276839+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION PID: 10316
+2026-07-04T14:10:14.0277313+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime information: win-x64 - .NET 9.0.17
+2026-07-04T14:10:14.0277499+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.17\System.Private.CoreLib.dll
+2026-07-04T14:10:14.0277626+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION IsDynamicCodeSupported: True
+2026-07-04T14:10:14.0278044+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Test module: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Tests.dll
+2026-07-04T14:10:14.0278711+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Command line arguments: '--server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Log --results-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\TestResults --client-port 55832'
+2026-07-04T14:10:14.0289763+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION TESTINGPLATFORM_DEFAULT_HANG_TIMEOUT: ''
+2026-07-04T14:10:14.0428254+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting RegisterEnvironmentVariablesConfigurationSource: 'True'
+2026-07-04T14:10:14.0512228+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting PlatformExitProcessOnUnhandledException: 'False', config file: False environment variable: 
+2026-07-04T14:10:14.4408894+00:00 Microsoft.Testing.Platform.Requests.TestHostTestFrameworkInvoker INFORMATION Test framework UID: '30ea7c6e-dd24-4152-a360-1387158cd41d' Version: '3.2.2' DisplayName: 'xUnit.net v3 Microsoft.Testing.Platform test framework' Description: 'xUnit.net v3 Microsoft.Testing.Platform test framework'
+2026-07-04T14:10:14.4461594+00:00 xUnit.net INFORMATION xUnit.net v3 In-Process Runner v3.2.2+728c1dce01 (64-bit .NET 9.0.17)
+2026-07-04T14:10:14.4683641+00:00 xUnit.net INFORMATION   Discovering: Tests
+2026-07-04T14:10:14.5024737+00:00 xUnit.net INFORMATION   Discovered:  Tests
+2026-07-04T14:10:14.5160595+00:00 xUnit.net INFORMATION   Starting:    Tests
+2026-07-04T14:10:15.6537438+00:00 xUnit.net ERROR     Tests.EventsServiceTests.GetFilteredAsync_WithMultipleFilters_ShouldReturnFilteredEvents [FAIL]
+2026-07-04T14:10:15.6541792+00:00 xUnit.net INFORMATION       System.ArgumentException : Свойство 'From' не найдено в типе IEvent. (Parameter 'propertyName')
+2026-07-04T14:10:15.6543766+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-04T14:10:15.6546550+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\queryBuilder_Lib\DynamicQueryBuilder.cs(75,0): at dynamicQueryBuilder.DynamicQueryBuilder`1.BuildFilter(String propertyName, String operation, Object value)
+2026-07-04T14:10:15.6546726+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\queryBuilder_Lib\DynamicQueryBuilder.cs(124,0): at dynamicQueryBuilder.DynamicQueryBuilder`1.ApplyFilter(IQueryable`1 query, String propertyName, String operation, Object value)
+2026-07-04T14:10:15.6546788+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Data\Dtos\Filters\EventFilterDto.cs(47,0): at SprintASP_NetCore_API.Data.Dtos.Filters.EventFilterDto.Apply(IQueryable`1 query)
+2026-07-04T14:10:15.6546863+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\EventsService.cs(54,0): at Sprint1_Project_ASP_NetCore_API.Services.DataServices.EventsService.GetFilteredAsync(IEntityFilter`1 filter)
+2026-07-04T14:10:15.6546907+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_EventsController.cs(721,0): at Tests.EventsServiceTests.GetFilteredAsync_WithMultipleFilters_ShouldReturnFilteredEvents()
+2026-07-04T14:10:15.6546919+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-04T14:10:15.6553967+00:00 xUnit.net ERROR     Tests.EventsServiceTests.GetFilteredAsync_WithDateToFilter_ShouldReturnEventsBeforeDate [FAIL]
+2026-07-04T14:10:15.6554104+00:00 xUnit.net INFORMATION       System.ArgumentException : Свойство 'To' не найдено в типе IEvent. (Parameter 'propertyName')
+2026-07-04T14:10:15.6554266+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-04T14:10:15.6554363+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\queryBuilder_Lib\DynamicQueryBuilder.cs(75,0): at dynamicQueryBuilder.DynamicQueryBuilder`1.BuildFilter(String propertyName, String operation, Object value)
+2026-07-04T14:10:15.6554438+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\queryBuilder_Lib\DynamicQueryBuilder.cs(124,0): at dynamicQueryBuilder.DynamicQueryBuilder`1.ApplyFilter(IQueryable`1 query, String propertyName, String operation, Object value)
+2026-07-04T14:10:15.6554590+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Data\Dtos\Filters\EventFilterDto.cs(50,0): at SprintASP_NetCore_API.Data.Dtos.Filters.EventFilterDto.Apply(IQueryable`1 query)
+2026-07-04T14:10:15.6554641+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\EventsService.cs(54,0): at Sprint1_Project_ASP_NetCore_API.Services.DataServices.EventsService.GetFilteredAsync(IEntityFilter`1 filter)
+2026-07-04T14:10:15.6554716+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_EventsController.cs(662,0): at Tests.EventsServiceTests.GetFilteredAsync_WithDateToFilter_ShouldReturnEventsBeforeDate()
+2026-07-04T14:10:15.6554723+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-04T14:10:15.7070885+00:00 xUnit.net ERROR     Tests.EventsServiceTests.GetFilteredAsync_WithDateFromFilter_ShouldReturnEventsAfterDate [FAIL]
+2026-07-04T14:10:15.7071508+00:00 xUnit.net INFORMATION       System.ArgumentException : Свойство 'From' не найдено в типе IEvent. (Parameter 'propertyName')
+2026-07-04T14:10:15.7071618+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-04T14:10:15.7071874+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\queryBuilder_Lib\DynamicQueryBuilder.cs(75,0): at dynamicQueryBuilder.DynamicQueryBuilder`1.BuildFilter(String propertyName, String operation, Object value)
+2026-07-04T14:10:15.7072052+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\queryBuilder_Lib\DynamicQueryBuilder.cs(124,0): at dynamicQueryBuilder.DynamicQueryBuilder`1.ApplyFilter(IQueryable`1 query, String propertyName, String operation, Object value)
+2026-07-04T14:10:15.7072156+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Data\Dtos\Filters\EventFilterDto.cs(47,0): at SprintASP_NetCore_API.Data.Dtos.Filters.EventFilterDto.Apply(IQueryable`1 query)
+2026-07-04T14:10:15.7072254+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\EventsService.cs(54,0): at Sprint1_Project_ASP_NetCore_API.Services.DataServices.EventsService.GetFilteredAsync(IEntityFilter`1 filter)
+2026-07-04T14:10:15.7072452+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_EventsController.cs(618,0): at Tests.EventsServiceTests.GetFilteredAsync_WithDateFromFilter_ShouldReturnEventsAfterDate()
+2026-07-04T14:10:15.7072483+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-04T14:10:30.3295756+00:00 xUnit.net INFORMATION   Finished:    Tests (ID = 'f00befc81bdf0d7e7190fb9c365bc44c48b01415aec428e96a9ef62efdb7a4a6')
+2026-07-04T14:10:30.3332578+00:00 xUnit.net INFORMATION === TEST EXECUTION SUMMARY ===
+2026-07-04T14:10:30.3375555+00:00 xUnit.net INFORMATION    Tests  Total: 34, Errors: 0, Failed: 3, Skipped: 0, Not Run: 0, Time: 15,814s

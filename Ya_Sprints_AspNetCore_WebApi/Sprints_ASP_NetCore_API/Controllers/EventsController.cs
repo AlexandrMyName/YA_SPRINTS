@@ -1,14 +1,15 @@
 ﻿using dynamicQueryBuilder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Sprint1_Project_ASP_NetCore_API.Data.Dtos;
-using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprint1_Project_ASP_NetCore_API.Services;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using Sprints_Project_ASP_NetCore_API.Services;
+using SprintASP_NetCore_API.Data.Dtos;
 using SprintASP_NetCore_API.Data.Dtos.Filters;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
-namespace Sprint1_Project_ASP_NetCore_API.Controllers;
+namespace Sprints_Project_ASP_NetCore_API.Controllers;
 
  
 [ApiVersion("1.0")]
@@ -26,8 +27,8 @@ public class EventsController : ControllerBase
     private readonly IDataStorageService<EventDto> _eventsService;
     private readonly IWebHostEnvironment _environment;
 
-    #region Ручки
 
+    #region Ручки 
     /// <summary>
     /// Метод возвращает событие по идентификатору
     /// </summary>
@@ -48,43 +49,73 @@ public class EventsController : ControllerBase
             return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR"); 
         }   
     }
-     
+
     /// <summary>
-    /// Метод возвращает список всех событий
+    /// Метод возвращает список событий с пагинацией и фильтрацией
     /// </summary>  
-    /// <response code="200">Возвращается JSON-структура ApiResult с деталями ответа
-    /// и HTTP статус-кодом 200 Ok в случае успеха</response>
-    [ProducesResponseType(typeof(ApiResult<IEnumerable<EventDto>>), StatusCodes.Status200OK)]
+    /// <response code="200">Возвращает пагинированный список событий</response>
+    /// <response code="400">Ошибка валидации фильтра</response>
+    /// <response code="500">Внутренняя ошибка сервера</response>
+    [ProducesResponseType(typeof(PaginatedResult<EventDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
-    [HttpGet] 
+    [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] EventFilterDto? filter = null)
     {
-
         try
         {
-            var eventDtos = await _eventsService.GetAllAsync();
-            if (filter != null)
+
+            filter ??= new EventFilterDto
             {
+                Page = 1,
+                PageSize = 10
+            };
 
-                IEnumerable<EventDto> filteredDatas = eventDtos;
-                DynamicQueryBuilder<EventDto>.ApplyFilter(filteredDatas,)
-                if (filter.From.HasValue)
-                    filteredDatas = filteredDatas.Where(x => x.StartAt >= filter.From.Value);
-
-                if (filter.To.HasValue)
-                    filteredDatas = filteredDatas.Where(x => x.EndAt <= filter.To.Value);
-
-                if (!string.IsNullOrEmpty(filter.Title))
-                    filteredDatas = filteredDatas.Where(x => x.Title != null && x.Title.Contains(filter.Title));
-
-
-
+            // Валидация параметров пагинации
+            if (filter.Page < 1)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Ошибка валидации",
+                    Detail = "Номер страницы должен быть больше 0",
+                    Status = StatusCodes.Status400BadRequest
+                });
             }
-            return Ok(eventDtos); 
+
+            if (filter.PageSize < 1 || filter.PageSize > 100)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Ошибка валидации",
+                    Detail = "Размер страницы должен быть от 1 до 100",
+                    Status = StatusCodes.Status400BadRequest
+                });
+            }
+
+            // Всегда возвращаем пагинированный результат
+            var paginatedResult = await _eventsService.GetFilteredAsync(filter);
+
+            return Ok(paginatedResult);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Ошибка валидации фильтра",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR");
+            return StatusCode(500, new ProblemDetails
+            {
+                Title = "Внутренняя ошибка сервера",
+                Detail = _environment.IsDevelopment()
+                    ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}"
+                    : "Произошла непредвиденная ошибка",
+                Status = StatusCodes.Status500InternalServerError
+            });
         }
     }
 
@@ -95,11 +126,12 @@ public class EventsController : ControllerBase
     /// и HTTP статус-кодом 200 Created в случае успеха</response>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status201Created)]
     [Produces("application/json")]
-    [HttpPost("{index:guid}")]
-    public async Task<IActionResult> Create([FromRoute] Guid index, [FromBody] EventDto dto)
+    [HttpPost()]
+    public async Task<IActionResult> Create( [FromBody] EventDto dto)
     {
         try
         {
+            Guid index = Guid.NewGuid();
             dto.Id = index;
             if (_eventsService.IsExisted(index) || _eventsService.IsExistedByTitle(dto.Title))
             { 

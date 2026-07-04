@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+namespace Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 
 /// <summary>
 /// Модель для Entity (DTO) -> EventDto
 /// </summary>
-public class EventDto : IEntityDto
+public class EventDto : IEventDto
 {
     [Required(ErrorMessage = "Идентификатор события обязателен")]
     /// <summary>
@@ -37,4 +37,15 @@ public class EventDto : IEntityDto
     /// Время окончания события
     /// </summary>
     public required DateTime EndAt { get; set; }
+}
+
+
+public interface IEventDto : IEntityDto
+{
+
+    Guid Id { get; set; } 
+    string Title { get; set; } 
+    string? Description { get; set; }
+    DateTime StartAt { get; set; } 
+    DateTime EndAt { get; set; }
 }

@@ -22,3 +22,15 @@ C:\PROJECTS\Sprints\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAc
 C:\PROJECTS\Sprints\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\refint\reflectionPropertyAccessor_Lib.dll
 C:\PROJECTS\Sprints\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.pdb
 C:\PROJECTS\Sprints\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\ref\reflectionPropertyAccessor_Lib.dll
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\bin\Debug\net8.0\reflectionPropertyAccessor_Lib.deps.json
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\bin\Debug\net8.0\reflectionPropertyAccessor_Lib.dll
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\bin\Debug\net8.0\reflectionPropertyAccessor_Lib.pdb
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.GeneratedMSBuildEditorConfig.editorconfig
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.AssemblyInfoInputs.cache
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.AssemblyInfo.cs
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.csproj.CoreCompileInputs.cache
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.sourcelink.json
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.dll
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\refint\reflectionPropertyAccessor_Lib.dll
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\reflectionPropertyAccessor_Lib.pdb
+D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\reflectionPropertyAccessor_Lib\obj\Debug\net8.0\ref\reflectionPropertyAccessor_Lib.dll

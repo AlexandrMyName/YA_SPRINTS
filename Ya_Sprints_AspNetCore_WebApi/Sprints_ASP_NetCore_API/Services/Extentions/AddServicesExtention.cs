@@ -1,8 +1,8 @@
-﻿using Sprint1_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos; 
-using Sprint1_Project_ASP_NetCore_API.Services.DataServices;
+﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos; 
+using Sprints_Project_ASP_NetCore_API.Services.DataServices;
 
 
-namespace Sprint1_Project_ASP_NetCore_API.Services.Extentions;
+namespace Sprints_Project_ASP_NetCore_API.Services.Extentions;
 
 
 public static class AddServicesExtention

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sprint1_Project_ASP_NetCore_API.Data.Entities
+namespace Sprints_Project_ASP_NetCore_API.Data.Entities
 {
     public interface IEntity
     {
