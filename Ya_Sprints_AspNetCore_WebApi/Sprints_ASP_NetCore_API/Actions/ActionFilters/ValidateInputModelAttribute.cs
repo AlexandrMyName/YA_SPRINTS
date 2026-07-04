@@ -55,6 +55,7 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
         var eventFilterDto = context.ActionArguments.Values.OfType<EventFilterDto>().FirstOrDefault();
         if (eventFilterDto != null)
         {
+            // Валидация: Page >= 1, PageSize от 1 до 100, From < To
             if (!CheckFilter_EventFilterDto(context, eventFilterDto)) return;
         }
          
@@ -96,7 +97,8 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Ошибка валидации входных данных"
-            }); 
+            });
+            return false; // Добавил выход (04.07.26)  23:47
         }
 
         if (filter.PageSize < 1 || filter.PageSize > 100)
@@ -111,7 +113,8 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             {
                 Status = StatusCodes.Status400BadRequest,
                 Title = "Ошибка валидации входных данных"
-            }); 
+            });
+            return false; // Добавил выход (04.07.26) 23:47
         }
 
 

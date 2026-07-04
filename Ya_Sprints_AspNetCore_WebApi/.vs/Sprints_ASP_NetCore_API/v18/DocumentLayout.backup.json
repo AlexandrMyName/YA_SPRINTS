@@ -222,8 +222,7 @@
               "RelativeToolTip": "Tests\\Tests_ValidateInputModelAttribute.cs",
               "ViewState": "AgIAAPYAAAAAAAAAAAAAwA0BAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T15:09:06.732Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-04T15:09:06.732Z"
             },
             {
               "$type": "Document",
@@ -247,8 +246,7 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
               "ViewState": "AgIAADEAAAAAAAAAAAAAADQAAABCAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T11:20:28.04Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-04T11:20:28.04Z"
             },
             {
               "$type": "Document",
@@ -258,7 +256,7 @@
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
               "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
-              "ViewState": "AgIAACgAAAAAAAAAAAAkwDUAAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAACgAAAAAAAAAAAAkwEMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-04T11:27:02.072Z",
               "EditorCaption": ""

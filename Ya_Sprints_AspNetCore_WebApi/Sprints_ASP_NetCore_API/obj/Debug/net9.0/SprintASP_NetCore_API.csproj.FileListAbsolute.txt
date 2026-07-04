@@ -247,4 +247,3 @@ D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\o
 D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\obj\Debug\net9.0\SprintAS.CE413EDD.Up2Date
 D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\obj\Debug\net9.0\SprintASP_NetCore_API.genruntimeconfig.cache
 D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\obj\Debug\net9.0\ref\SprintASP_NetCore_API.dll
-D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
