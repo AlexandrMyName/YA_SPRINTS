@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SprintASP_NetCore_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a1a1663b9f9d049b8d29b7ddc0efd42784956027")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9498eb2b3bdc7ee99aee0acd7bb8d2cfd09b1aa5")]
 [assembly: System.Reflection.AssemblyProductAttribute("SprintASP_NetCore_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SprintASP_NetCore_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

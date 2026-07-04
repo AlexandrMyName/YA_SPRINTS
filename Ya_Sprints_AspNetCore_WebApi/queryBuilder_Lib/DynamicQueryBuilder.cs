@@ -271,10 +271,24 @@ public class DynamicQueryBuilder<T>
     /// </summary>
     private static Expression BuildStringMethodCall(Expression instance, string methodName, Expression argument)
     {
-        var method = typeof(string).GetMethod(methodName, new[] { typeof(string) });
-        if (method == null) throw new NotSupportedException($"Метод '{methodName}' не найден в классе string.");
-        return Expression.Call(instance, method, argument);
-    }
+        //var method = typeof(string).GetMethod(methodName, new[] { typeof(string) });
+        //if (method == null) throw new NotSupportedException($"Метод '{methodName}' не найден в классе string.");
+        //return Expression.Call(instance, method, argument);
+         
+        if (argument.Type != typeof(string)) throw new ArgumentException("Argument must be a string", nameof(argument));
+         
+        var method = typeof(string).GetMethod(
+            methodName,
+            new[] { typeof(string), typeof(StringComparison) }
+        );
+
+        if (method == null)
+            throw new NotSupportedException($"Метод '{methodName}' с StringComparison не найден.");
+         
+        var comparison = Expression.Constant(StringComparison.OrdinalIgnoreCase); // Добавил OriginalIgnoreCase (регистро независимый метод)
+         
+        return Expression.Call(instance, method, argument, comparison);
+    } 
 
     /// <summary>
     /// Строит выражение для IN: member == val1 || member == val2 || ...
