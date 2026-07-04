@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\data\\dtos\\filters\\eventfilterdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\data\\dtos\\filters\\eventfilterdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\controllers\\eventscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\controllers\\eventscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}|queryBuilder_Lib\\queryBuilder_Lib.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\querybuilder_lib\\dynamicquerybuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}|queryBuilder_Lib\\queryBuilder_Lib.csproj|solutionrelative:querybuilder_lib\\dynamicquerybuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -39,10 +47,6 @@
       "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\data\\dtos\\filters\\ientityfilter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\data\\dtos\\filters\\eventfilterdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\data\\dtos\\filters\\eventfilterdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\actions\\actionfilters\\validateinputmodelattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\actions\\actionfilters\\validateinputmodelattribute.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -53,10 +57,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{4283838A-3679-47D5-8B02-158C9553E52F}|Tests\\Tests.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\tests\\actionfilterhelpers\\filtertesthelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4283838A-3679-47D5-8B02-158C9553E52F}|Tests\\Tests.csproj|solutionrelative:tests\\actionfilterhelpers\\filtertesthelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\controllers\\eventscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\controllers\\eventscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\services\\idatastorageservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -166,7 +166,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -178,31 +178,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "FilterTestHelper.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
-              "RelativeDocumentMoniker": "Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
-              "RelativeToolTip": "Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAAwDoAAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T15:07:55.363Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Tests_EventsServicer.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests_EventsServicer.cs",
-              "RelativeDocumentMoniker": "Tests\\Tests_EventsServicer.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests_EventsServicer.cs",
-              "RelativeToolTip": "Tests\\Tests_EventsServicer.cs",
-              "ViewState": "AgIAAFIAAAAAAAAAAAAQwLgBAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T13:07:26.297Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "EventsService.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Services\\DataServices\\EventsService.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Services\\DataServices\\EventsService.cs",
@@ -214,20 +190,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "DynamicQueryBuilder.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\queryBuilder_Lib\\DynamicQueryBuilder.cs",
               "RelativeDocumentMoniker": "queryBuilder_Lib\\DynamicQueryBuilder.cs",
               "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\queryBuilder_Lib\\DynamicQueryBuilder.cs",
               "RelativeToolTip": "queryBuilder_Lib\\DynamicQueryBuilder.cs",
-              "ViewState": "AgIAAAgBAAAAAAAAAAAgwB8BAACMAAAAAAAAAA==",
+              "ViewState": "AgIAAAgBAAAAAAAAAAAgwC8BAAA9AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T12:33:48.862Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-04T12:33:48.862Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "Tests.csproj",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests.csproj",
               "RelativeDocumentMoniker": "Tests\\Tests.csproj",
@@ -239,7 +214,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "Tests_ValidateInputModelAttribute.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests_ValidateInputModelAttribute.cs",
               "RelativeDocumentMoniker": "Tests\\Tests_ValidateInputModelAttribute.cs",
@@ -252,7 +227,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Program.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Program.cs",
@@ -264,7 +239,57 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 1,
+              "Title": "EventsController.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "RelativeToolTip": "Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
+              "ViewState": "AgIAADEAAAAAAAAAAAAAADQAAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-04T11:20:28.04Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "EventFilterDto.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
+              "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
+              "RelativeToolTip": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
+              "ViewState": "AgIAACgAAAAAAAAAAAAkwDUAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-04T11:27:02.072Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Tests_EventsServicer.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests_EventsServicer.cs",
+              "RelativeDocumentMoniker": "Tests\\Tests_EventsServicer.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests_EventsServicer.cs",
+              "RelativeToolTip": "Tests\\Tests_EventsServicer.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAQwLgBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-04T13:07:26.297Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "FilterTestHelper.cs",
+              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
+              "RelativeDocumentMoniker": "Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
+              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
+              "RelativeToolTip": "Tests\\ActionFilterHelpers\\FilterTestHelper.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAAwDoAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-04T15:07:55.363Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
               "Title": "IEntityFilter.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\IEntityFilter.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\IEntityFilter.cs",
@@ -276,7 +301,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "DemoRunner.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\queryBuilder_Lib\\DemoRunner.cs",
               "RelativeDocumentMoniker": "queryBuilder_Lib\\DemoRunner.cs",
@@ -288,19 +313,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "EventFilterDto.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
-              "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
-              "RelativeToolTip": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\EventFilterDto.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAADwvw0AAAAvAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T11:27:02.072Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "ValidateInputModelAttribute.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Actions\\ActionFilters\\ValidateInputModelAttribute.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Actions\\ActionFilters\\ValidateInputModelAttribute.cs",
@@ -312,7 +325,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "LogFilterAttribute.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Actions\\ActionFilters\\LogFilterAttribute.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Actions\\ActionFilters\\LogFilterAttribute.cs",
@@ -324,19 +337,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "EventsController.cs",
-              "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
-              "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
-              "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
-              "RelativeToolTip": "Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
-              "ViewState": "AgIAAEYAAAAAAAAAAAAowEkAAAALAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T11:20:28.04Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "IFilter.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\IFilter.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Data\\Dtos\\Filters\\IFilter.cs",

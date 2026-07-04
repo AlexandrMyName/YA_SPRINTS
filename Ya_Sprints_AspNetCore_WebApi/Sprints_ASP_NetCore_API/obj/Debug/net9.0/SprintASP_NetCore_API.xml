@@ -73,14 +73,7 @@
             <response code="200">Возвращается JSON-структура с деталями ответа
             и HTTP статус-кодом 200 Ok в случае успеха</response>
         </member>
-        <member name="M:Sprints_Project_ASP_NetCore_API.Controllers.EventsController.GetAll(EventFilterDto)">
-            <summary>
-            Метод возвращает список событий с пагинацией и фильтрацией
-            </summary>  
-            <response code="200">Возвращает пагинированный список событий</response>
-            <response code="400">Ошибка валидации фильтра</response>
-            <response code="500">Внутренняя ошибка сервера</response>
-        </member>
+        <!-- Badly formed XML comment ignored for member "M:Sprints_Project_ASP_NetCore_API.Controllers.EventsController.GetAll(EventFilterDto)" -->
         <member name="M:Sprints_Project_ASP_NetCore_API.Controllers.EventsController.Create(Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos.EventDto)">
             <summary>
             Метод добавляет событие
@@ -234,6 +227,48 @@
             Интерфейс для сервиса взаимодействия с данными 
             </summary>
             <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:EventFilterDto.Title">
+            <summary>
+            Фильтр по названию события (регистронезависимый поиск по части слова)
+            </summary>
+            <example>Встреча</example>
+        </member>
+        <member name="P:EventFilterDto.From">
+            <summary>
+            Фильтр по дате начала (события, начинающиеся с указанной даты или позже)
+            </summary>
+            <example>2024-01-15T10:00:00</example>
+        </member>
+        <member name="P:EventFilterDto.To">
+            <summary>
+            Фильтр по дате окончания (события, заканчивающиеся до указанной даты)
+            </summary>
+            <example>2024-01-20T18:00:00</example>
+        </member>
+        <member name="P:EventFilterDto.SortBy">
+            <summary>
+            Поле для сортировки (Title, StartAt, EndAt, Priority)
+            </summary>
+            <example>StartAt</example>
+        </member>
+        <member name="P:EventFilterDto.SortDesc">
+            <summary>
+            Направление сортировки: true — по убыванию, false — по возрастанию
+            </summary>
+            <example>false</example>
+        </member>
+        <member name="P:EventFilterDto.Page">
+            <summary>
+            Номер страницы для пагинации (начиная с 1)
+            </summary>
+            <example>1</example>
+        </member>
+        <member name="P:EventFilterDto.PageSize">
+            <summary>
+            Количество элементов на странице (максимум 100)
+            </summary>
+            <example>10</example>
         </member>
     </members>
 </doc>

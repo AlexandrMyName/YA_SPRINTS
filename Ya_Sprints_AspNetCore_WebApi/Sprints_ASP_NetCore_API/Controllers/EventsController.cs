@@ -49,8 +49,7 @@ public class EventsController : ControllerBase
             return StatusCode(500, _environment.IsDevelopment() ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}" : "SERVER ERROR"); 
         }   
     }
-
-    /// <summary>
+     
     /// Метод возвращает список событий с пагинацией и фильтрацией
     /// </summary>  
     /// <response code="200">Возвращает пагинированный список событий</response>
@@ -62,61 +61,15 @@ public class EventsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] EventFilterDto? filter = null)
     {
-        try
+        // Вся валидация и обработка ошибок делегирована ActionFilter и Middleware (GlobalExceptionMiddleware)
+        filter ??= new EventFilterDto
         {
-
-            filter ??= new EventFilterDto
-            {
-                Page = 1,
-                PageSize = 10
-            };
-
-            // Валидация параметров пагинации
-            if (filter.Page < 1)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Ошибка валидации",
-                    Detail = "Номер страницы должен быть больше 0",
-                    Status = StatusCodes.Status400BadRequest
-                });
-            }
-
-            if (filter.PageSize < 1 || filter.PageSize > 100)
-            {
-                return BadRequest(new ProblemDetails
-                {
-                    Title = "Ошибка валидации",
-                    Detail = "Размер страницы должен быть от 1 до 100",
-                    Status = StatusCodes.Status400BadRequest
-                });
-            }
-
-            // Всегда возвращаем пагинированный результат
-            var paginatedResult = await _eventsService.GetFilteredAsync(filter);
-
-            return Ok(paginatedResult);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Ошибка валидации фильтра",
-                Detail = ex.Message,
-                Status = StatusCodes.Status400BadRequest
-            });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new ProblemDetails
-            {
-                Title = "Внутренняя ошибка сервера",
-                Detail = _environment.IsDevelopment()
-                    ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}"
-                    : "Произошла непредвиденная ошибка",
-                Status = StatusCodes.Status500InternalServerError
-            });
-        }
+            Page = 1,
+            PageSize = 10
+        };
+        // Убрал Try catch. Облегчение endpoint 
+        var paginatedResult = await _eventsService.GetFilteredAsync(filter);
+        return Ok(paginatedResult);
     }
 
     /// <summary>

@@ -8,37 +8,37 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "Title",
+        "Name": "title",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "From",
+        "Name": "from",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
-        "Name": "To",
+        "Name": "to",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
-        "Name": "SortBy",
+        "Name": "sortBy",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "SortDesc",
+        "Name": "sortDesc",
         "Type": "System.Boolean",
         "IsRequired": false
       },
       {
-        "Name": "Page",
+        "Name": "page",
         "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
-        "Name": "PageSize",
+        "Name": "pageSize",
         "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       }
