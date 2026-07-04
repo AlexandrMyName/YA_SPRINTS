@@ -1,0 +1,43 @@
+2026-07-04T15:10:45.1451650+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Version: 1.9.1+cb5afc3bb9bb01ebd75b57f89e8358b914ee2a49
+2026-07-04T15:10:45.1536702+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging mode: asynchronous
+2026-07-04T15:10:45.1548331+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging level: Information
+2026-07-04T15:10:45.1548359+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION CreateBuilderAsync entry time: 15:10:45.123
+2026-07-04T15:10:45.1551705+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION PID: 26336
+2026-07-04T15:10:45.1552040+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime information: win-x64 - .NET 9.0.17
+2026-07-04T15:10:45.1552208+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.17\System.Private.CoreLib.dll
+2026-07-04T15:10:45.1552302+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION IsDynamicCodeSupported: True
+2026-07-04T15:10:45.1552792+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Test module: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Tests.dll
+2026-07-04T15:10:45.1553510+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Command line arguments: '--server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Log --results-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\TestResults --client-port 55636'
+2026-07-04T15:10:45.1565448+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION TESTINGPLATFORM_DEFAULT_HANG_TIMEOUT: ''
+2026-07-04T15:10:45.1715695+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting RegisterEnvironmentVariablesConfigurationSource: 'True'
+2026-07-04T15:10:45.1790692+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting PlatformExitProcessOnUnhandledException: 'False', config file: False environment variable: 
+2026-07-04T15:10:45.3168787+00:00 Microsoft.Testing.Platform.Requests.TestHostTestFrameworkInvoker INFORMATION Test framework UID: '30ea7c6e-dd24-4152-a360-1387158cd41d' Version: '3.2.2' DisplayName: 'xUnit.net v3 Microsoft.Testing.Platform test framework' Description: 'xUnit.net v3 Microsoft.Testing.Platform test framework'
+2026-07-04T15:10:45.3220899+00:00 xUnit.net INFORMATION xUnit.net v3 In-Process Runner v3.2.2+728c1dce01 (64-bit .NET 9.0.17)
+2026-07-04T15:10:45.3482831+00:00 xUnit.net INFORMATION   Discovering: Tests
+2026-07-04T15:10:45.3871789+00:00 xUnit.net INFORMATION   Discovered:  Tests
+2026-07-04T15:10:45.4034144+00:00 xUnit.net INFORMATION   Starting:    Tests
+2026-07-04T15:10:45.5048108+00:00 xUnit.net ERROR     Tests.Tests_ValidateInputModelAttribute.OnActionExecuting_WithCollection_DuplicateTitles_ReturnsBadRequest [FAIL]
+2026-07-04T15:10:45.5050291+00:00 xUnit.net INFORMATION       Assert.Contains() Failure: Item not found in collection
+2026-07-04T15:10:45.5050360+00:00 xUnit.net INFORMATION       Collection: ["В передаваемых событиях название не должно повторя"···]
+2026-07-04T15:10:45.5050366+00:00 xUnit.net INFORMATION       Not found:  "название не должно повторяться"
+2026-07-04T15:10:45.5053046+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-04T15:10:45.5055932+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_ValidateInputModelAttribute.cs(266,0): at Tests.Tests_ValidateInputModelAttribute.OnActionExecuting_WithCollection_DuplicateTitles_ReturnsBadRequest()
+2026-07-04T15:10:45.5056094+00:00 xUnit.net INFORMATION            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+2026-07-04T15:10:45.5056203+00:00 xUnit.net INFORMATION            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+2026-07-04T15:10:45.5064603+00:00 xUnit.net ERROR     Tests.Tests_ValidateInputModelAttribute.OnActionExecuting_WithCollection_StartAtAfterEndAt_ReturnsBadRequest [FAIL]
+2026-07-04T15:10:45.5064666+00:00 xUnit.net INFORMATION       Assert.Contains() Failure: Item not found in collection
+2026-07-04T15:10:45.5064701+00:00 xUnit.net INFORMATION       Collection: ["Дата начала не может быть позже или равна дате око"···]
+2026-07-04T15:10:45.5064705+00:00 xUnit.net INFORMATION       Not found:  "Дата начала не может быть позже или равна дате око"···
+2026-07-04T15:10:45.5064788+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-04T15:10:45.5064902+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_ValidateInputModelAttribute.cs(226,0): at Tests.Tests_ValidateInputModelAttribute.OnActionExecuting_WithCollection_StartAtAfterEndAt_ReturnsBadRequest()
+2026-07-04T15:10:45.5065025+00:00 xUnit.net INFORMATION            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+2026-07-04T15:10:45.5065057+00:00 xUnit.net INFORMATION            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+2026-07-04T15:10:45.5096123+00:00 xUnit.net ERROR     Tests.Tests_ValidateInputModelAttribute.OnActionExecuting_WithEventDto_StartAtEqualsEndAt_ReturnsBadRequest [FAIL]
+2026-07-04T15:10:45.5096237+00:00 xUnit.net INFORMATION       Assert.NotNull() Failure: Value is null
+2026-07-04T15:10:45.5096265+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-04T15:10:45.5096397+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_ValidateInputModelAttribute.cs(143,0): at Tests.Tests_ValidateInputModelAttribute.OnActionExecuting_WithEventDto_StartAtEqualsEndAt_ReturnsBadRequest()
+2026-07-04T15:10:45.5096461+00:00 xUnit.net INFORMATION            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+2026-07-04T15:10:45.5096511+00:00 xUnit.net INFORMATION            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+2026-07-04T15:10:59.8162092+00:00 xUnit.net INFORMATION   Finished:    Tests (ID = 'f00befc81bdf0d7e7190fb9c365bc44c48b01415aec428e96a9ef62efdb7a4a6')
+2026-07-04T15:10:59.8188965+00:00 xUnit.net INFORMATION === TEST EXECUTION SUMMARY ===
+2026-07-04T15:10:59.8224456+00:00 xUnit.net INFORMATION    Tests  Total: 56, Errors: 0, Failed: 3, Skipped: 0, Not Run: 0, Time: 14,417s
