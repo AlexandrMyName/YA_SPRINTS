@@ -4,6 +4,67 @@
         <name>SprintASP_NetCore_API</name>
     </assembly>
     <members>
+        <member name="T:SprintASP_NetCore_API.Filters.ActionFilters.ValidateInputModelAttribute">
+            <summary>
+            ActionFilter - Валидация входных и выходных данных
+            </summary>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Filters.ActionFilters.ValidateInputModelAttribute.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
+            <summary>
+            Валидация входных данных
+            </summary>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Filters.ActionFilters.ValidateInputModelAttribute.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
+            <summary>
+            Валидация выходных данных
+            </summary>
+        </member>
+        <member name="T:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1">
+            <summary>
+            DTO для возврата пагинированного результата
+            </summary>
+            <typeparam name="T">Тип данных</typeparam>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.Items">
+            <summary>
+            Массив элементов на текущей странице
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.TotalCount">
+            <summary>
+            Общее количество элементов (без учета пагинации)
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.Page">
+            <summary>
+            Номер текущей страницы (начиная с 1)
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.PageSize">
+            <summary>
+            Количество элементов на текущей странице
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.TotalPages">
+            <summary>
+            Общее количество страниц
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.HasPreviousPage">
+            <summary>
+            Есть ли предыдущая страница
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.HasNextPage">
+            <summary>
+            Есть ли следующая страница
+            </summary>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.Create(System.Collections.Generic.IEnumerable{`0},System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Создает пагинированный результат
+            </summary>
+        </member>
         <member name="M:Sprints_Project_ASP_NetCore_API.Controllers.EventsController.Get(System.Guid)">
             <summary>
             Метод возвращает событие по идентификатору
@@ -173,67 +234,6 @@
             Интерфейс для сервиса взаимодействия с данными 
             </summary>
             <typeparam name="T"></typeparam>
-        </member>
-        <member name="T:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1">
-            <summary>
-            DTO для возврата пагинированного результата
-            </summary>
-            <typeparam name="T">Тип данных</typeparam>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.Items">
-            <summary>
-            Массив элементов на текущей странице
-            </summary>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.TotalCount">
-            <summary>
-            Общее количество элементов (без учета пагинации)
-            </summary>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.Page">
-            <summary>
-            Номер текущей страницы (начиная с 1)
-            </summary>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.PageSize">
-            <summary>
-            Количество элементов на текущей странице
-            </summary>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.TotalPages">
-            <summary>
-            Общее количество страниц
-            </summary>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.HasPreviousPage">
-            <summary>
-            Есть ли предыдущая страница
-            </summary>
-        </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.HasNextPage">
-            <summary>
-            Есть ли следующая страница
-            </summary>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1.Create(System.Collections.Generic.IEnumerable{`0},System.Int32,System.Int32,System.Int32)">
-            <summary>
-            Создает пагинированный результат
-            </summary>
-        </member>
-        <member name="T:SprintASP_NetCore_API.Filters.ActionFilters.ValidateInputModelAttribute">
-            <summary>
-            ActionFilter - Валидация входных и выходных данных
-            </summary>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Filters.ActionFilters.ValidateInputModelAttribute.OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext)">
-            <summary>
-            Валидация входных данных
-            </summary>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Filters.ActionFilters.ValidateInputModelAttribute.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
-            <summary>
-            Валидация выходных данных
-            </summary>
         </member>
     </members>
 </doc>
