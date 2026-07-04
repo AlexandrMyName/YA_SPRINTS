@@ -172,45 +172,286 @@ dotnet test
 ## 📁 Структура проекта
 
 ```
-Sprints_ASP_NetCore_API/
-├── Controllers/
-│   └── EventsController.cs
-├── Data/
-│   ├── Dtos/
-│   │   ├── EntitiesDtos/
-│   │   │   └── EventDto.cs
-│   │   ├── Filters/
-│   │   │   └── EventFilterDto.cs
-│   │   └── Internal/
-│   │       ├── IResultDto.cs
-│   │       └── ResultDto.cs
-│   ├── Entities/
-│   │   ├── IEvent.cs
-│   │   └── Event.cs
-│   └── Repositories/
-│       ├── IRepository.cs
-│       └── BaseInMemoryRepository.cs
-├── Filters/
-│   └── ActionFilters/
-│       └── ValidateInputModelAttribute.cs
-├── Middleware/
-│   └── GlobalExceptionMiddleware.cs
-├── Services/
-│   └── DataServices/
-│       └── EventsService.cs
-├── Profiles/
-│   └── MappingProfile.cs (AutoMapper)
-├── Program.cs
-└── appsettings.json
-
-Tests/
-├── Services/
-│   └── EventsServiceTests.cs
-├── Filters/
-│   └── ValidateInputModelAttributeTests.cs
-└── Helpers/
-    └── FilterTestHelper.cs
+Ya_Sprints_AspNetCore_WebApi/
+├── .vs/                                    # Visual Studio файлы
+│
+├── Sprints_ASP_NetCore_API/                # 📦 Основной проект
+│   ├── Actions/
+│   │   └── ActionFilters/
+│   │       ├── LogFilterAttribute.cs
+│   │       └── ValidateInputModelAttribute.cs
+│   │
+│   ├── Controllers/
+│   │   └── EventsController.cs
+│   │
+│   ├── Data/
+│   │   ├── Dtos/
+│   │   │   ├── EntitiesDtos/
+│   │   │   │   ├── EventDto.cs
+│   │   │   │   └── IEntityDto.cs
+│   │   │   ├── Filters/
+│   │   │   │   ├── EventFilterDto.cs
+│   │   │   │   ├── IEntityFilter.cs
+│   │   │   │   └── IFilter.cs
+│   │   │   └── Internal/
+│   │   │       ├── ApiBaseResult.cs
+│   │   │       └── PaginatedResult.cs
+│   │   ├── Entities/
+│   │   │   ├── Event.cs
+│   │   │   └── IEntity.cs
+│   │   └── LessonПолезное/
+│   │
+│   ├── Helpers/
+│   │   └── ValidatorHelper.cs
+│   │
+│   ├── Middlewares/
+│   │   ├── Extentions/
+│   │   │   ├── Configurations/
+│   │   │   │   ├── ConfigureApiVersioned_Ext.cs
+│   │   │   │   ├── ConfigureControllersWithCacheProfiles_Ext.cs
+│   │   │   │   ├── ConfigureCors_Ext.cs
+│   │   │   │   └── SwaggerGen_Ext.cs
+│   │   │   └── Endpoints/
+│   │   │       └── ProductsEndpoints.cs
+│   │   └── GlobalExceptionMiddleware.cs
+│   │
+│   ├── ProfilesAndConfigs/
+│   │   ├── MappingDtoProfile.cs
+│   │   └── MappingEntityProfile.cs
+│   │
+│   ├── Properties/
+│   │   └── launchSettings.json
+│   │
+│   ├── Repositories/
+│   │   ├── Extenions/
+│   │   │   └── AddRepositoryExtention.cs
+│   │   ├── BaseInMemoryRepository.cs
+│   │   ├── IFilterModel.cs
+│   │   └── IRepository.cs
+│   │
+│   ├── Services/
+│   │   ├── DataServices/
+│   │   │   └── EventsService.cs
+│   │   └── Extentions/
+│   │       ├── AddServicesExtention.cs
+│   │       └── IDataStorageService.cs
+│   │
+│   ├── Program.cs
+│   ├── SprintASP_NetCore_API.csproj
+│   ├── SprintASP_NetCore_API.csproj.user
+│   ├── Sprints_ASP_NetCore_API.http
+│   ├── appsettings.Development.json
+│   ├── appsettings.Production.json
+│   ├── appsettings.json
+│   └── Записки.txt
+│
+├── Tests/                                  # 🧪 Тестовый проект
+│   ├── ActionFilterHelpers/
+│   │   └── FilterTestHelper.cs
+│   ├── Factories/
+│   │   └── TestDataFactory.cs/
+│   ├── Tests.csproj
+│   ├── Tests_EventsServicer.cs
+│   ├── Tests_Reflection.cs
+│   └── Tests_ValidateInputModelAttribute.cs
+│
+├── dataBase_autoMigration_Lib/             # 📚 Библиотека миграции
+│   ├── DynamicEntityMigration.cs
+│   └── dataBase_autoMigration_Lib.csproj
+│
+├── queryBuilder_Lib/                       # 📚 Библиотека построения запросов
+│   ├── DemoRunner.cs
+│   ├── DynamicQueryBuilder.cs
+│   └── queryBuilder_Lib.csproj
+│
+├── reflectionPropertyAccessor_Lib/         # 📚 Библиотека рефлексии
+│   ├── PropertyAccessor.cs
+│   └── reflectionPropertyAccessor_Lib.csproj
+│
+├── Sprints_ASP_NetCore_API.sln             # Решение
+└── README.md
 ```
+---
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     PRESENTATION LAYER                       │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Controllers/EventsController.cs                        ││
+│  │  - REST API endpoints                                   ││
+│  │  - Обработка HTTP запросов                             ││
+│  └─────────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Actions/ActionFilters/                                 ││
+│  │  - ValidateInputModelAttribute (валидация)             ││
+│  │  - LogFilterAttribute (логирование)                    ││
+│  └─────────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Middlewares/                                           ││
+│  │  - GlobalExceptionMiddleware (глобальная обработка)    ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      BUSINESS LAYER                         │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Services/                                              ││
+│  │  - EventsService.cs (бизнес-логика)                    ││
+│  │  - IDataStorageService<T> (интерфейс)                  ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     DATA LAYER                              │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Repositories/                                          ││
+│  │  - BaseInMemoryRepository<T> (in-memory хранилище)     ││
+│  │  - IRepository<T> (интерфейс)                          ││
+│  └─────────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Data/Entities/                                         ││
+│  │  - Event.cs, IEvent.cs, IEntity.cs                     ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       DTO LAYER                             │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Data/Dtos/                                             ││
+│  │  - EntitiesDtos/ (EventDto, IEntityDto)                ││
+│  │  - Filters/ (EventFilterDto, IFilter<T>)               ││
+│  │  - Internal/ (ApiBaseResult, PaginatedResult)          ││
+│  └─────────────────────────────────────────────────────────┘│
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  ProfilesAndConfigs/                                    ││
+│  │  - MappingDtoProfile.cs (AutoMapper)                   ││
+│  │  - MappingEntityProfile.cs (AutoMapper)                ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+```
+---
+
+### 🔍 Ключевые зависимости и взаимодействия
+```
+ ```mermaid
+graph TB
+    subgraph Presentation["🎨 Presentation Layer"]
+        A[EventsController]
+        B[ValidateInputModelAttribute]
+        C[GlobalExceptionMiddleware]
+        D[LogFilterAttribute]
+    end
+    
+    subgraph Business["⚙️ Business Layer"]
+        E[EventsService]
+        F[IDataStorageService]
+        G[IMapper]
+    end
+    
+    subgraph Data["💾 Data Layer"]
+        H[IRepository]
+        I[BaseInMemoryRepository]
+        J[IQueryable]
+    end
+    
+    subgraph DTO["📦 DTO Layer"]
+        K[EventDto]
+        L[EventFilterDto]
+        M[PaginatedResult]
+        N[IEntityFilter]
+    end
+    
+    subgraph Libraries["📚 Own Libraries"]
+        O[queryBuilder_Lib]
+        P[reflectionPropertyAccessor_Lib]
+        Q[dataBase_autoMigration_Lib]
+    end
+    
+    subgraph Validation["✅ Validation"]
+        R[ValidatorHelper]
+        S[ModelState]
+    end
+    
+    %% Связи
+    A -->|HTTP Request| E
+    E -->|GetQueryAsync| H
+    H -->|returns| I
+    I -->|returns| J
+    E -->|Map| G
+    G -->|maps| K
+    E -->|Apply| L
+    E -->|returns| M
+    
+    %% Фильтры и Middleware
+    A -.->|Before Action| B
+    A -.->|After Action| B
+    A -.->|Global| C
+    A -.->|Log| D
+    
+    %% Библиотеки
+    E -->|uses| O
+    B -->|uses| P
+    E -->|uses| P
+    O -->|builds| J
+    P -->|optimizes| B
+    P -->|optimizes| O
+    
+    %% Валидация
+    B -->|uses| R
+    B -->|checks| S
+    L -->|validates| S
+    K -->|validates| S
+    
+    %% DTO связи
+    E -->|returns| M
+    M -->|contains| K
+    E -->|receives| L
+    L -->|implements| N
+```
+### 🔄 Поток данных
+```
+1. HTTP Request
+   │
+   ▼
+2. GlobalExceptionMiddleware (catch errors)
+   │
+   ▼
+3. ValidateInputModelAttribute (OnActionExecuting)
+   │   - ModelState validation
+   │   - Business rules (StartAt < EndAt)
+   │   - Filter validation (Page, PageSize)
+   │
+   ▼
+4. EventsController.GetAll()
+   │
+   ▼
+5. EventsService.GetFilteredAsync()
+   │   - Получение IQueryable из репозитория
+   │   - Применение фильтра через DynamicQueryBuilder
+   │   - Подсчет TotalCount
+   │   - Применение пагинации
+   │   - Маппинг через AutoMapper
+   │
+   ▼
+6. BaseInMemoryRepository<T>
+   │   - ConcurrentDictionary хранение
+   │
+   ▼
+7. PaginatedResult<EventDto>
+   │   - Items, TotalCount, Page, PageSize
+   │   - TotalPages, HasPreviousPage, HasNextPage
+   │
+   ▼
+8. ValidateInputModelAttribute (OnActionExecuted)
+   │   - Валидация выходных данных
+   │
+   ▼
+9. HTTP Response
+```
+  
 
 ---
 
