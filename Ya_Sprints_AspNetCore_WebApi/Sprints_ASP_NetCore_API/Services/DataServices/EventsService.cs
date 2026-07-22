@@ -21,19 +21,19 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
 
         public EventsService(
             IServiceScopeFactory scopeFactory,
-            IRepository<IEvent> eventsRepository, 
+            IRepository<IEvent> repository, 
             ILogger<EventsService> logger, 
             IMapper mapper)
         {
             _scopeFactory = scopeFactory;
-            _eventsReposytory = eventsRepository;
+            _repository = repository;
             _logger = logger;
             _mapper = mapper;
         }
          
         private readonly IServiceScopeFactory _scopeFactory; // на будущее когда БД появится мб. переместить лучше в репозиторий
          
-        private readonly IRepository<IEvent> _eventsReposytory;
+        private readonly IRepository<IEvent> _repository;
         private readonly ILogger<EventsService> _logger;
         private readonly IMapper _mapper;
 
@@ -41,7 +41,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         public async Task<IEnumerable<EventDto>> GetAllAsync()
         {
             _logger.LogInformation("Запрос всех событий");
-            var events = await _eventsReposytory.GetAllAsync();
+            var events = await _repository.GetAllAsync();
             _logger.LogInformation($"Количество: {events.Count()} данных");  
             // действие с Entity (на будущее)
             return events.Select(e=>_mapper.Map<EventDto>(e)).ToList();
@@ -56,7 +56,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
             _logger.LogInformation("Запрос с фильтрацией и пагинацией для {Entity}", filterEvents.GetType().Name);
 
             // Получаем IQueryable
-            var query = await _eventsReposytory.GetQueryAsync();
+            var query = await _repository.GetQueryAsync();
 
             // Применяем фильтрацию 
             var filteredQuery = filter.Apply(query) as IQueryable<IEvent>;
@@ -97,7 +97,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         public async Task<IResultDto<EventDto>> GetByIdAsync(Guid id)
         {
             _logger.LogInformation("Запрос события с ID: " + id);
-            var eventEntity = await _eventsReposytory.GetByIdAsync(id);
+            var eventEntity = await _repository.GetByIdAsync(id);
 
             if (eventEntity.IsSuccesfuly)
             {
@@ -112,7 +112,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         {
 
             _logger.LogInformation("Запрос добавления события с ID: " + item.Id);
-            var eventEntity = await _eventsReposytory.AddAsync(_mapper.Map<Event>(item));
+            var eventEntity = await _repository.AddAsync(_mapper.Map<Event>(item));
          
             if (eventEntity.IsSuccesfuly)
             {
@@ -127,7 +127,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         {
 
             _logger.LogInformation("Запрос обновления события с ID: " + item.Id);
-            var eventEntity = await _eventsReposytory.UpdateAsync(_mapper.Map<Event>(item));
+            var eventEntity = await _repository.UpdateAsync(_mapper.Map<Event>(item));
 
             if (eventEntity.IsSuccesfuly)
             {
@@ -142,7 +142,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         {
 
             _logger.LogInformation("Запрос удаления события с ID: " + id);
-            var eventEntity = await _eventsReposytory.DeleteAsync(id);
+            var eventEntity = await _repository.DeleteAsync(id);
 
             if (eventEntity.IsSuccesfuly)
             {
@@ -158,7 +158,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         {
 
             _logger.LogInformation("Запрос добавления списка событий в коллекцию"); 
-            var eventEntity = await _eventsReposytory.AddRangeAsync(items.Select(i=> _mapper.Map<Event>(i)).ToList());
+            var eventEntity = await _repository.AddRangeAsync(items.Select(i=> _mapper.Map<Event>(i)).ToList());
 
             if (eventEntity.IsSuccesfuly)
             {
@@ -173,7 +173,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         {
 
             _logger.LogInformation("Запрос обновления списка событий в коллекции");
-            var eventEntity = await _eventsReposytory.UpdateRangeAsync(items.Select(i => _mapper.Map<Event>(i)).ToList());
+            var eventEntity = await _repository.UpdateRangeAsync(items.Select(i => _mapper.Map<Event>(i)).ToList());
 
             if (eventEntity.IsSuccesfuly){
                 _logger.LogInformation($"Обновление моделей данных - успешно");
@@ -183,9 +183,9 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         }
 
 
-        public bool IsExisted(Guid id) => _eventsReposytory.IsExisted(id);
+        public bool IsExisted(Guid id) => _repository.IsExisted(id);
 
-        public bool IsExistedByTitle(string name) => _eventsReposytory.IsExistedByTitle(name);
+        public bool IsExistedByTitle(string name) => _repository.IsExistedByTitle(name);
 
         
     }

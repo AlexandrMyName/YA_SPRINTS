@@ -1,5 +1,36 @@
 [
   {
+    "ContainingType": "SprintASP_NetCore_API.Controllers.BookingsController",
+    "Method": "GetBooking",
+    "RelativePath": "api/v1/Bookings/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 200
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 404
+      }
+    ]
+  },
+  {
     "ContainingType": "Sprints_Project_ASP_NetCore_API.Controllers.EventsController",
     "Method": "GetAll",
     "RelativePath": "api/v1/Events",
@@ -105,6 +136,35 @@
           "application/json"
         ],
         "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "Sprints_Project_ASP_NetCore_API.Controllers.EventsController",
+    "Method": "BookEvent",
+    "RelativePath": "api/v1/Events/{id}/book",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 202
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 404
       }
     ]
   },

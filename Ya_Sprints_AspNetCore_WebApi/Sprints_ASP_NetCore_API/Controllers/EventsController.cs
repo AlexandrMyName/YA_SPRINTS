@@ -1,12 +1,9 @@
-﻿using dynamicQueryBuilder;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprints_Project_ASP_NetCore_API.Services;
 using SprintASP_NetCore_API.Data.Dtos;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using SprintASP_NetCore_API.Services;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Controllers;
@@ -18,17 +15,65 @@ namespace Sprints_Project_ASP_NetCore_API.Controllers;
 public class EventsController : ControllerBase
 {
 
-    public EventsController(IDataStorageService<EventDto> eventsService, IWebHostEnvironment environment)
+    public EventsController(IDataStorageService<EventDto> eventsService, IBookingService bookingService, IWebHostEnvironment environment)
     {   
         _eventsService = eventsService;
+        _bookingsService = bookingService;
         _environment = environment;
     }
      
     private readonly IDataStorageService<EventDto> _eventsService;
+    private readonly IBookingService _bookingsService;
     private readonly IWebHostEnvironment _environment;
 
 
     #region Ручки 
+     
+    /// <summary>
+    /// Создаёт бронирование для указанного события.
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <response code="202">Бронирование создано, возвращена информация о нём</response>
+    /// <response code="404">Событие с указанным идентификатором не найдено</response>
+    [HttpPost("{id}/book")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Produces("application/json")]
+    public async Task<IActionResult> BookEvent([FromRoute] Guid id)
+    {
+  
+        var eventResult = await _eventsService.GetByIdAsync(id);
+        if (!eventResult.IsSuccesfuly)  return NotFound(eventResult.Reason);
+         
+        var bookingResult = await _bookingsService.CreateBookingAsync(id);
+        if (!bookingResult.IsSuccesfuly) return StatusCode(500, "Failed to create booking");
+       
+        var booking = bookingResult.Data;
+          
+        if(booking == null) throw new NullReferenceException(nameof(booking));
+
+        var response = new
+        {
+            booking.Id,
+            EventId = booking.EventId,  
+            booking.Status
+        };
+         
+        var location = Url.Action(
+            action: "{id}/book",           
+            controller: "Events",   
+            values: new { bookingId = booking.Id },
+            protocol: Request.Scheme
+        ) ?? $"/api/bookings/{booking.Id}";
+
+        Response.Headers.Add("Location", location);
+
+        return Accepted(response);
+    }
+
+
+
+
     /// <summary>
     /// Метод возвращает событие по идентификатору
     /// </summary>

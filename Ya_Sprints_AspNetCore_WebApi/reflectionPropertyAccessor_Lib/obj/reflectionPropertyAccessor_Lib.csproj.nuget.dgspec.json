@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj": {}
+    "C:\\PROJECTS\\Sprints\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj": {}
   },
   "projects": {
-    "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj": {
+    "C:\\PROJECTS\\Sprints\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj",
+        "projectUniqueName": "C:\\PROJECTS\\Sprints\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj",
         "projectName": "reflectionPropertyAccessor_Lib",
-        "projectPath": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj",
-        "packagesPath": "C:\\Users\\Honor\\.nuget\\packages\\",
-        "outputPath": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\obj\\",
+        "projectPath": "C:\\PROJECTS\\Sprints\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\reflectionPropertyAccessor_Lib.csproj",
+        "packagesPath": "C:\\Users\\a.afonin\\.nuget\\packages\\",
+        "outputPath": "C:\\PROJECTS\\Sprints\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\reflectionPropertyAccessor_Lib\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Honor\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\a.afonin\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -31,7 +31,6 @@
         },
         "frameworks": {
           "net8.0": {
-            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -46,11 +45,10 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.300"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
-          "framework": "net8.0",
           "targetAlias": "net8.0",
           "imports": [
             "net461",
@@ -68,7 +66,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
