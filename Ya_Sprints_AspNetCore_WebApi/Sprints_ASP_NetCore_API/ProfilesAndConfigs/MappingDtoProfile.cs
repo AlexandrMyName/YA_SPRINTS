@@ -13,14 +13,10 @@ public class MappingDtoProfile : Profile
 {
 
     public MappingDtoProfile()
-    { 
-        //events
+    {  
         CreateMap<Event, EventDto>();
-
-        // Bookings
-        CreateMap<IBooking, IBookingDto>();
-        CreateMap<Booking, IBookingDto>();
-        CreateMap<Booking, BookingDto>();
-        CreateMap<IBookingDto, Booking>();
+         
+        CreateMap<Booking, BookingInfoDto>();
+        CreateMap<Booking, IBookingInfoDto>().As<BookingInfoDto>();
     } 
 }

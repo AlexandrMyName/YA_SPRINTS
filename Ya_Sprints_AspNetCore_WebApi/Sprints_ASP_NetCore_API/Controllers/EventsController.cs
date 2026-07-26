@@ -41,12 +41,9 @@ public class EventsController : ControllerBase
     [Produces("application/json")]
     public async Task<IActionResult> BookEvent([FromRoute] Guid id)
     {
-  
-        var eventResult = await _eventsService.GetByIdAsync(id);
-        if (!eventResult.IsSuccesfuly)  return NotFound(eventResult.Reason);
-         
+   
         var bookingResult = await _bookingsService.CreateBookingAsync(id);
-        if (!bookingResult.IsSuccesfuly) return StatusCode(500, "Failed to create booking");
+        if (!bookingResult.IsSuccesfuly) return NotFound(bookingResult.Reason);
        
         var booking = bookingResult.Data;
           
@@ -129,9 +126,14 @@ public class EventsController : ControllerBase
     {
         try
         {
-            Guid index = Guid.NewGuid();
-            dto.Id = index;
-            if (_eventsService.IsExisted(index) || _eventsService.IsExistedByTitle(dto.Title))
+
+            if (dto.Id == Guid.Empty || dto.Id == default)
+            {
+                Guid index = Guid.NewGuid();
+                dto.Id = index;
+            }
+
+            if (_eventsService.IsExisted(dto.Id) || _eventsService.IsExistedByTitle(dto.Title))
             { 
                 return Conflict("Уже существует сущность c таким идентификатором или названием");
             }

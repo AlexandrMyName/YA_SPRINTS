@@ -19,6 +19,103 @@
             Валидация выходных данных
             </summary>
         </member>
+        <member name="M:SprintASP_NetCore_API.Controllers.BookingsController.GetBooking(System.Guid)">
+            <summary>
+            Получает информацию о брони по её идентификатору.
+            </summary>
+            <param name="id">Идентификатор брони</param>
+            <response code="200">Возвращает данные брони</response>
+            <response code="404">Бронь не найдена</response>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.Id">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.EventId">
+            <summary>
+            ID события
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.Status">
+            <summary>
+            Статус обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.CreatedAt">
+            <summary>
+            Дата и время создания
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.ProcessedAt">
+            <summary>
+            Дата и время обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.Id">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.EventId">
+            <summary>
+            ID события
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.Status">
+            <summary>
+            Статус обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.CreatedAt">
+            <summary>
+            Дата и время создания
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.ProcessedAt">
+            <summary>
+            Дата и время обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.Id">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.EventId">
+            <summary>
+            ID события
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.Status">
+            <summary>
+            Статус обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.SortBy">
+            <summary>
+            Поле для сортировки (Title, StartAt, EndAt, Priority)
+            </summary>
+            <example>StartAt</example>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.SortDesc">
+            <summary>
+            Направление сортировки: true — по убыванию, false — по возрастанию
+            </summary>
+            <example>false</example>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.Page">
+            <summary>
+            Номер страницы для пагинации (начиная с 1)
+            </summary>
+            <example>1</example>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.Filters.BookingFilterDto.PageSize">
+            <summary>
+            Количество элементов на странице (максимум 100)
+            </summary>
+            <example>10</example>
+        </member>
         <member name="T:SprintASP_NetCore_API.Data.Dtos.PaginatedResult`1">
             <summary>
             DTO для возврата пагинированного результата
@@ -64,6 +161,118 @@
             <summary>
             Создает пагинированный результат
             </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.IBooking.EventId">
+            <summary>
+            ID события
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.IBooking.Status">
+            <summary>
+            Статус обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.IBooking.CreatedAt">
+            <summary>
+            Дата и время создания
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.IBooking.ProcessedAt">
+            <summary>
+            Дата и время обработки
+            </summary>
+        </member>
+        <member name="T:SprintASP_NetCore_API.Data.Entities.Booking">
+            <summary>
+            Объект бронирования
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.Booking.Id">
+            <summary>
+            ID
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.Booking.EventId">
+            <summary>
+            ID события
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.Booking.Status">
+            <summary>
+            Статус обработки
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.Booking.CreatedAt">
+            <summary>
+            Дата и время создания
+            </summary>
+        </member>
+        <member name="P:SprintASP_NetCore_API.Data.Entities.Booking.ProcessedAt">
+            <summary>
+            Дата и время обработки
+            </summary>
+        </member>
+        <member name="F:SprintASP_NetCore_API.Data.Entities.BookingStatus.Pending">
+            <summary>
+            бронь создана, ожидает обработки
+            </summary>
+        </member>
+        <member name="F:SprintASP_NetCore_API.Data.Entities.BookingStatus.Confirmed">
+            <summary>
+            бронь подтверждена
+            </summary>
+        </member>
+        <member name="F:SprintASP_NetCore_API.Data.Entities.BookingStatus.Rejected">
+            <summary>
+            бронь отклонена
+            </summary>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.CreateBookingAsync(System.Guid)">
+            <summary>
+            Создание бронирования по идентификатору события
+            </summary>
+            <param name="eventId"></param>
+            <returns></returns>
+            <exception cref="T:System.NullReferenceException"></exception>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.GetBookingByIdAsync(System.Guid)">
+            <summary>
+            Получение бронирования по ID 
+            </summary>
+            <param name="bookingId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.UpdateBookingAsync(SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto)">
+            <summary>
+            Обновить бронирование
+            </summary>
+            <param name="item"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SprintASP_NetCore_API.Services.IBookingService">
+            <summary>
+            Абстракция сервиса хранилища (IBookingService) - Сервис-хранилище бронирования
+            </summary>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Services.IBookingService.CreateBookingAsync(System.Guid)">
+            <summary>
+            создание брони для указанного события
+            </summary>
+            <param name="eventId"></param>
+        </member>
+        <member name="M:SprintASP_NetCore_API.Services.IBookingService.GetBookingByIdAsync(System.Guid)">
+            <summary>
+            получение брони по идентификатору
+            </summary>
+            <param name="bookingId"></param>
+        </member>
+        <member name="M:Sprints_Project_ASP_NetCore_API.Controllers.EventsController.BookEvent(System.Guid)">
+            <summary>
+            Создаёт бронирование для указанного события.
+            </summary>
+            <param name="id">Идентификатор события</param>
+            <response code="202">Бронирование создано, возвращена информация о нём</response>
+            <response code="404">Событие с указанным идентификатором не найдено</response>
         </member>
         <member name="M:Sprints_Project_ASP_NetCore_API.Controllers.EventsController.Get(System.Guid)">
             <summary>

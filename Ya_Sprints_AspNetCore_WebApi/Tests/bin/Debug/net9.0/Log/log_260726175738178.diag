@@ -1,0 +1,28 @@
+2026-07-26T17:57:38.1818493+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Version: 1.9.1+cb5afc3bb9bb01ebd75b57f89e8358b914ee2a49
+2026-07-26T17:57:38.1889673+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging mode: asynchronous
+2026-07-26T17:57:38.1897357+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging level: Information
+2026-07-26T17:57:38.1897384+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION CreateBuilderAsync entry time: 17:57:38.166
+2026-07-26T17:57:38.1900130+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION PID: 17480
+2026-07-26T17:57:38.1900291+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime information: win-x64 - .NET 9.0.17
+2026-07-26T17:57:38.1900373+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.17\System.Private.CoreLib.dll
+2026-07-26T17:57:38.1900426+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION IsDynamicCodeSupported: True
+2026-07-26T17:57:38.1900784+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Test module: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Tests.dll
+2026-07-26T17:57:38.1901273+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Command line arguments: '--server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Log --results-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\TestResults --client-port 49671'
+2026-07-26T17:57:38.1910371+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION TESTINGPLATFORM_DEFAULT_HANG_TIMEOUT: ''
+2026-07-26T17:57:38.2027312+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting RegisterEnvironmentVariablesConfigurationSource: 'True'
+2026-07-26T17:57:38.2097191+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting PlatformExitProcessOnUnhandledException: 'False', config file: False environment variable: 
+2026-07-26T17:57:38.3388479+00:00 Microsoft.Testing.Platform.Requests.TestHostTestFrameworkInvoker INFORMATION Test framework UID: '30ea7c6e-dd24-4152-a360-1387158cd41d' Version: '3.2.2' DisplayName: 'xUnit.net v3 Microsoft.Testing.Platform test framework' Description: 'xUnit.net v3 Microsoft.Testing.Platform test framework'
+2026-07-26T17:57:38.3445717+00:00 xUnit.net INFORMATION xUnit.net v3 In-Process Runner v3.2.2+728c1dce01 (64-bit .NET 9.0.17)
+2026-07-26T17:57:38.3723342+00:00 xUnit.net INFORMATION   Discovering: Tests
+2026-07-26T17:57:38.4124443+00:00 xUnit.net INFORMATION   Discovered:  Tests
+2026-07-26T17:57:38.4270661+00:00 xUnit.net INFORMATION   Starting:    Tests
+2026-07-26T17:57:38.5780980+00:00 xUnit.net ERROR     Tests.BookingServiceTests.GetBookingByIdAsync_AfterStatusChange_ReflectsUpdatedStatus [FAIL]
+2026-07-26T17:57:38.5783167+00:00 xUnit.net INFORMATION       Assert.Equal() Failure: Values differ
+2026-07-26T17:57:38.5783346+00:00 xUnit.net INFORMATION       Expected: Confirmed
+2026-07-26T17:57:38.5783352+00:00 xUnit.net INFORMATION       Actual:   Pending
+2026-07-26T17:57:38.5785178+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:57:38.5787742+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(273,0): at Tests.BookingServiceTests.GetBookingByIdAsync_AfterStatusChange_ReflectsUpdatedStatus()
+2026-07-26T17:57:38.5787827+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:57:38.5872755+00:00 xUnit.net INFORMATION   Finished:    Tests (ID = 'f00befc81bdf0d7e7190fb9c365bc44c48b01415aec428e96a9ef62efdb7a4a6')
+2026-07-26T17:57:38.5899750+00:00 xUnit.net INFORMATION === TEST EXECUTION SUMMARY ===
+2026-07-26T17:57:38.5936082+00:00 xUnit.net INFORMATION    Tests  Total: 1, Errors: 0, Failed: 1, Skipped: 0, Not Run: 0, Time: 0,164s

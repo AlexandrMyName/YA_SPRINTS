@@ -15,7 +15,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto",
+        "Type": "SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto",
         "MediaTypes": [
           "application/json"
         ],

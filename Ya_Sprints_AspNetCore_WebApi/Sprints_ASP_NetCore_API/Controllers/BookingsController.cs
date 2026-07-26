@@ -28,7 +28,7 @@ public class BookingsController : ControllerBase
     /// <response code="200">Возвращает данные брони</response>
     /// <response code="404">Бронь не найдена</response>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(IBookingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IBookingInfoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Produces("application/json")]
     public async Task<IActionResult> GetBooking([FromRoute] Guid id)

@@ -1,0 +1,73 @@
+2026-07-26T17:17:18.0997630+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Version: 1.9.1+cb5afc3bb9bb01ebd75b57f89e8358b914ee2a49
+2026-07-26T17:17:18.1098862+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging mode: asynchronous
+2026-07-26T17:17:18.1115122+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging level: Information
+2026-07-26T17:17:18.1115196+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION CreateBuilderAsync entry time: 17:17:18.073
+2026-07-26T17:17:18.1119603+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION PID: 26044
+2026-07-26T17:17:18.1120097+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime information: win-x64 - .NET 9.0.17
+2026-07-26T17:17:18.1120356+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.17\System.Private.CoreLib.dll
+2026-07-26T17:17:18.1120542+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION IsDynamicCodeSupported: True
+2026-07-26T17:17:18.1121234+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Test module: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Tests.dll
+2026-07-26T17:17:18.1122317+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Command line arguments: '--server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Log --results-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\TestResults --client-port 50301'
+2026-07-26T17:17:18.1146326+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION TESTINGPLATFORM_DEFAULT_HANG_TIMEOUT: ''
+2026-07-26T17:17:18.1333423+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting RegisterEnvironmentVariablesConfigurationSource: 'True'
+2026-07-26T17:17:18.1439876+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting PlatformExitProcessOnUnhandledException: 'False', config file: False environment variable: 
+2026-07-26T17:17:18.3248883+00:00 Microsoft.Testing.Platform.Requests.TestHostTestFrameworkInvoker INFORMATION Test framework UID: '30ea7c6e-dd24-4152-a360-1387158cd41d' Version: '3.2.2' DisplayName: 'xUnit.net v3 Microsoft.Testing.Platform test framework' Description: 'xUnit.net v3 Microsoft.Testing.Platform test framework'
+2026-07-26T17:17:18.3327786+00:00 xUnit.net INFORMATION xUnit.net v3 In-Process Runner v3.2.2+728c1dce01 (64-bit .NET 9.0.17)
+2026-07-26T17:17:18.3708912+00:00 xUnit.net INFORMATION   Discovering: Tests
+2026-07-26T17:17:18.4258072+00:00 xUnit.net INFORMATION   Discovered:  Tests
+2026-07-26T17:17:18.4468629+00:00 xUnit.net INFORMATION   Starting:    Tests
+2026-07-26T17:17:18.7723185+00:00 xUnit.net ERROR     Tests.BookingServiceTests.CreateBookingAsync_WithExistingEvent_ReturnsPendingBooking [FAIL]
+2026-07-26T17:17:18.7726605+00:00 xUnit.net INFORMATION       Moq.MockException : 
+2026-07-26T17:17:18.7726708+00:00 xUnit.net INFORMATION       Expected invocation on the mock once, but was 0 times: r => r.GetByIdAsync(4aa8c50a-d5ad-4ca4-8045-b236150c369b)
+2026-07-26T17:17:18.7726764+00:00 xUnit.net INFORMATION       
+2026-07-26T17:17:18.7726771+00:00 xUnit.net INFORMATION       Performed invocations:
+2026-07-26T17:17:18.7726775+00:00 xUnit.net INFORMATION       
+2026-07-26T17:17:18.7726780+00:00 xUnit.net INFORMATION          Mock<IRepository<IEvent>:4> (r):
+2026-07-26T17:17:18.7726784+00:00 xUnit.net INFORMATION          No invocations performed.
+2026-07-26T17:17:18.7726788+00:00 xUnit.net INFORMATION       
+2026-07-26T17:17:18.7729570+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:17:18.7732284+00:00 xUnit.net INFORMATION         /_/src/Moq/Mock.cs(332,0): at Moq.Mock.Verify(Mock mock, LambdaExpression expression, Times times, String failMessage)
+2026-07-26T17:17:18.7732411+00:00 xUnit.net INFORMATION         /_/src/Moq/Mock`1.cs(840,0): at Moq.Mock`1.Verify[TResult](Expression`1 expression, Func`1 times)
+2026-07-26T17:17:18.7732474+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(120,0): at Tests.BookingServiceTests.CreateBookingAsync_WithExistingEvent_ReturnsPendingBooking()
+2026-07-26T17:17:18.7732483+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:17:18.7752406+00:00 xUnit.net ERROR     Tests.BookingServiceTests.CreateBookingAsync_WithDeletedEvent_ReturnsFail [FAIL]
+2026-07-26T17:17:18.7752538+00:00 xUnit.net INFORMATION       System.NullReferenceException : Object reference not set to an instance of an object.
+2026-07-26T17:17:18.7752716+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:17:18.7752897+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\BaseDataService.cs(105,0): at SprintASP_NetCore_API.Services.DataServices.BaseDataService`2.AddAsync(TDto item)
+2026-07-26T17:17:18.7752966+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\BookingService.cs(38,0): at SprintASP_NetCore_API.Services.DataServices.BookingService.CreateBookingAsync(Guid eventId)
+2026-07-26T17:17:18.7753017+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(300,0): at Tests.BookingServiceTests.CreateBookingAsync_WithDeletedEvent_ReturnsFail()
+2026-07-26T17:17:18.7753065+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:17:18.7834208+00:00 xUnit.net ERROR     Tests.BookingServiceTests.GetBookingByIdAsync_AfterStatusChange_ReflectsUpdatedStatus [FAIL]
+2026-07-26T17:17:18.7834558+00:00 xUnit.net INFORMATION       System.NullReferenceException : Object reference not set to an instance of an object.
+2026-07-26T17:17:18.7834717+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:17:18.7834927+00:00 xUnit.net INFORMATION            at lambda_method62(Closure, IBooking)
+2026-07-26T17:17:18.7835035+00:00 xUnit.net INFORMATION         /_/src/Moq/It.cs(149,0): at Moq.It.<>c__DisplayClass6_0`1.<Is>b__0(TValue argument)
+2026-07-26T17:17:18.7835087+00:00 xUnit.net INFORMATION         /_/src/Moq/Match.cs(177,0): at Moq.Match`1.Matches(Object argument, Type parameterType)
+2026-07-26T17:17:18.7835134+00:00 xUnit.net INFORMATION         /_/src/Moq/Match.cs(78,0): at Moq.Match.Moq.IMatcher.Matches(Object argument, Type parameterType)
+2026-07-26T17:17:18.7835270+00:00 xUnit.net INFORMATION         /_/src/Moq/MethodExpectation.cs(137,0): at Moq.MethodExpectation.IsMatch(Invocation invocation)
+2026-07-26T17:17:18.7835314+00:00 xUnit.net INFORMATION         /_/src/Moq/Setup.cs(104,0): at Moq.Setup.Matches(Invocation invocation)
+2026-07-26T17:17:18.7835376+00:00 xUnit.net INFORMATION         /_/src/Moq/Interception/InterceptionAspects.cs(92,0): at Moq.FindAndExecuteMatchingSetup.<>c__DisplayClass0_0.<Handle>b__0(Setup setup)
+2026-07-26T17:17:18.7835426+00:00 xUnit.net INFORMATION         /_/src/Moq/SetupCollection.cs(120,0): at Moq.SetupCollection.FindLast(Func`2 predicate)
+2026-07-26T17:17:18.7835680+00:00 xUnit.net INFORMATION         /_/src/Moq/Interception/InterceptionAspects.cs(92,0): at Moq.FindAndExecuteMatchingSetup.Handle(Invocation invocation, Mock mock)
+2026-07-26T17:17:18.7835732+00:00 xUnit.net INFORMATION         /_/src/Moq/Interception/Mock.cs(17,0): at Moq.Mock.Moq.IInterceptor.Intercept(Invocation invocation)
+2026-07-26T17:17:18.7835792+00:00 xUnit.net INFORMATION         /_/src/Moq/Interception/CastleProxyFactory.cs(107,0): at Moq.CastleProxyFactory.Interceptor.Intercept(IInvocation underlying)
+2026-07-26T17:17:18.7835832+00:00 xUnit.net INFORMATION            at Castle.DynamicProxy.AbstractInvocation.Proceed()
+2026-07-26T17:17:18.7835880+00:00 xUnit.net INFORMATION            at Castle.Proxies.IRepository`1Proxy.UpdateAsync(IBooking item)
+2026-07-26T17:17:18.7836050+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\BaseDataService.cs(118,0): at SprintASP_NetCore_API.Services.DataServices.BaseDataService`2.UpdateAsync(TDto item)
+2026-07-26T17:17:18.7836150+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(255,0): at Tests.BookingServiceTests.GetBookingByIdAsync_AfterStatusChange_ReflectsUpdatedStatus()
+2026-07-26T17:17:18.7836162+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:17:18.7939515+00:00 xUnit.net ERROR     Tests.BookingServiceTests.CreateBookingAsync_WithNonExistentEvent_ReturnsFail [FAIL]
+2026-07-26T17:17:18.7939928+00:00 xUnit.net INFORMATION       System.NullReferenceException : Object reference not set to an instance of an object.
+2026-07-26T17:17:18.7940012+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:17:18.7940456+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\BaseDataService.cs(105,0): at SprintASP_NetCore_API.Services.DataServices.BaseDataService`2.AddAsync(TDto item)
+2026-07-26T17:17:18.7940673+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints_ASP_NetCore_API\Services\DataServices\BookingService.cs(38,0): at SprintASP_NetCore_API.Services.DataServices.BookingService.CreateBookingAsync(Guid eventId)
+2026-07-26T17:17:18.7940852+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(275,0): at Tests.BookingServiceTests.CreateBookingAsync_WithNonExistentEvent_ReturnsFail()
+2026-07-26T17:17:18.7940882+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:17:18.7955575+00:00 xUnit.net ERROR     Tests.BookingServiceTests.GetBookingByIdAsync_WithValidId_ReturnsCorrectBooking [FAIL]
+2026-07-26T17:17:18.7955675+00:00 xUnit.net INFORMATION       System.NullReferenceException : Object reference not set to an instance of an object.
+2026-07-26T17:17:18.7955699+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:17:18.7955790+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(206,0): at Tests.BookingServiceTests.GetBookingByIdAsync_WithValidId_ReturnsCorrectBooking()
+2026-07-26T17:17:18.7955798+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:17:37.2489907+00:00 xUnit.net INFORMATION   Finished:    Tests (ID = 'f00befc81bdf0d7e7190fb9c365bc44c48b01415aec428e96a9ef62efdb7a4a6')
+2026-07-26T17:17:37.2518922+00:00 xUnit.net INFORMATION === TEST EXECUTION SUMMARY ===
+2026-07-26T17:17:37.2560324+00:00 xUnit.net INFORMATION    Tests  Total: 63, Errors: 0, Failed: 5, Skipped: 0, Not Run: 0, Time: 18,806s

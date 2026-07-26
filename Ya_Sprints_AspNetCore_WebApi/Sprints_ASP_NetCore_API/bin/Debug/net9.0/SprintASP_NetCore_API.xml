@@ -27,52 +27,52 @@
             <response code="200">Возвращает данные брони</response>
             <response code="404">Бронь не найдена</response>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingDto.Id">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.Id">
             <summary>
             ID
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingDto.EventId">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.EventId">
             <summary>
             ID события
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingDto.Status">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.Status">
             <summary>
             Статус обработки
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingDto.CreatedAt">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.CreatedAt">
             <summary>
             Дата и время создания
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingDto.ProcessedAt">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.BookingInfoDto.ProcessedAt">
             <summary>
             Дата и время обработки
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto.Id">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.Id">
             <summary>
             ID
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto.EventId">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.EventId">
             <summary>
             ID события
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto.Status">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.Status">
             <summary>
             Статус обработки
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto.CreatedAt">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.CreatedAt">
             <summary>
             Дата и время создания
             </summary>
         </member>
-        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto.ProcessedAt">
+        <member name="P:SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto.ProcessedAt">
             <summary>
             Дата и время обработки
             </summary>
@@ -242,74 +242,11 @@
             <param name="bookingId"></param>
             <returns></returns>
         </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.GetAllAsync">
-            <summary>
-            Получение всех бронирований
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.GetFilteredAsync(SprintASP_NetCore_API.Data.Dtos.Filters.IEntityFilter{Sprints_Project_ASP_NetCore_API.Data.Entities.IEntity})">
-            <summary>
-            Получить бронирования используя фильтр
-            </summary>
-            <param name="filter"></param>
-            <returns></returns>
-            <exception cref="T:System.InvalidOperationException"></exception>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.GetByIdAsync(System.Guid)">
-            <summary>
-            Получить бронирование по идентификатору
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.AddAsync(SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto)">
-            <summary>
-            Добавить бронирование
-            </summary>
-            <param name="item"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.UpdateAsync(SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto)">
+        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.UpdateBookingAsync(SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingInfoDto)">
             <summary>
             Обновить бронирование
             </summary>
             <param name="item"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.DeleteAsync(System.Guid)">
-            <summary>
-            Удалить бронирование
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.AddRangeAsync(System.Collections.Generic.IEnumerable{SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto})">
-            <summary>
-            Добавить список бронирований
-            </summary>
-            <param name="items"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.UpdateRangeAsync(System.Collections.Generic.IEnumerable{SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.IBookingDto})">
-            <summary>
-            Обновить список бронирований
-            </summary>
-            <param name="items"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.IsExisted(System.Guid)">
-            <summary>
-            Проверка наличия по ID
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SprintASP_NetCore_API.Services.DataServices.BookingService.IsExistedByTitle(System.String)">
-            <summary>
-            Проверка наличия по Имени
-            </summary>
-            <param name="name"></param>
             <returns></returns>
         </member>
         <member name="T:SprintASP_NetCore_API.Services.IBookingService">

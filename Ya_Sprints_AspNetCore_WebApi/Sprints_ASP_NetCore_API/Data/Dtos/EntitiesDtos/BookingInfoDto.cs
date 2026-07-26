@@ -3,7 +3,7 @@ using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 
 namespace SprintASP_NetCore_API.Data.Dtos.EntitiesDtos;
 
-public class BookingDto : IBookingDto
+public class BookingInfoDto : IBookingInfoDto
 {
 
     /// <summary>
@@ -32,7 +32,7 @@ public class BookingDto : IBookingDto
     public DateTime? ProcessedAt { get; set; }
 }
 
-public interface IBookingDto : IEntityDto
+public interface IBookingInfoDto : IEntityDto
 {
     /// <summary>
     /// ID

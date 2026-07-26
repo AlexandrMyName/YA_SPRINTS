@@ -1,0 +1,35 @@
+2026-07-26T17:23:46.0397103+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Version: 1.9.1+cb5afc3bb9bb01ebd75b57f89e8358b914ee2a49
+2026-07-26T17:23:46.0473701+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging mode: asynchronous
+2026-07-26T17:23:46.0486795+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Logging level: Information
+2026-07-26T17:23:46.0486823+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION CreateBuilderAsync entry time: 17:23:46.022
+2026-07-26T17:23:46.0490084+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION PID: 20628
+2026-07-26T17:23:46.0490469+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime information: win-x64 - .NET 9.0.17
+2026-07-26T17:23:46.0490656+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Runtime location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\9.0.17\System.Private.CoreLib.dll
+2026-07-26T17:23:46.0490772+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION IsDynamicCodeSupported: True
+2026-07-26T17:23:46.0491214+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Test module: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Tests.dll
+2026-07-26T17:23:46.0491997+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION Command line arguments: '--server --diagnostic --diagnostic-verbosity Information --diagnostic-output-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\bin\Debug\net9.0\Log --results-directory D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\TestResults --client-port 65445'
+2026-07-26T17:23:46.0503301+00:00 Microsoft.Testing.Platform.Builder.TestApplication INFORMATION TESTINGPLATFORM_DEFAULT_HANG_TIMEOUT: ''
+2026-07-26T17:23:46.0671217+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting RegisterEnvironmentVariablesConfigurationSource: 'True'
+2026-07-26T17:23:46.0773198+00:00 Microsoft.Testing.Platform.Hosts.TestHostBuilder INFORMATION Setting PlatformExitProcessOnUnhandledException: 'False', config file: False environment variable: 
+2026-07-26T17:23:46.2107267+00:00 Microsoft.Testing.Platform.Requests.TestHostTestFrameworkInvoker INFORMATION Test framework UID: '30ea7c6e-dd24-4152-a360-1387158cd41d' Version: '3.2.2' DisplayName: 'xUnit.net v3 Microsoft.Testing.Platform test framework' Description: 'xUnit.net v3 Microsoft.Testing.Platform test framework'
+2026-07-26T17:23:46.2171383+00:00 xUnit.net INFORMATION xUnit.net v3 In-Process Runner v3.2.2+728c1dce01 (64-bit .NET 9.0.17)
+2026-07-26T17:23:46.2439543+00:00 xUnit.net INFORMATION   Discovering: Tests
+2026-07-26T17:23:46.2806383+00:00 xUnit.net INFORMATION   Discovered:  Tests
+2026-07-26T17:23:46.2943045+00:00 xUnit.net INFORMATION   Starting:    Tests
+2026-07-26T17:23:47.0473805+00:00 xUnit.net ERROR     Tests.BookingServiceTests.CreateBookingAsync_WithExistingEvent_ReturnsPendingBooking [FAIL]
+2026-07-26T17:23:47.0475870+00:00 xUnit.net INFORMATION       Moq.MockException : 
+2026-07-26T17:23:47.0475946+00:00 xUnit.net INFORMATION       Expected invocation on the mock once, but was 0 times: r => r.GetByIdAsync(27a17ea7-bfce-4415-a3a7-18fbce81cde1)
+2026-07-26T17:23:47.0475954+00:00 xUnit.net INFORMATION       
+2026-07-26T17:23:47.0475959+00:00 xUnit.net INFORMATION       Performed invocations:
+2026-07-26T17:23:47.0475963+00:00 xUnit.net INFORMATION       
+2026-07-26T17:23:47.0475967+00:00 xUnit.net INFORMATION          Mock<IRepository<IEvent>:1> (r):
+2026-07-26T17:23:47.0475972+00:00 xUnit.net INFORMATION          No invocations performed.
+2026-07-26T17:23:47.0475976+00:00 xUnit.net INFORMATION       
+2026-07-26T17:23:47.0477583+00:00 xUnit.net INFORMATION       Stack Trace:
+2026-07-26T17:23:47.0479667+00:00 xUnit.net INFORMATION         /_/src/Moq/Mock.cs(332,0): at Moq.Mock.Verify(Mock mock, LambdaExpression expression, Times times, String failMessage)
+2026-07-26T17:23:47.0479771+00:00 xUnit.net INFORMATION         /_/src/Moq/Mock`1.cs(840,0): at Moq.Mock`1.Verify[TResult](Expression`1 expression, Func`1 times)
+2026-07-26T17:23:47.0479854+00:00 xUnit.net INFORMATION         D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Tests\Tests_BookingService.cs(120,0): at Tests.BookingServiceTests.CreateBookingAsync_WithExistingEvent_ReturnsPendingBooking()
+2026-07-26T17:23:47.0479863+00:00 xUnit.net INFORMATION         --- End of stack trace from previous location ---
+2026-07-26T17:23:47.0559430+00:00 xUnit.net INFORMATION   Finished:    Tests (ID = 'f00befc81bdf0d7e7190fb9c365bc44c48b01415aec428e96a9ef62efdb7a4a6')
+2026-07-26T17:23:47.0590492+00:00 xUnit.net INFORMATION === TEST EXECUTION SUMMARY ===
+2026-07-26T17:23:47.0621292+00:00 xUnit.net INFORMATION    Tests  Total: 1, Errors: 0, Failed: 1, Skipped: 0, Not Run: 0, Time: 0,765s

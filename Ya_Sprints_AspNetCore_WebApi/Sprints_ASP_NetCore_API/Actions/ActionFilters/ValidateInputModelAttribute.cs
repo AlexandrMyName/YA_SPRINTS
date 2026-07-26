@@ -7,6 +7,7 @@ using reflectionPropertyAccessor_Lib;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections;
 using SprintASP_NetCore_API.Data.Dtos.Filters;
+using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos;
 
 
 namespace SprintASP_NetCore_API.Filters.ActionFilters;
@@ -45,12 +46,13 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
         }
 
         // 3. Бизнес-валидация для коллекции EventDto
-        var collectionDtos = context.ActionArguments.Values.OfType<IEnumerable<EventDto>>().FirstOrDefault();
-        if (collectionDtos != null)
+        var collectionDtos_Events = context.ActionArguments.Values.OfType<IEnumerable<EventDto>>().FirstOrDefault();
+        if (collectionDtos_Events != null)
         {
-            if (!CheckInputData_EventDtos(context, collectionDtos)) return;
+            if (!CheckInputData_EventDtos(context, collectionDtos_Events)) return;
         }
 
+ 
         // 4. Бизнес-валидация для фильтра событий
         var eventFilterDto = context.ActionArguments.Values.OfType<EventFilterDto>().FirstOrDefault();
         if (eventFilterDto != null)
@@ -58,7 +60,15 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             // Валидация: Page >= 1, PageSize от 1 до 100, From < To
             if (!CheckFilter_EventFilterDto(context, eventFilterDto)) return;
         }
-         
+
+
+        // 4. Бизнес-валидация для фильтра бронирований
+        var bookingFilterDto = context.ActionArguments.Values.OfType<BookingFilterDto>().FirstOrDefault();
+        if (bookingFilterDto != null)
+        {
+            // Валидация: Page >= 1, PageSize от 1 до 100, From < To
+            if (!CheckFilter_BookingFilterDto(context, bookingFilterDto)) return;
+        } 
     }
 
 
@@ -82,14 +92,58 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             });
             return false;  
         }
-
-
+         
         // Валидация параметров пагинации
         if (filter.Page < 1)
         {
             var error = new ValidationResult(
               "Номер страницы должен быть больше 0",
               new[] { nameof(filter.Page)  }
+            );
+            var modelState = new ModelStateDictionary();
+            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
+            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Ошибка валидации входных данных"
+            });
+            return false; // Добавил выход (04.07.26)  23:47
+        }
+
+        if (filter.PageSize < 1 || filter.PageSize > 100)
+        {
+            var error = new ValidationResult(
+              "Размер страницы должен быть от 1 до 100",
+              new[] { nameof(filter.PageSize), nameof(filter.PageSize) }
+            );
+            var modelState = new ModelStateDictionary();
+            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
+            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Ошибка валидации входных данных"
+            });
+            return false; // Добавил выход (04.07.26) 23:47
+        }
+
+
+
+        return true;
+    }
+
+
+    private static bool CheckFilter_BookingFilterDto(ActionExecutingContext context, BookingFilterDto filter)
+    {
+
+        if (filter == null) return true;
+
+         
+        // Валидация параметров пагинации
+        if (filter.Page < 1)
+        {
+            var error = new ValidationResult(
+              "Номер страницы должен быть больше 0",
+              new[] { nameof(filter.Page) }
             );
             var modelState = new ModelStateDictionary();
             modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);

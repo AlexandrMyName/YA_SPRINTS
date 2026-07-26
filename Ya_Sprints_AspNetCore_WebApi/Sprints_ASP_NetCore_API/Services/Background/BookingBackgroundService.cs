@@ -26,8 +26,6 @@ public class BookingBackgroundService : BackgroundService
         {
             try
             {
-                //await Task.Delay(60 * 1000);
-                await Task.Delay(2000);
 
                 var filtredDatas = await _bookingService.GetFilteredAsync(new BookingFilterDto()
                 {
@@ -36,17 +34,14 @@ public class BookingBackgroundService : BackgroundService
 
                 if(filtredDatas.TotalCount > 0)
                 {
-
-
+                     
                     foreach(var data in filtredDatas.Items)
                     {
                         await Task.Delay(2000); 
                         data.Status = Data.Entities.BookingStatus.Confirmed;
-                        await _bookingService.UpdateAsync(data);
-                    }
-                     
-
-
+                        data.ProcessedAt = DateTime.Now;
+                        await _bookingService.UpdateBookingAsync(data);
+                    } 
                 }
                 else
                 {
