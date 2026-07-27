@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\services\\background\\bookingbackgroundservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\services\\background\\bookingbackgroundservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -13,10 +17,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{4283838A-3679-47D5-8B02-158C9553E52F}|Tests\\Tests.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\tests\\tests_bookingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4283838A-3679-47D5-8B02-158C9553E52F}|Tests\\Tests.csproj|solutionrelative:tests\\tests_bookingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|solutionrelative:sprints_asp_netcore_api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DB076136-062B-4E3C-893A-156820016ACA}|Sprints_ASP_NetCore_API\\SprintASP_NetCore_API.csproj|d:\\projects\\ya\\ya_sprints\\ya_sprints_aspnetcore_webapi\\sprints_asp_netcore_api\\controllers\\bookingscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -224,7 +224,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -244,8 +244,7 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Controllers\\EventsController.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAvwEMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T11:20:28.04Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-04T11:20:28.04Z"
             },
             {
               "$type": "Document",
@@ -257,38 +256,37 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Services\\DataServices\\BookingService.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAQwD0AAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-25T13:53:21.43Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-25T13:53:21.43Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "BookingBackgroundService.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Services\\Background\\BookingBackgroundService.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Services\\Background\\BookingBackgroundService.cs",
               "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Services\\Background\\BookingBackgroundService.cs",
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Services\\Background\\BookingBackgroundService.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAkwCMAAAASAAAAAAAAAA==",
+              "ViewState": "AgIAABMAAAAAAAAAAAAgwBUAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-07-25T13:55:19.818Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Program.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Program.cs",
               "ToolTip": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Program.cs",
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Program.cs",
-              "ViewState": "AgIAABAAAAAAAAAAAAAmwC8AAABUAAAAAAAAAA==",
+              "ViewState": "AgIAABgAAAAAAAAAAAAqwCkAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-28T17:18:38.489Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Tests_BookingService.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Tests\\Tests_BookingService.cs",
               "RelativeDocumentMoniker": "Tests\\Tests_BookingService.cs",
@@ -296,12 +294,11 @@
               "RelativeToolTip": "Tests\\Tests_BookingService.cs",
               "ViewState": "AgIAADUBAAAAAAAAAAArwEMBAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-25T13:58:38.978Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-25T13:58:38.978Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "GlobalExceptionMiddleware.cs",
               "DocumentMoniker": "D:\\Projects\\YA\\YA_SPRINTS\\Ya_Sprints_AspNetCore_WebApi\\Sprints_ASP_NetCore_API\\Middlewares\\GlobalExceptionMiddleware.cs",
               "RelativeDocumentMoniker": "Sprints_ASP_NetCore_API\\Middlewares\\GlobalExceptionMiddleware.cs",
@@ -309,8 +306,7 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Middlewares\\GlobalExceptionMiddleware.cs",
               "ViewState": "AgIAAC0AAAAAAAAAAAAowC8AAABMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T14:12:59.265Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-04T14:12:59.265Z"
             },
             {
               "$type": "Document",
@@ -322,8 +318,7 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Controllers\\BookingsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-25T13:54:05.664Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-25T13:54:05.664Z"
             },
             {
               "$type": "Document",
@@ -335,8 +330,7 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Services\\IBookingService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-25T13:59:38.693Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-25T13:59:38.693Z"
             },
             {
               "$type": "Document",
@@ -348,8 +342,7 @@
               "RelativeToolTip": "Sprints_ASP_NetCore_API\\Data\\Dtos\\PaginatedResult.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-04T14:16:35.895Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-04T14:16:35.895Z"
             },
             {
               "$type": "Document",

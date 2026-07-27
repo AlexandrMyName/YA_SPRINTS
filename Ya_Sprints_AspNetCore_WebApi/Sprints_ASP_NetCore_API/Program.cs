@@ -31,7 +31,16 @@ namespace Sprints_Project_ASP_NetCore_API
                 .AddAutoMapper( typeof(Program))   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
                 .AddRepositories() // Добавляет репозитории в контейнер зависимостей
                 .AddServices(); // Добавляет сервисы в контейнер зависимостей
-             
+
+            builder.Host.UseDefaultServiceProvider((context, options) =>
+            {
+                if (context.HostingEnvironment.IsDevelopment())
+                {
+                    options.ValidateScopes = true;
+                    options.ValidateOnBuild = true;
+                }
+            });
+
             var app = builder.Build();
              
             if (app.Environment.IsDevelopment())
@@ -40,14 +49,7 @@ namespace Sprints_Project_ASP_NetCore_API
                 app.UseSwagger();
                 app.UseSwaggerUI(opt => { }); 
                 app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
-                app.UseCors($"{CorsPoliticType.AllowAll}");
-
-                builder.Host.UseDefaultServiceProvider(options => {
-                    // Проверяет Captive Dependency во время выполнения
-                    options.ValidateScopes = true; 
-                    // Проверяет корректность всех регистраций при старте приложения
-                    options.ValidateOnBuild = true;
-                }); 
+                app.UseCors($"{CorsPoliticType.AllowAll}"); 
             }
             else
             {
