@@ -1,9 +1,11 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos;
-using Sprints_Project_ASP_NetCore_API.Services;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using SprintASP_NetCore_API.Controllers;
 using SprintASP_NetCore_API.Data.Dtos;
 using SprintASP_NetCore_API.Services;
-using Microsoft.AspNetCore.Mvc;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using Sprints_Project_ASP_NetCore_API.Services;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Controllers;
@@ -41,34 +43,28 @@ public class EventsController : ControllerBase
     [Produces("application/json")]
     public async Task<IActionResult> BookEvent([FromRoute] Guid id)
     {
-   
-        var bookingResult = await _bookingsService.CreateBookingAsync(id);
-        if (!bookingResult.IsSuccesfuly) return NotFound(bookingResult.Reason);
-       
-        var booking = bookingResult.Data;
-          
-        if(booking == null) throw new NullReferenceException(nameof(booking));
 
-        var response = new
-        {
-            booking.Id,
-            EventId = booking.EventId,  
-            booking.Status
-        };
-         
-        var location = Url.Action(
-            action: "{id}/book",           
-            controller: "Events",   
-            values: new { bookingId = booking.Id },
-            protocol: Request.Scheme
-        ) ?? $"/api/bookings/{booking.Id}";
+            var bookingResult = await _bookingsService.CreateBookingAsync(id); 
 
-        Response.Headers.Add("Location", location);
+            var booking = bookingResult.Data;
 
-        return Accepted(response);
+            if (booking == null) throw new NullReferenceException(nameof(booking));
+
+            var response = new
+            {
+                booking.Id,
+                EventId = booking.EventId,
+                booking.Status
+            };
+
+            var location = Url.Action(
+                action: nameof(BookingsController.GetBooking),
+                controller: "Bookings",
+                values: new { version = "1", id = booking.Id },
+                protocol: Request.Scheme);
+
+            return Accepted(location, booking);
     }
-
-
 
 
     /// <summary>

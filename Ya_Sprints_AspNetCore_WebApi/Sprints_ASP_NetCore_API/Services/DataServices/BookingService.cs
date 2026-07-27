@@ -36,7 +36,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>,  IBook
     {
          
         var eventResult = await _eventRepository.GetByIdAsync(eventId);
-        if (!eventResult.IsSuccesfuly) return ResultDto<IBookingInfoDto>.Fail("Event not found");
+        if (!eventResult.IsSuccesfuly) throw new KeyNotFoundException("Event not found");
           
         var bookingDto = await AddAsync(new BookingInfoDto()
         {
@@ -58,6 +58,8 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>,  IBook
     public async Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(Guid bookingId)
     {
         var bookingDto = await GetByIdAsync(bookingId);
+
+        if(!bookingDto.IsSuccesfuly) throw new KeyNotFoundException("Booking not found");
         return bookingDto;
     }
 

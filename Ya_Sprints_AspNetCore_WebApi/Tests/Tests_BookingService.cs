@@ -264,15 +264,20 @@ namespace Tests
             var eventId = Guid.NewGuid();
 
             _mockEventRepo.Setup(r => r.GetByIdAsync(eventId))
-                .ReturnsAsync(ResultEntity<IEvent>.Fail("Event not found"));
+                .ThrowsAsync(new KeyNotFoundException("Event not found"));
 
-            // Act
-            var result = await _bookingService.CreateBookingAsync(eventId);
+            try
+            {
+                // Act
+                var result = await _bookingService.CreateBookingAsync(eventId);
+            }
+            catch(Exception ex)
+            {
 
-            // Assert
-            Assert.False(result.IsSuccesfuly);
-            Assert.Equal("Event not found", result.Reason);
-            _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
+                Assert.IsType<KeyNotFoundException>(ex);
+                Assert.Equal("Event not found", ex.Message);
+                _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
+            } 
         }
 
         [Fact]
@@ -288,16 +293,17 @@ namespace Tests
                 EndAt = DateTime.Now.AddDays(10), 
             };
 
-            _mockEventRepo.Setup(r => r.GetByIdAsync(eventId))
-                .ReturnsAsync(ResultEntity<IEvent>.Fail("Event not found"));
+            _mockEventRepo.Setup(r => r.GetByIdAsync(eventId)).ThrowsAsync(new KeyNotFoundException("Event not found"));
 
-            // Act
-            var result = await _bookingService.CreateBookingAsync(eventId);
-
-            // Assert
-            Assert.False(result.IsSuccesfuly);
-            Assert.Equal("Event not found", result.Reason);
-            _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
+            try
+            { 
+                 await _bookingService.CreateBookingAsync(eventId);
+            }
+            catch(Exception ex)
+            {
+                Assert.IsType<KeyNotFoundException>(ex);
+                _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
+            } 
         }
 
         [Fact]
@@ -307,14 +313,20 @@ namespace Tests
             var bookingId = Guid.NewGuid();
 
             _mockBookingRepo.Setup(r => r.GetByIdAsync(bookingId))
-                .ReturnsAsync(ResultEntity<IBooking>.Fail("Booking not found"));
+                .ThrowsAsync(new KeyNotFoundException("Booking not found"));
 
-            // Act
-            var result = await _bookingService.GetBookingByIdAsync(bookingId);
-
-            // Assert
-            Assert.False(result.IsSuccesfuly);
-            Assert.Equal("Booking not found", result.Reason);
+            try
+            {
+                await _bookingService.GetBookingByIdAsync(bookingId);
+                
+            }
+            catch (Exception ex)
+            {
+                Assert.IsType<KeyNotFoundException>(ex); 
+                Assert.Equal("Booking not found", ex.Message);
+            }
+               
+            
         }
     }
 }

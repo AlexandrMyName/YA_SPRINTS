@@ -33,11 +33,10 @@ public class BookingBackgroundService : BackgroundService
                 });
 
                 if(filtredDatas.TotalCount > 0)
-                {
-                     
+                { 
                     foreach(var data in filtredDatas.Items)
                     {
-                        await Task.Delay(2000); 
+                        await Task.Delay(2000, stoppingToken); 
                         data.Status = Data.Entities.BookingStatus.Confirmed;
                         data.ProcessedAt = DateTime.Now;
                         await _bookingService.UpdateBookingAsync(data);
@@ -45,11 +44,16 @@ public class BookingBackgroundService : BackgroundService
                 }
                 else
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, stoppingToken);
                 }
+            }
+            catch(OperationCanceledException operationCanceledExcept)
+            {
+                _logger.LogDebug("Работа BookingService была отменена: " + operationCanceledExcept.Message);
             }
             catch(Exception ex)
             {
+                
                 _logger.LogError("Вызвано исключение (BookingBackground): " + ex.Message);
             } 
         }

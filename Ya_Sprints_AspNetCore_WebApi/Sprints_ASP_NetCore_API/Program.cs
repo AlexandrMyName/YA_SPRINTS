@@ -51,7 +51,7 @@ namespace Sprints_Project_ASP_NetCore_API
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
                 app.UseCors($"{CorsPoliticType.Production}");
             }
 

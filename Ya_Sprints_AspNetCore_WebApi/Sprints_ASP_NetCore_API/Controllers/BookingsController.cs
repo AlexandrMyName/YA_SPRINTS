@@ -33,20 +33,8 @@ public class BookingsController : ControllerBase
     [Produces("application/json")]
     public async Task<IActionResult> GetBooking([FromRoute] Guid id)
     {
-        try
-        {
-            var result = await _bookingService.GetBookingByIdAsync(id);
-            if (result.IsSuccesfuly)
-            {
-                return Ok(result.Data);
-            }
-            return NotFound(result.Reason);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, _environment.IsDevelopment()
-                ? $"{ex.Message} | {ex.InnerException?.Message ?? ""}"
-                : "SERVER ERROR");
-        }
+
+        var result = await _bookingService.GetBookingByIdAsync(id);
+        return Ok(result.Data);
     }
 }
