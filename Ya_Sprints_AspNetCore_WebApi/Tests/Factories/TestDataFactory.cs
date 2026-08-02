@@ -1,5 +1,5 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using SprintASP_NetCore_API.Data.Dtos.Filters; 
+﻿using SprintASP_NetCore_API.Data.Dtos.Filters;
+using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
 
 
 namespace Tests.Factories
@@ -8,14 +8,14 @@ namespace Tests.Factories
     public static class TestDataFactory
     {
 
-        public static EventDto CreateEventDto(
+        public static EventInfoDto CreateEventDto(
             string title = "Test Event",
             DateTime? startAt = null,
             DateTime? endAt = null)
         {
             var now = DateTime.Now;
 
-            return new EventDto
+            return new EventInfoDto
             {
                 Id = Guid.NewGuid(),
                 Title = title,
@@ -42,9 +42,9 @@ namespace Tests.Factories
         }
 
 
-        public static List<EventDto> CreateEventList(int count = 3)
+        public static List<EventInfoDto> CreateEventList(int count = 3)
         {
-            var events = new List<EventDto>();
+            var events = new List<EventInfoDto>();
             for (int i = 0; i < count; i++)
             {
                 events.Add(CreateEventDto($"Event {i + 1}"));

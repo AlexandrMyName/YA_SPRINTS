@@ -1,33 +1,40 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using SprintASP_NetCore_API.Filters.ActionFilters;
-using Microsoft.AspNetCore.Mvc.ModelBinding; 
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Tests.Helpers; 
-using Xunit; 
+using SprintASP_NetCore_API.Filters.ActionFilters;
+using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Tests.Helpers;
+using Xunit;
 
-
-namespace Tests;
-
-
-public class Tests_ValidateInputModelAttribute
-{ 
-
+namespace Tests
+{
+    /// <summary>
+    /// Тесты для валидационного атрибута <see cref="ValidateInputModelAttribute"/>.
+    /// Проверяют как стандартную ModelState-валидацию, так и бизнес-правила,
+    /// реализованные в <see cref="ValidatorHelper"/>.
+    /// </summary>
+    public class Tests_ValidateInputModelAttribute
+    {
         private readonly ValidateInputModelAttribute _filter;
-        private readonly EventDto _validEventDto;
+        private readonly EventInfoDto _validEventDto;
         private readonly EventFilterDto _validFilter;
 
         public Tests_ValidateInputModelAttribute()
         {
             _filter = new ValidateInputModelAttribute();
 
-            _validEventDto = new EventDto
+            _validEventDto = new EventInfoDto
             {
                 Id = Guid.NewGuid(),
                 Title = "Test Event",
                 Description = "Test Description",
                 StartAt = DateTime.Now.AddHours(1),
-                EndAt = DateTime.Now.AddHours(2)
+                EndAt = DateTime.Now.AddHours(2),
+                TotalSeats = 10
             };
 
             _validFilter = new EventFilterDto
@@ -40,12 +47,180 @@ public class Tests_ValidateInputModelAttribute
             };
         }
 
-        #region ModelState Validation Tests
+        #region Вспомогательные методы
 
+        /// <summary>
+        /// Извлекает список сообщений об ошибках из <see cref="IActionResult"/>,
+        /// который должен быть <see cref="BadRequestObjectResult"/>.
+        /// Поддерживает как <see cref="ValidationProblemDetails"/>, так и анонимный объект с полем Errors.
+        /// </summary>
+        private List<string> GetErrorMessages(IActionResult result)
+        {
+            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
+            var value = badRequest.Value;
+
+            if (value is ValidationProblemDetails details)
+                return details.Errors.SelectMany(kvp => kvp.Value).ToList();
+
+            var type = value.GetType();
+            var prop = type.GetProperty("Errors");
+            if (prop != null)
+            {
+                var errors = prop.GetValue(value) as IEnumerable<string>;
+                return errors?.ToList() ?? new List<string>();
+            }
+
+            return new List<string>();
+        }
+
+        #endregion
+
+        #region Тесты для CreateEventDto
+
+        /// <summary>
+        /// Проверяет, что валидный <see cref="CreateEventDto"/> не вызывает ошибок.
+        /// </summary>
+        [Fact]
+        public void OnActionExecuting_WithValidCreateEventDto_DoesNotSetResult()
+        {
+            var dto = new CreateEventDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "New Event",
+                Description = "Description",
+                StartAt = DateTime.Now.AddHours(1),
+                EndAt = DateTime.Now.AddHours(2),
+                TotalSeats = 10
+            };
+
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dto);
+            _filter.OnActionExecuting(context);
+            Assert.Null(context.Result);
+        }
+
+        /// <summary>
+        /// Проверяет, что <see cref="CreateEventDto"/> с TotalSeats = 0 возвращает ошибку.
+        /// </summary>
+        [Fact]
+        public void OnActionExecuting_WithCreateEventDto_TotalSeatsZero_ReturnsBadRequest()
+        {
+            var dto = new CreateEventDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "New Event",
+                StartAt = DateTime.Now.AddHours(1),
+                EndAt = DateTime.Now.AddHours(2),
+                TotalSeats = 0
+            };
+
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dto);
+            _filter.OnActionExecuting(context);
+
+            Assert.NotNull(context.Result);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Общее количество мест должно быть больше 0", errors);
+        }
+
+        /// <summary>
+        /// Проверяет, что <see cref="CreateEventDto"/> с отрицательным TotalSeats возвращает ошибку.
+        /// </summary>
+        [Fact]
+        public void OnActionExecuting_WithCreateEventDto_TotalSeatsNegative_ReturnsBadRequest()
+        {
+            var dto = new CreateEventDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "New Event",
+                StartAt = DateTime.Now.AddHours(1),
+                EndAt = DateTime.Now.AddHours(2),
+                TotalSeats = -5
+            };
+
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dto);
+            _filter.OnActionExecuting(context);
+
+            Assert.NotNull(context.Result);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Общее количество мест должно быть больше 0", errors);
+        }
+
+        /// <summary>
+        /// Проверяет, что <see cref="CreateEventDto"/> с StartAt > EndAt возвращает ошибку.
+        /// </summary>
+        [Fact]
+        public void OnActionExecuting_WithCreateEventDto_StartAtAfterEndAt_ReturnsBadRequest()
+        {
+            var dto = new CreateEventDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "New Event",
+                StartAt = DateTime.Now.AddHours(2),
+                EndAt = DateTime.Now.AddHours(1),
+                TotalSeats = 10
+            };
+
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dto);
+            _filter.OnActionExecuting(context);
+
+            Assert.NotNull(context.Result);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Дата начала не может быть позже или равна дате окончания", errors);
+        }
+
+        /// <summary>
+        /// Проверяет, что <see cref="CreateEventDto"/> с StartAt == EndAt возвращает ошибку.
+        /// </summary>
+        [Fact]
+        public void OnActionExecuting_WithCreateEventDto_StartAtEqualsEndAt_ReturnsBadRequest()
+        {
+            var now = DateTime.Now;
+            var dto = new CreateEventDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "New Event",
+                StartAt = now,
+                EndAt = now,
+                TotalSeats = 10
+            };
+
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dto);
+            _filter.OnActionExecuting(context);
+
+            Assert.NotNull(context.Result);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Дата начала не может быть позже или равна дате окончания", errors);
+        }
+
+        /// <summary>
+        /// Проверяет, что коллекция <see cref="CreateEventDto"/> с дублирующимися названиями возвращает ошибку.
+        /// </summary>
+        [Fact]
+        public void OnActionExecuting_WithCreateEventDtoCollection_DuplicateTitles_ReturnsBadRequest()
+        {
+            var dtos = new List<CreateEventDto>
+            {
+                new() { Id = Guid.NewGuid(), Title = "Duplicate", StartAt = DateTime.Now.AddHours(1), EndAt = DateTime.Now.AddHours(2), TotalSeats = 10 },
+                new() { Id = Guid.NewGuid(), Title = "Duplicate", StartAt = DateTime.Now.AddHours(3), EndAt = DateTime.Now.AddHours(4), TotalSeats = 10 }
+            };
+
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dtos);
+            _filter.OnActionExecuting(context);
+
+            Assert.NotNull(context.Result);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains(errors, msg => msg.Contains("название не должно повторяться"));
+        }
+
+        #endregion
+
+        #region Тесты для ModelState
+
+        /// <summary>
+        /// Проверяет, что при невалидном ModelState возвращается BadRequest с ошибками из ModelState.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WhenModelStateIsInvalid_ReturnsBadRequest()
         {
-            // Arrange
             var modelState = new ModelStateDictionary();
             modelState.AddModelError("Title", "Title is required");
 
@@ -55,50 +230,46 @@ public class Tests_ValidateInputModelAttribute
                 modelState: modelState
             );
 
-            // Act
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            Assert.Equal("Ошибка валидации входных данных", problemDetails.Title);
-            Assert.Contains("Title", problemDetails.Errors.Keys);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Title is required", errors);
         }
 
         #endregion
 
-        #region EventDto Validation Tests
+        #region Тесты для EventInfoDto (одиночные)
 
+        /// <summary>
+        /// Проверяет, что валидный <see cref="EventInfoDto"/> не вызывает ошибок.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithValidEventDto_DoesNotSetResult()
         {
-            // Arrange
             var context = FilterTestHelper.CreateActionExecutingContext(
                 new object(),
                 _validEventDto
             );
 
-            // Act
             _filter.OnActionExecuting(context);
-
-            // Assert
             Assert.Null(context.Result);
         }
 
+        /// <summary>
+        /// Проверяет, что <see cref="EventInfoDto"/> с StartAt > EndAt возвращает ошибку.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithEventDto_StartAtAfterEndAt_ReturnsBadRequest()
         {
-            // Arrange
-            var invalidEventDto = new EventDto
+            var invalidEventDto = new EventInfoDto
             {
                 Id = Guid.NewGuid(),
                 Title = "Invalid Event",
                 Description = "Description",
                 StartAt = DateTime.Now.AddHours(2),
-                EndAt = DateTime.Now.AddHours(1) // EndAt earlier than StartAt
+                EndAt = DateTime.Now.AddHours(1),
+                TotalSeats = 10
             };
 
             var context = FilterTestHelper.CreateActionExecutingContext(
@@ -106,30 +277,28 @@ public class Tests_ValidateInputModelAttribute
                 invalidEventDto
             );
 
-            // Act
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            Assert.Contains("Дата начала не может быть позже или равна дате окончания",
-                problemDetails.Errors.Values.SelectMany(v => v));
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Дата начала не может быть позже или равна дате окончания", errors);
         }
 
+        /// <summary>
+        /// Проверяет, что <see cref="EventInfoDto"/> с StartAt == EndAt возвращает ошибку.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithEventDto_StartAtEqualsEndAt_ReturnsBadRequest()
         {
-            // Arrange
-            var invalidEventDto = new EventDto
+            var now = DateTime.Now;
+            var invalidEventDto = new EventInfoDto
             {
                 Id = Guid.NewGuid(),
                 Title = "Invalid Event",
                 Description = "Description",
-                StartAt = DateTime.Now,
-                EndAt = DateTime.Now // Equal dates — должно быть ошибкой
+                StartAt = now,
+                EndAt = now,
+                TotalSeats = 10
             };
 
             var context = FilterTestHelper.CreateActionExecutingContext(
@@ -137,381 +306,253 @@ public class Tests_ValidateInputModelAttribute
                 invalidEventDto
             );
 
-            // Act
             _filter.OnActionExecuting(context);
-         
-            if (context.Result == null)
-            { 
-                Assert.Null(context.Result); // Assert.NotNull(context.Result);
-            }
-            else
-            {
-                var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-                Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-                var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-                var errorMessages = problemDetails.Errors.Values.SelectMany(v => v);
-                Assert.Contains(errorMessages, msg => msg.Contains("Дата начала"));
-            }
+
+            Assert.NotNull(context.Result);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Дата начала не может быть позже или равна дате окончания", errors);
         }
 
-    #endregion
+        #endregion
 
-    #region EventDto Collection Validation Tests
+        #region Тесты для коллекций EventInfoDto
 
+        /// <summary>
+        /// Проверяет, что валидная коллекция <see cref="EventInfoDto"/> не вызывает ошибок.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithValidEventDtoCollection_DoesNotSetResult()
         {
-            // Arrange
-            var dtos = new List<EventDto>
-        {
-            new()
+            var dtos = new List<EventInfoDto>
             {
-                Id = Guid.NewGuid(),
-                Title = "Event 1",
-                StartAt = DateTime.Now.AddHours(1),
-                EndAt = DateTime.Now.AddHours(2)
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Event 2",
-                StartAt = DateTime.Now.AddHours(3),
-                EndAt = DateTime.Now.AddHours(4)
-            }
-        };
+                new() { Id = Guid.NewGuid(), Title = "Event 1", StartAt = DateTime.Now.AddHours(1), EndAt = DateTime.Now.AddHours(2), TotalSeats = 10 },
+                new() { Id = Guid.NewGuid(), Title = "Event 2", StartAt = DateTime.Now.AddHours(3), EndAt = DateTime.Now.AddHours(4), TotalSeats = 10 }
+            };
 
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                dtos
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dtos);
             _filter.OnActionExecuting(context);
-
-            // Assert
             Assert.Null(context.Result);
         }
 
+        /// <summary>
+        /// Проверяет, что коллекция <see cref="EventInfoDto"/> с неверными датами возвращает ошибку.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithCollection_StartAtAfterEndAt_ReturnsBadRequest()
         {
-            // Arrange
-            var dtos = new List<EventDto>
-        {
-            new()
+            var dtos = new List<EventInfoDto>
             {
-                Id = Guid.NewGuid(),
-                Title = "Invalid Event",
-                StartAt = DateTime.Now.AddHours(2),
-                EndAt = DateTime.Now.AddHours(1) // Invalid
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Valid Event",
-                StartAt = DateTime.Now.AddHours(3),
-                EndAt = DateTime.Now.AddHours(4)
-            }
-        };
+                new() { Id = Guid.NewGuid(), Title = "Invalid Event", StartAt = DateTime.Now.AddHours(2), EndAt = DateTime.Now.AddHours(1), TotalSeats = 10 },
+                new() { Id = Guid.NewGuid(), Title = "Valid Event", StartAt = DateTime.Now.AddHours(3), EndAt = DateTime.Now.AddHours(4), TotalSeats = 10 }
+            };
 
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                dtos
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dtos);
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            var errorMessages = problemDetails.Errors.Values.SelectMany(v => v);
-
-            //  Сообщение было обрезано в коде 
-
-            // Ищем часть сообщения
-            Assert.Contains(errorMessages, msg => msg.Contains("Дата начала не может быть позже"));
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains(errors, msg => msg.Contains("Дата начала не может быть позже"));
         }
 
+        /// <summary>
+        /// Проверяет, что коллекция <see cref="EventInfoDto"/> с дублирующимися названиями возвращает ошибку.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithCollection_DuplicateTitles_ReturnsBadRequest()
         {
-            // Arrange
-            var dtos = new List<EventDto>
+            var dtos = new List<EventInfoDto>
             {
-                new()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Duplicate Title",
-                    StartAt = DateTime.Now.AddHours(1),
-                    EndAt = DateTime.Now.AddHours(2)
-                },
-                new()
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Duplicate Title", // Duplicate
-                    StartAt = DateTime.Now.AddHours(3),
-                    EndAt = DateTime.Now.AddHours(4)
-                }
+                new() { Id = Guid.NewGuid(), Title = "Duplicate", StartAt = DateTime.Now.AddHours(1), EndAt = DateTime.Now.AddHours(2), TotalSeats = 10 },
+                new() { Id = Guid.NewGuid(), Title = "Duplicate", StartAt = DateTime.Now.AddHours(3), EndAt = DateTime.Now.AddHours(4), TotalSeats = 10 }
             };
 
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                dtos
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), dtos);
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            var errorMessages = problemDetails.Errors.Values.SelectMany(v => v);
-            
-            // так же не было точного совпадения . Исправлено
-
-            // Ищем часть сообщения
-            Assert.Contains(errorMessages, msg => msg.Contains("название не должно повторяться"));
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains(errors, msg => msg.Contains("название не должно повторяться"));
         }
-    #endregion
 
-    #region EventFilterDto Validation Tests
+        #endregion
 
-    [Fact]
+        #region Тесты для EventFilterDto
+
+        /// <summary>
+        /// Проверяет, что валидный <see cref="EventFilterDto"/> не вызывает ошибок.
+        /// </summary>
+        [Fact]
         public void OnActionExecuting_WithValidEventFilterDto_DoesNotSetResult()
         {
-            // Arrange
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                _validFilter
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), _validFilter);
             _filter.OnActionExecuting(context);
-
-            // Assert
             Assert.Null(context.Result);
         }
 
+        /// <summary>
+        /// Проверяет, что <see cref="EventFilterDto"/> с From > To возвращает ошибку.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithFilter_FromAfterTo_ReturnsBadRequest()
         {
-            // Arrange
             var invalidFilter = new EventFilterDto
             {
                 From = DateTime.Now,
-                To = DateTime.Now.AddDays(-1) // To earlier than From
+                To = DateTime.Now.AddDays(-1)
             };
 
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                invalidFilter
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), invalidFilter);
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            Assert.Contains("Дата начала не может быть позже или равна дате окончания",
-                problemDetails.Errors.Values.SelectMany(v => v));
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Дата начала не может быть позже или равна дате окончания", errors);
         }
 
+        /// <summary>
+        /// Проверяет, что <see cref="EventFilterDto"/> с невалидным Page (меньше 1) возвращает ошибку.
+        /// </summary>
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
         [InlineData(-5)]
         public void OnActionExecuting_WithFilter_InvalidPage_ReturnsBadRequest(int invalidPage)
         {
-            // Arrange
             var invalidFilter = new EventFilterDto
             {
                 Page = invalidPage,
-                PageSize = 10
+                PageSize = 10,
+                From = DateTime.Now.AddDays(-1),
+                To = DateTime.Now.AddDays(1)
             };
 
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                invalidFilter
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), invalidFilter);
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            Assert.Contains("Номер страницы должен быть больше 0",
-                problemDetails.Errors.Values.SelectMany(v => v));
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Номер страницы должен быть больше 0", errors);
         }
 
+        /// <summary>
+        /// Проверяет, что <see cref="EventFilterDto"/> с невалидным PageSize (0 или >100) возвращает ошибку.
+        /// </summary>
         [Theory]
         [InlineData(0)]
         [InlineData(101)]
         [InlineData(200)]
         public void OnActionExecuting_WithFilter_InvalidPageSize_ReturnsBadRequest(int invalidPageSize)
         {
-            // Arrange
             var invalidFilter = new EventFilterDto
             {
                 Page = 1,
-                PageSize = invalidPageSize
+                PageSize = invalidPageSize,
+                From = DateTime.Now.AddDays(-1),
+                To = DateTime.Now.AddDays(1)
             };
 
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                invalidFilter
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), invalidFilter);
             _filter.OnActionExecuting(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequestResult.Value);
-            Assert.Contains("Размер страницы должен быть от 1 до 100",
-                problemDetails.Errors.Values.SelectMany(v => v));
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Размер страницы должен быть от 1 до 100", errors);
         }
 
         #endregion
 
-        #region OnActionExecuted Tests (Output Validation)
+        #region Тесты для выходных данных (OnActionExecuted)
 
+        /// <summary>
+        /// Проверяет, что валидный выходной объект не изменяется фильтром.
+        /// </summary>
         [Fact]
         public void OnActionExecuted_WithValidOutput_DoesNotChangeResult()
         {
-            // Arrange
             var result = new OkObjectResult(_validEventDto);
-            var context = FilterTestHelper.CreateActionExecutedContext(
-                new object(),
-                result
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutedContext(new object(), result);
             _filter.OnActionExecuted(context);
 
-            // Assert
             Assert.NotNull(context.Result);
             var okResult = Assert.IsType<OkObjectResult>(context.Result);
             Assert.Equal(_validEventDto, okResult.Value);
         }
 
+        /// <summary>
+        /// Проверяет, что невалидный выходной объект приводит к BadRequest с ошибками.
+        /// </summary>
         [Fact]
         public void OnActionExecuted_WithInvalidOutput_ReturnsBadRequest()
         {
-            // Arrange
-            var invalidDto = new EventDto
+            var invalidDto = new EventInfoDto
             {
                 Id = Guid.NewGuid(),
-                Title = "Invalid Event",
+                Title = "Invalid",
                 StartAt = DateTime.Now.AddHours(2),
-                EndAt = DateTime.Now.AddHours(1) // Invalid - EndAt earlier than StartAt
+                EndAt = DateTime.Now.AddHours(1),
+                TotalSeats = 10
             };
 
             var result = new OkObjectResult(invalidDto);
-            var context = FilterTestHelper.CreateActionExecutedContext(
-                new object(),
-                result
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutedContext(new object(), result);
             _filter.OnActionExecuted(context);
 
-            // Assert
             Assert.NotNull(context.Result);
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(context.Result);
-            Assert.Equal(StatusCodes.Status400BadRequest, badRequestResult.StatusCode);
-
-            var errorResponse = badRequestResult.Value as dynamic;
-            Assert.NotNull(errorResponse);
+            var errors = GetErrorMessages(context.Result);
+            Assert.Contains("Дата начала не может быть позже или равна дате окончания", errors);
         }
 
+        /// <summary>
+        /// Проверяет, что при наличии исключения фильтр не меняет результат.
+        /// </summary>
         [Fact]
         public void OnActionExecuted_WhenExceptionOccurred_DoesNotChangeResult()
         {
-            // Arrange
-            var context = FilterTestHelper.CreateActionExecutedContext(
-                new object(),
-                new OkResult()
-            );
-            context.Exception = new Exception("Test exception");
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutedContext(new object(), new OkResult());
+            context.Exception = new Exception("Test");
             _filter.OnActionExecuted(context);
 
-            // Assert
             Assert.NotNull(context.Exception);
             Assert.IsType<OkResult>(context.Result);
         }
 
         #endregion
 
-        #region Edge Cases Tests
+        #region Краевые случаи
 
+        /// <summary>
+        /// Проверяет, что null-аргумент не вызывает ошибок.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithNullArgument_DoesNotSetResult()
         {
-            // Arrange
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                null
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), null);
             _filter.OnActionExecuting(context);
-
-            // Assert
             Assert.Null(context.Result);
         }
 
+        /// <summary>
+        /// Проверяет, что пустая коллекция не вызывает ошибок.
+        /// </summary>
         [Fact]
         public void OnActionExecuting_WithEmptyCollection_DoesNotSetResult()
         {
-            // Arrange
-            var dtos = new List<EventDto>();
-            var context = FilterTestHelper.CreateActionExecutingContext(
-                new object(),
-                dtos
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutingContext(new object(), new List<EventInfoDto>());
             _filter.OnActionExecuting(context);
-
-            // Assert
             Assert.Null(context.Result);
         }
 
+        /// <summary>
+        /// Проверяет, что null-результат в OnActionExecuted не вызывает ошибок.
+        /// </summary>
         [Fact]
         public void OnActionExecuted_WithNullResult_DoesNotChangeResult()
         {
-            // Arrange
-            var context = FilterTestHelper.CreateActionExecutedContext(
-                new object(),
-                null!
-            );
-
-            // Act
+            var context = FilterTestHelper.CreateActionExecutedContext(new object(), null!);
             _filter.OnActionExecuted(context);
-
-            // Assert
             Assert.Null(context.Result);
         }
 
         #endregion
     }
+}

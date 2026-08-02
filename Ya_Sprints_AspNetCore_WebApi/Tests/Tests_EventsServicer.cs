@@ -1,5 +1,5 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Services.DataServices;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
@@ -8,10 +8,14 @@ using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Xunit;
 using Moq;
-
+ 
 
 namespace Tests;
 
+/// <summary>
+/// Тесты для <see cref="EventsService"/>.
+/// Проверяют CRUD-операции, фильтрацию, сортировку и пагинацию событий.
+/// </summary>
 public class Tests_EventsService
 {
 
@@ -21,7 +25,7 @@ public class Tests_EventsService
     private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
     private readonly EventsService _service;
     private readonly Event _testEvent;
-    private readonly EventDto _testEventDto;
+    private readonly EventInfoDto _testEventDto;
     private readonly List<IEvent> _testEvents;
 
 
@@ -48,7 +52,7 @@ public class Tests_EventsService
             EndAt = DateTime.Now.AddHours(1)
         };
 
-        _testEventDto = new EventDto
+        _testEventDto = new EventInfoDto
         {
             Id = _testEvent.Id,
             Title = _testEvent.Title,
@@ -57,7 +61,7 @@ public class Tests_EventsService
             EndAt = _testEvent.EndAt
         };
 
-        // Создаем тестовые данные для сортировки и пагинации
+        // Тестовые данные для сортировки и пагинации
         _testEvents = new List<IEvent>
         {
             new Event
@@ -89,17 +93,20 @@ public class Tests_EventsService
 
     #region GetAllAsync Tests
 
+    /// <summary>
+    /// Проверяет, что GetAllAsync возвращает все события из репозитория.
+    /// </summary>
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllEvents()
     {
         // Arrange
         var events = new List<IEvent> { _testEvent };
-        var expectedDtos = new List<EventDto> { _testEventDto };
+        var expectedDtos = new List<EventInfoDto> { _testEventDto };
 
         _mockRepository.Setup(r => r.GetAllAsync())
                        .ReturnsAsync(events);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(_testEvent))
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(_testEvent))
                    .Returns(_testEventDto);
 
         // Act
@@ -114,6 +121,9 @@ public class Tests_EventsService
         _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что GetAllAsync возвращает пустой список, если репозиторий пуст.
+    /// </summary>
     [Fact]
     public async Task GetAllAsync_WhenRepositoryReturnsEmpty_ShouldReturnEmptyList()
     {
@@ -135,6 +145,9 @@ public class Tests_EventsService
 
     #region GetByIdAsync Tests
 
+    /// <summary>
+    /// Проверяет, что GetByIdAsync возвращает событие по валидному ID.
+    /// </summary>
     [Fact]
     public async Task GetByIdAsync_WithValidId_ShouldReturnEvent()
     {
@@ -145,7 +158,7 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetByIdAsync(id))
                       .ReturnsAsync(resultEntity);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(_testEvent))
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(_testEvent))
                   .Returns(_testEventDto);
 
         // Act
@@ -161,6 +174,9 @@ public class Tests_EventsService
         _mockRepository.Verify(r => r.GetByIdAsync(id), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что GetByIdAsync возвращает ошибку для несуществующего ID.
+    /// </summary>
     [Fact]
     public async Task GetByIdAsync_WithInvalidId_ShouldReturnFail()
     {
@@ -187,11 +203,14 @@ public class Tests_EventsService
 
     #region AddAsync Tests
 
+    /// <summary>
+    /// Проверяет, что AddAsync успешно добавляет событие.
+    /// </summary>
     [Fact]
     public async Task AddAsync_WithValidDto_ShouldAddEvent()
     {
         // Arrange
-        var newEventDto = new EventDto
+        var newEventDto = new EventInfoDto
         {
             Id = Guid.NewGuid(),
             Title = "New Event",
@@ -227,11 +246,14 @@ public class Tests_EventsService
         _mockMapper.Verify(m => m.Map<Event>(newEventDto), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что AddAsync возвращает ошибку при неудачном добавлении.
+    /// </summary>
     [Fact]
     public async Task AddAsync_WhenAddFails_ShouldReturnFail()
     {
         // Arrange
-        var newEventDto = new EventDto
+        var newEventDto = new EventInfoDto
         {
             Id = Guid.NewGuid(),
             Title = "New Event",
@@ -270,11 +292,14 @@ public class Tests_EventsService
 
     #region UpdateAsync Tests
 
+    /// <summary>
+    /// Проверяет, что UpdateAsync успешно обновляет событие.
+    /// </summary>
     [Fact]
     public async Task UpdateAsync_WithValidDto_ShouldUpdateEvent()
     {
         // Arrange
-        var updatedEventDto = new EventDto
+        var updatedEventDto = new EventInfoDto
         {
             Id = _testEventDto.Id,
             Title = "Updated Event",
@@ -309,11 +334,14 @@ public class Tests_EventsService
         _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<IEvent>()), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что UpdateAsync возвращает ошибку при неудачном обновлении.
+    /// </summary>
     [Fact]
     public async Task UpdateAsync_WhenUpdateFails_ShouldReturnFail()
     {
         // Arrange
-        var updatedEventDto = new EventDto
+        var updatedEventDto = new EventInfoDto
         {
             Id = _testEventDto.Id,
             Title = "Updated Event",
@@ -350,6 +378,9 @@ public class Tests_EventsService
 
     #region DeleteAsync Tests
 
+    /// <summary>
+    /// Проверяет, что DeleteAsync успешно удаляет событие по ID.
+    /// </summary>
     [Fact]
     public async Task DeleteAsync_WithValidId_ShouldDeleteEvent()
     {
@@ -371,6 +402,9 @@ public class Tests_EventsService
         _mockRepository.Verify(r => r.DeleteAsync(id), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что DeleteAsync возвращает ошибку при неудачном удалении.
+    /// </summary>
     [Fact]
     public async Task DeleteAsync_WhenDeleteFails_ShouldReturnFail()
     {
@@ -394,11 +428,14 @@ public class Tests_EventsService
 
     #region AddRangeAsync Tests
 
+    /// <summary>
+    /// Проверяет, что AddRangeAsync успешно добавляет коллекцию событий.
+    /// </summary>
     [Fact]
     public async Task AddRangeAsync_WithValidDtos_ShouldAddAllEvents()
     {
         // Arrange
-        var eventDtos = new List<EventDto>
+        var eventDtos = new List<EventInfoDto>
         {
             new() { Id = Guid.NewGuid(), Title = "Event 1", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) },
             new() { Id = Guid.NewGuid(), Title = "Event 2", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) }
@@ -414,8 +451,8 @@ public class Tests_EventsService
 
         var resultEntity = ResultEntity<IEvent>.Ok("Added successfully");
 
-        _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventDto>()))
-                  .Returns((EventDto dto) => new Event
+        _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventInfoDto>()))
+                  .Returns((EventInfoDto dto) => new Event
                   {
                       Id = dto.Id,
                       Title = dto.Title,
@@ -441,11 +478,14 @@ public class Tests_EventsService
 
     #region UpdateRangeAsync Tests
 
+    /// <summary>
+    /// Проверяет, что UpdateRangeAsync успешно обновляет коллекцию событий.
+    /// </summary>
     [Fact]
     public async Task UpdateRangeAsync_WithValidDtos_ShouldUpdateAllEvents()
     {
         // Arrange
-        var eventDtos = new List<EventDto>
+        var eventDtos = new List<EventInfoDto>
         {
             new() { Id = Guid.NewGuid(), Title = "Updated Event 1", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) },
             new() { Id = Guid.NewGuid(), Title = "Updated Event 2", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) }
@@ -461,8 +501,8 @@ public class Tests_EventsService
 
         var resultEntity = ResultEntity<IEvent>.Ok("Updated successfully");
 
-        _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventDto>()))
-                  .Returns((EventDto dto) => new Event
+        _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventInfoDto>()))
+                  .Returns((EventInfoDto dto) => new Event
                   {
                       Id = dto.Id,
                       Title = dto.Title,
@@ -488,6 +528,9 @@ public class Tests_EventsService
 
     #region IsExisted Tests
 
+    /// <summary>
+    /// Проверяет, что IsExisted возвращает true для существующего ID.
+    /// </summary>
     [Fact]
     public void IsExisted_WithValidId_ShouldReturnTrue()
     {
@@ -503,6 +546,9 @@ public class Tests_EventsService
         _mockRepository.Verify(r => r.IsExisted(id), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что IsExisted возвращает false для несуществующего ID.
+    /// </summary>
     [Fact]
     public void IsExisted_WithInvalidId_ShouldReturnFalse()
     {
@@ -522,6 +568,9 @@ public class Tests_EventsService
 
     #region IsExistedByTitle Tests
 
+    /// <summary>
+    /// Проверяет, что IsExistedByTitle возвращает true для существующего названия.
+    /// </summary>
     [Fact]
     public void IsExistedByTitle_WithValidTitle_ShouldReturnTrue()
     {
@@ -537,6 +586,9 @@ public class Tests_EventsService
         _mockRepository.Verify(r => r.IsExistedByTitle(title), Times.Once);
     }
 
+    /// <summary>
+    /// Проверяет, что IsExistedByTitle возвращает false для несуществующего названия.
+    /// </summary>
     [Fact]
     public void IsExistedByTitle_WithInvalidTitle_ShouldReturnFalse()
     {
@@ -556,20 +608,23 @@ public class Tests_EventsService
 
     #region GetFilteredAsync Tests - Filtering
 
+    /// <summary>
+    /// Проверяет фильтрацию по названию (Title) с частичным совпадением (contains).
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithTitleFilter_ShouldReturnFilteredEvents()
     {
         // Arrange
         var filter = new EventFilterDto { Title = "Test" };
         var events = new List<IEvent> { _testEvent };
-        var expectedDtos = new List<EventDto> { _testEventDto };
+        var expectedDtos = new List<EventInfoDto> { _testEventDto };
 
         var queryable = events.AsQueryable();
 
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(_testEvent))
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(_testEvent))
                   .Returns(_testEventDto);
 
         // Act
@@ -585,7 +640,9 @@ public class Tests_EventsService
         Assert.Equal(10, result.PageSize);
     }
 
-
+    /// <summary>
+    /// Проверяет фильтрацию по дате начала (From): возвращает события, начинающиеся после указанной даты.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithDateFromFilter_ShouldReturnEventsAfterDate()
     {
@@ -593,26 +650,25 @@ public class Tests_EventsService
         var fromDate = DateTime.Now.AddDays(-3);
         var filter = new EventFilterDto { From = fromDate };
 
-        // Создаем события: одно до даты, одно после
         var events = new List<IEvent>
-    {
-        new Event
         {
-            Id = Guid.NewGuid(),
-            Title = "Past Event",
-            StartAt = DateTime.Now.AddDays(-5),
-            EndAt = DateTime.Now.AddDays(-4)
-        },
-        _testEvent // StartAt = DateTime.Now (после fromDate)
-    };
+            new Event
+            {
+                Id = Guid.NewGuid(),
+                Title = "Past Event",
+                StartAt = DateTime.Now.AddDays(-5),
+                EndAt = DateTime.Now.AddDays(-4)
+            },
+            _testEvent // StartAt = DateTime.Now (после fromDate)
+        };
 
         var queryable = events.AsQueryable();
 
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -630,6 +686,9 @@ public class Tests_EventsService
         Assert.Equal(1, result.TotalCount); // Только 1 событие после fromDate
     }
 
+    /// <summary>
+    /// Проверяет фильтрацию по дате окончания (To): возвращает события, заканчивающиеся до указанной даты.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithDateToFilter_ShouldReturnEventsBeforeDate()
     {
@@ -646,18 +705,18 @@ public class Tests_EventsService
         };
 
         var events = new List<IEvent>
-    {
-        pastEvent,
-        _testEvent // StartAt = DateTime.Now (после toDate)
-    };
+        {
+            pastEvent,
+            _testEvent // StartAt = DateTime.Now (после toDate)
+        };
 
         var queryable = events.AsQueryable();
 
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -674,7 +733,10 @@ public class Tests_EventsService
         Assert.Equal("Past Event", result.Items.First().Title);
         Assert.Equal(1, result.TotalCount); // Только 1 событие до toDate
     }
-     
+
+    /// <summary>
+    /// Проверяет комбинацию нескольких фильтров (Title + From).
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithMultipleFilters_ShouldReturnFilteredEvents()
     {
@@ -716,8 +778,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -735,6 +797,9 @@ public class Tests_EventsService
         Assert.Equal(1, result.TotalCount);
     }
 
+    /// <summary>
+    /// Проверяет, что при отсутствии подходящих событий возвращается пустой PaginatedResult.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WhenNoEventsMatchFilter_ShouldReturnEmptyPaginatedResult()
     {
@@ -764,6 +829,9 @@ public class Tests_EventsService
 
     #region GetFilteredAsync Tests - Sorting
 
+    /// <summary>
+    /// Проверяет сортировку по названию (Title) по возрастанию.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithSortByTitleAscending_ShouldReturnSortedEvents()
     {
@@ -781,8 +849,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -802,6 +870,9 @@ public class Tests_EventsService
         Assert.Equal(new[] { "Alpha Event", "Beta Event", "Gamma Event" }, titles);
     }
 
+    /// <summary>
+    /// Проверяет сортировку по названию (Title) по убыванию.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithSortByTitleDescending_ShouldReturnSortedEvents()
     {
@@ -819,8 +890,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -840,6 +911,9 @@ public class Tests_EventsService
         Assert.Equal(new[] { "Gamma Event", "Beta Event", "Alpha Event" }, titles);
     }
 
+    /// <summary>
+    /// Проверяет сортировку по дате начала (StartAt) по возрастанию.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithSortByStartAtAscending_ShouldReturnSortedEvents()
     {
@@ -857,8 +931,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -882,6 +956,9 @@ public class Tests_EventsService
 
     #region GetFilteredAsync Tests - Pagination
 
+    /// <summary>
+    /// Проверяет пагинацию – первая страница.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithPagination_ShouldReturnFirstPage()
     {
@@ -898,8 +975,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -923,6 +1000,9 @@ public class Tests_EventsService
         Assert.Equal("Beta Event", result.Items.Last().Title);
     }
 
+    /// <summary>
+    /// Проверяет пагинацию – вторая страница.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithPagination_ShouldReturnSecondPage()
     {
@@ -939,8 +1019,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -963,6 +1043,9 @@ public class Tests_EventsService
         Assert.Equal("Gamma Event", result.Items.First().Title);
     }
 
+    /// <summary>
+    /// Проверяет пагинацию вместе с сортировкой.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithPaginationAndSorting_ShouldReturnCorrectPage()
     {
@@ -981,8 +1064,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -1003,6 +1086,9 @@ public class Tests_EventsService
         Assert.Equal("Beta Event", result.Items.First().Title);
     }
 
+    /// <summary>
+    /// Проверяет пагинацию вместе с фильтрацией.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithPaginationAndFiltering_ShouldReturnCorrectPage()
     {
@@ -1020,8 +1106,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -1042,6 +1128,9 @@ public class Tests_EventsService
         Assert.Equal("Beta Event", result.Items.First().Title);
     }
 
+    /// <summary>
+    /// Проверяет, что при отсутствии явных параметров пагинации используются значения по умолчанию (Page=1, PageSize=10).
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithDefaultPagination_ShouldUseDefaultValues()
     {
@@ -1054,8 +1143,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,
@@ -1081,6 +1170,9 @@ public class Tests_EventsService
 
     #region GetFilteredAsync Tests - Combination
 
+    /// <summary>
+    /// Проверяет комбинацию фильтрации, сортировки и пагинации одновременно.
+    /// </summary>
     [Fact]
     public async Task GetFilteredAsync_WithFilterSortAndPagination_ShouldReturnCorrectResult()
     {
@@ -1100,8 +1192,8 @@ public class Tests_EventsService
         _mockRepository.Setup(r => r.GetQueryAsync())
                       .ReturnsAsync(queryable);
 
-        _mockMapper.Setup(m => m.Map<EventDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventDto
+        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
+                  .Returns((Event e) => new EventInfoDto
                   {
                       Id = e.Id,
                       Title = e.Title,

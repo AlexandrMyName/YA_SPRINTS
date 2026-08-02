@@ -1,5 +1,5 @@
 ﻿using SprintASP_NetCore_API.Data.Dtos;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
 using SprintASP_NetCore_API.Data.Dtos.Filters;
 using SprintASP_NetCore_API.Data.Entities;
 using SprintASP_NetCore_API.Services.DataServices;
@@ -15,7 +15,7 @@ namespace SprintASP_NetCore_API.Services;
 /// </summary>
 public interface IBookingService   
 {
-
+     
     /// <summary>
     /// создание брони для указанного события
     /// </summary>
@@ -32,5 +32,8 @@ public interface IBookingService
     Task<PaginatedResult<IBookingInfoDto>> GetFilteredAsync(IEntityFilter<IEntity> filter);
 
     Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item);
+
+
+    Task<IEnumerable<IBookingInfoDto>> GetPendingBookingsAsync(int maxCountRange = 1000);
 
 }

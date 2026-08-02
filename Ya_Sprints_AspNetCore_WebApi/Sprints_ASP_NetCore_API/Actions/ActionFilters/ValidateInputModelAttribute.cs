@@ -1,247 +1,56 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using reflectionPropertyAccessor_Lib;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Collections;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos;
-
+using System.ComponentModel.DataAnnotations;
 
 namespace SprintASP_NetCore_API.Filters.ActionFilters;
 
-
-/// <summary>
-/// ActionFilter - Валидация входных и выходных данных
-/// </summary>
 public class ValidateInputModelAttribute : ActionFilterAttribute
 {
- 
-    /// <summary>
-    /// Валидация входных данных
-    /// </summary>
     public override void OnActionExecuting(ActionExecutingContext context)
-    {
+    { 
 
-        // 1. Стандартная валидация ModelState
         if (!context.ModelState.IsValid)
         {
-            var problem = new ValidationProblemDetails(context.ModelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            };
-            context.Result = new BadRequestObjectResult(problem);
+            context.Result = new BadRequestObjectResult(
+                new ValidationProblemDetails(context.ModelState)
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Ошибка валидации входных данных"
+                });
             return;
         }
 
-        // 2. Бизнес-валидация для одиночного EventDto
-        var singleDto = context.ActionArguments.Values.OfType<EventDto>().FirstOrDefault();
-        if (singleDto != null)
+        // Бизнес-валидация входных аргументов
+        var errors = new List<ValidationResult>();
+        foreach (var arg in context.ActionArguments.Values)
         {
-            if (!CheckInputData_EventDto(context, singleDto))
-                return; // прерываем выполнение при ошибке
-        }
+            if (arg == null) continue;
 
-        // 3. Бизнес-валидация для коллекции EventDto
-        var collectionDtos_Events = context.ActionArguments.Values.OfType<IEnumerable<EventDto>>().FirstOrDefault();
-        if (collectionDtos_Events != null)
-        {
-            if (!CheckInputData_EventDtos(context, collectionDtos_Events)) return;
-        }
-
- 
-        // 4. Бизнес-валидация для фильтра событий
-        var eventFilterDto = context.ActionArguments.Values.OfType<EventFilterDto>().FirstOrDefault();
-        if (eventFilterDto != null)
-        {
-            // Валидация: Page >= 1, PageSize от 1 до 100, From < To
-            if (!CheckFilter_EventFilterDto(context, eventFilterDto)) return;
-        }
-
-
-        // 4. Бизнес-валидация для фильтра бронирований
-        var bookingFilterDto = context.ActionArguments.Values.OfType<BookingFilterDto>().FirstOrDefault();
-        if (bookingFilterDto != null)
-        {
-            // Валидация: Page >= 1, PageSize от 1 до 100, From < To
-            if (!CheckFilter_BookingFilterDto(context, bookingFilterDto)) return;
-        } 
-    }
-
-
-    private static bool CheckFilter_EventFilterDto(ActionExecutingContext context, EventFilterDto filter)
-    {
-
-        if (filter == null) return true;
-
-        if (filter.From >= filter.To)
-        {
-            var error = new ValidationResult(
-                "Дата начала не может быть позже или равна дате окончания",
-                new[] { nameof(filter.From), nameof(filter.To) }
-            );
-            var modelState = new ModelStateDictionary();
-            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false;  
-        }
-         
-        // Валидация параметров пагинации
-        if (filter.Page < 1)
-        {
-            var error = new ValidationResult(
-              "Номер страницы должен быть больше 0",
-              new[] { nameof(filter.Page)  }
-            );
-            var modelState = new ModelStateDictionary();
-            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false; // Добавил выход (04.07.26)  23:47
-        }
-
-        if (filter.PageSize < 1 || filter.PageSize > 100)
-        {
-            var error = new ValidationResult(
-              "Размер страницы должен быть от 1 до 100",
-              new[] { nameof(filter.PageSize), nameof(filter.PageSize) }
-            );
-            var modelState = new ModelStateDictionary();
-            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false; // Добавил выход (04.07.26) 23:47
-        }
-
-
-
-        return true;
-    }
-
-
-    private static bool CheckFilter_BookingFilterDto(ActionExecutingContext context, BookingFilterDto filter)
-    {
-
-        if (filter == null) return true;
-
-         
-        // Валидация параметров пагинации
-        if (filter.Page < 1)
-        {
-            var error = new ValidationResult(
-              "Номер страницы должен быть больше 0",
-              new[] { nameof(filter.Page) }
-            );
-            var modelState = new ModelStateDictionary();
-            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false; // Добавил выход (04.07.26)  23:47
-        }
-
-        if (filter.PageSize < 1 || filter.PageSize > 100)
-        {
-            var error = new ValidationResult(
-              "Размер страницы должен быть от 1 до 100",
-              new[] { nameof(filter.PageSize), nameof(filter.PageSize) }
-            );
-            var modelState = new ModelStateDictionary();
-            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false; // Добавил выход (04.07.26) 23:47
-        }
-
-
-
-        return true;
-    }
-
-    private static bool CheckInputData_EventDtos(ActionExecutingContext context, IEnumerable<EventDto>? dtos)
-    {
-
-        if (dtos == null) return true;
-
-        var errors = new List<string>();
-        var titlesSet = new HashSet<string>();
-
-        foreach (var d in dtos)
-        {
-            if (d.StartAt >= d.EndAt)
-            {
-                errors.Add($"Дата начала не может быть позже или равна дате окончания. Проверьте событие с названием: {d.Title}");
+            if (arg is IEnumerable enumerable && arg is not string)
+            { 
+                ValidatorHelper.ValidateCollection(enumerable, errors);
             }
-
-            if (!titlesSet.Add(d.Title))
+            else
             {
-                errors.Add($"В передаваемых событиях название не должно повторяться: {d.Title}");
+                ValidatorHelper.ValidateObjectRecursive(arg, errors);
             }
         }
 
         if (errors.Any())
         {
-            var modelState = new ModelStateDictionary();
-            foreach (var error in errors)
-            {
-                modelState.AddModelError("", error);
-            }
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false;
+            var errorMessages = errors
+                .Where(e => e != null)
+                .Select(e => e!.ErrorMessage)
+                .ToList();
+
+            context.Result = new BadRequestObjectResult(new { Errors = errorMessages });
         }
-        return true;
     }
 
-    private static bool CheckInputData_EventDto(ActionExecutingContext context, EventDto? dto)
-    {
-        if (dto == null) return true;
-
-        if (dto.StartAt >= dto.EndAt)
-        {
-            var error = new ValidationResult(
-                "Дата начала не может быть позже или равна дате окончания",
-                new[] { nameof(dto.StartAt), nameof(dto.EndAt) }
-            );
-            var modelState = new ModelStateDictionary();
-            modelState.AddModelError(error.MemberNames.First(), error.ErrorMessage);
-            context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState)
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Ошибка валидации входных данных"
-            });
-            return false;  
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// Валидация выходных данных
-    /// </summary>
     public override void OnActionExecuted(ActionExecutedContext context)
     {
-
         if (context.Exception != null || context.Result == null)
             return;
 
@@ -250,7 +59,6 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             var responseData = objectResult.Value;
             var errors = new List<ValidationResult?>();
 
-            // Валидируем либо один объект, либо каждый элемент коллекции
             if (responseData is IEnumerable enumerable && responseData is not string)
             {
                 foreach (var item in enumerable)
@@ -258,8 +66,11 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
                     if (item != null) ValidatorHelper.ValidateObjectRecursive(item, errors);
                 }
             }
-            else ValidatorHelper.ValidateObjectRecursive(responseData, errors);
-            
+            else
+            {
+                ValidatorHelper.ValidateObjectRecursive(responseData, errors);
+            }
+
             if (errors.Any())
             {
                 var errorMessages = errors
@@ -271,9 +82,4 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             }
         }
     }
-
-
-    [Obsolete("Логика перенесена в ValidatorHelper")]
-    private void ValidateObjectRecursive(object obj, List<ValidationResult?> errors, string propertyPath = "")
-        => ValidatorHelper.ValidateObjectRecursive(obj, errors, propertyPath);
 }

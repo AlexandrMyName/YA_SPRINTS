@@ -5,7 +5,7 @@ using Sprints_Project_ASP_NetCore_API.Services.Extentions;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
-using YourNamespace.Middleware;
+using Sprints_Project_ASP_NetCore_API.Middlewares;
   
 
 [assembly: ApiController] // Все контроллеры будут API 
@@ -46,7 +46,7 @@ namespace Sprints_Project_ASP_NetCore_API
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage(); (При отладке раскоментировать)  (Если требуется стек вызовов) 
                 app.UseSwagger();
                 app.UseSwaggerUI(opt => { });   
                 app.UseCors($"{CorsPoliticType.AllowAll}"); 
