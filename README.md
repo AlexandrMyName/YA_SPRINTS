@@ -64,7 +64,7 @@ https://localhost:5001/swagger
 /api/v1/events
 ```
 
-### Таблица методов
+### Таблица методов Events
 
 | Метод | Эндпоинт | Описание |
 |-------|----------|----------|
@@ -73,6 +73,7 @@ https://localhost:5001/swagger
 | POST | `/` | Создать одно событие |
 | POST | `/range` | Создать несколько событий (массив) |
 | PUT | `/{id}` | Обновить существующее событие |
+| PUT | `/{id}/book` | Создать бронирование для события |
 | PUT | `/` | Обновить несколько событий (массив) |
 | DELETE | `/{id}` | Удалить событие |
 
@@ -87,6 +88,9 @@ https://localhost:5001/swagger
 | `SortDesc` | bool | Сортировка по убыванию (true) или возрастанию (false) |
 | `Page` | int | Номер страницы (по умолчанию: 1) |
 | `PageSize` | int | Размер страницы (по умолчанию: 10, максимум: 100) |
+
+
+
 
 #### Пример запроса с фильтрацией
 
@@ -128,6 +132,30 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
 }
 ```
 
+### Базовый префикс
+
+```
+/api/v1/bookings
+```
+
+### Таблица методов Bookings
+
+| Метод | Эндпоинт | Описание |
+|-------|----------|----------|
+| GET | `/{id}` | Получить информацию о бронировании по её идентификатору. | 
+
+### Пример тела ответа (BookingInfoDto)
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "eventId": "3fa85f64-5717-4562-a3fc-2c963f66afbc",
+  "status": 0,
+  "createdAt": "2026-03-20T10:00:00",
+  "processedAt": "2026-03-20T11:30:00"
+}
+```
+
 ---
 
 ## 🛡️ Валидация
@@ -164,6 +192,7 @@ dotnet test
 ### Покрытие тестами
 
 - **EventService** – основные CRUD-операции, фильтрация, сортировка, пагинация
+  **BookingService** – основные CRUD-операции
 - **ValidateInputModelAttribute** – валидация входных/выходных данных
 - **reflectionPropertyAccessor_Lib** – тесты производительности (сравнение с кешированием и без)
 
@@ -187,9 +216,11 @@ Ya_Sprints_AspNetCore_WebApi/
 │   ├── Data/
 │   │   ├── Dtos/
 │   │   │   ├── EntitiesDtos/
+│   │   │   │   ├── BookingInfoDto.cs
 │   │   │   │   ├── EventDto.cs
 │   │   │   │   └── IEntityDto.cs
 │   │   │   ├── Filters/
+│   │   │   │   ├── BookingFilterDto.cs
 │   │   │   │   ├── EventFilterDto.cs
 │   │   │   │   ├── IEntityFilter.cs
 │   │   │   │   └── IFilter.cs
@@ -230,12 +261,16 @@ Ya_Sprints_AspNetCore_WebApi/
 │   │   └── IRepository.cs
 │   │
 │   ├── Services/
+│   │   ├── Background/
+│   │   |   └── BookingBackgroundService.cs
 │   │   ├── DataServices/
+│   │   |   ├── BaseDataService.cs
+│   │   |   ├── BookingService.cs
 │   │   │   └── EventsService.cs
 │   │   └── Extentions/
 │   │       ├── AddServicesExtention.cs
-│   │       └── IDataStorageService.cs
-│   │
+│   │   ├── IDataStorageService.cs
+│   │   └── IBookingService.cs/
 │   ├── Program.cs
 │   ├── SprintASP_NetCore_API.csproj
 │   ├── SprintASP_NetCore_API.csproj.user
@@ -253,6 +288,7 @@ Ya_Sprints_AspNetCore_WebApi/
 │   ├── Tests.csproj
 │   ├── Tests_EventsServicer.cs
 │   ├── Tests_Reflection.cs
+│   ├── Tests_BookingService.cs
 │   └── Tests_ValidateInputModelAttribute.cs
 │
 ├── dataBase_autoMigration_Lib/             # 📚 Библиотека миграции

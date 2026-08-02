@@ -1,5 +1,6 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
+using SprintASP_NetCore_API.Data.Entities;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Repositories.Extenions;
@@ -15,6 +16,7 @@ public static class AddRepositoryExtention
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddSingleton<IRepository<IEvent>, BaseInMemoryRepository<IEvent>>();
+        services.AddSingleton<IRepository<IBooking>, BaseInMemoryRepository<IBooking>>();
         return services;
     }  
 }

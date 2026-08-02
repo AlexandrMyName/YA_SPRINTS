@@ -1,4 +1,8 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos; 
+﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos;
+using SprintASP_NetCore_API.Services;
+using SprintASP_NetCore_API.Services.Background;
+using SprintASP_NetCore_API.Services.DataServices;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos; 
 using Sprints_Project_ASP_NetCore_API.Services.DataServices;
 
 
@@ -15,7 +19,12 @@ public static class AddServicesExtention
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
 
-        services.AddSingleton<IDataStorageService<EventDto>, EventsService>();
+        services.AddSingleton<IDataStorageService<EventDto>   , EventsService>();
+        services.AddSingleton<IBookingService, BookingService>();
+
+
+        // Hosted Services
+        services.AddHostedService<BookingBackgroundService>();
         return services;
     }
 }

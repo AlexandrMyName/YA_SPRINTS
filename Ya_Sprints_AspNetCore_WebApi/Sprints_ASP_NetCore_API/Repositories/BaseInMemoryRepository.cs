@@ -12,23 +12,27 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
     { 
 
         private ConcurrentDictionary<Guid,T> _items = new();
-
+        private ReaderWriterLockSlim _locker = new();
 
         public Task<IQueryable<T>> GetQueryAsync() => Task.FromResult(_items.Values.AsQueryable());
 
         public async Task<IResultEntity<T>> AddAsync(T item)
         {
-            
-            if(_items.TryGetValue(item.Id, out var result)) {
+            _locker.EnterReadLock();
+            if (_items.TryGetValue(item.Id, out var result)) {
+                _locker.ExitReadLock();
                 return ResultEntity<T>.Fail($"Ошибка добавления модели <{typeof(T)}>. Модель с указанным идентификатором уже находится в коллекции");
             }
-             
+            _locker.ExitReadLock();
+
+            _locker.EnterWriteLock();
             if (!_items.TryAdd(item.Id, item))
             {
+                _locker.ExitWriteLock();
                 //   коллизия ?
-                 return ResultEntity<T>.Fail($"Ошибка добавления модели <{typeof(T)}>. Не удалось добавить модель в коллекцию");
+                return ResultEntity<T>.Fail($"Ошибка добавления модели <{typeof(T)}>. Не удалось добавить модель в коллекцию");
             }
-
+            _locker.ExitWriteLock();
             return ResultEntity<T>.Ok(item, "Успешно");
         } 
 

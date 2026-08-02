@@ -1,12 +1,11 @@
-﻿using dynamicQueryBuilder;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using SprintASP_NetCore_API.Controllers;
+using SprintASP_NetCore_API.Data.Dtos;
+using SprintASP_NetCore_API.Services;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprints_Project_ASP_NetCore_API.Services;
-using SprintASP_NetCore_API.Data.Dtos;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Controllers;
@@ -18,17 +17,56 @@ namespace Sprints_Project_ASP_NetCore_API.Controllers;
 public class EventsController : ControllerBase
 {
 
-    public EventsController(IDataStorageService<EventDto> eventsService, IWebHostEnvironment environment)
+    public EventsController(IDataStorageService<EventDto> eventsService, IBookingService bookingService, IWebHostEnvironment environment)
     {   
         _eventsService = eventsService;
+        _bookingsService = bookingService;
         _environment = environment;
     }
      
     private readonly IDataStorageService<EventDto> _eventsService;
+    private readonly IBookingService _bookingsService;
     private readonly IWebHostEnvironment _environment;
 
 
     #region Ручки 
+     
+    /// <summary>
+    /// Создаёт бронирование для указанного события.
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <response code="202">Бронирование создано, возвращена информация о нём</response>
+    /// <response code="404">Событие с указанным идентификатором не найдено</response>
+    [HttpPost("{id}/book")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [Produces("application/json")]
+    public async Task<IActionResult> BookEvent([FromRoute] Guid id)
+    {
+
+            var bookingResult = await _bookingsService.CreateBookingAsync(id); 
+
+            var booking = bookingResult.Data;
+
+            if (booking == null) throw new NullReferenceException(nameof(booking));
+
+            var response = new
+            {
+                booking.Id,
+                EventId = booking.EventId,
+                booking.Status
+            };
+
+            var location = Url.Action(
+                action: nameof(BookingsController.GetBooking),
+                controller: "Bookings",
+                values: new { version = "1", id = booking.Id },
+                protocol: Request.Scheme);
+
+            return Accepted(location, booking);
+    }
+
+
     /// <summary>
     /// Метод возвращает событие по идентификатору
     /// </summary>
@@ -84,9 +122,14 @@ public class EventsController : ControllerBase
     {
         try
         {
-            Guid index = Guid.NewGuid();
-            dto.Id = index;
-            if (_eventsService.IsExisted(index) || _eventsService.IsExistedByTitle(dto.Title))
+
+            if (dto.Id == Guid.Empty || dto.Id == default)
+            {
+                Guid index = Guid.NewGuid();
+                dto.Id = index;
+            }
+
+            if (_eventsService.IsExisted(dto.Id) || _eventsService.IsExistedByTitle(dto.Title))
             { 
                 return Conflict("Уже существует сущность c таким идентификатором или названием");
             }

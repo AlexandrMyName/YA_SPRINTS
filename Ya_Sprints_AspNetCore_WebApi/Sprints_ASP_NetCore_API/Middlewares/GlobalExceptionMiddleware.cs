@@ -55,7 +55,7 @@ public class GlobalExceptionMiddleware
         var problemDetails = new
         {
             Type     = "https://tools.ietf.org/html/rfc7807",
-            Title    = "Не предвиденная ошибка сервера",
+            Title    = "Ошибка обработки запроса",
             Status   = statusCode,
             Detail   = exception.Message,
             Instance = context.Request.Path,
