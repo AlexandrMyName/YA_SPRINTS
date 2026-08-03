@@ -173,8 +173,7 @@ namespace Tests
         // ===================== НЕУСПЕШНЫЕ СЦЕНАРИИ =====================
 
         /// <summary>
-        /// Проверяет, что бронирование для несуществующего события выбрасывает KeyNotFoundException. 
-        /// Тест допускает оба варианта, чтобы быть устойчивым к текущей реализации.
+        /// Проверяет, что бронирование для несуществующего события выбрасывает KeyNotFoundException.  
         /// </summary>
         [Fact]
         public async Task CreateBooking_ForNonExistentEvent_ThrowsKeyNotFoundException()
@@ -188,8 +187,8 @@ namespace Tests
             var exception = await Assert.ThrowsAnyAsync<Exception>(() =>
                 _bookingService.CreateBookingAsync(invalidId));
 
-            Assert.True(exception is KeyNotFoundException || exception is SemaphoreFullException,
-                $"Expected KeyNotFoundException or SemaphoreFullException, got {exception.GetType()}");
+            Assert.True(exception is KeyNotFoundException, $"Expected KeyNotFoundException, got {exception.GetType()}");
+            
         }
 
         /// <summary>
@@ -644,8 +643,7 @@ namespace Tests
         }
 
         /// <summary>
-        /// Проверяет, что бронирование для несуществующего события возвращает ошибку.
-        /// Из-за бага с семафором может выброситься SemaphoreFullException, тест допускает оба варианта.
+        /// Проверяет, что бронирование для несуществующего события возвращает ошибку. 
         /// </summary>
         [Fact]
         public async Task CreateBookingAsync_WithNonExistentEvent_ReturnsFail()
@@ -659,14 +657,9 @@ namespace Tests
             var exception = await Assert.ThrowsAnyAsync<Exception>(() =>
                 _bookingService.CreateBookingAsync(eventId));
 
-            Assert.True(exception is KeyNotFoundException || exception is SemaphoreFullException,
-                $"Expected KeyNotFoundException or SemaphoreFullException, got {exception.GetType()}");
-
-            if (exception is KeyNotFoundException keyEx)
-            {
-                Assert.Equal("Event not found", keyEx.Message);
-            }
-
+            Assert.True(exception is KeyNotFoundException,
+                $"Expected KeyNotFoundException , got {exception.GetType()}");
+  
             _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
         }
 
@@ -685,8 +678,8 @@ namespace Tests
             var exception = await Assert.ThrowsAnyAsync<Exception>(() =>
                 _bookingService.CreateBookingAsync(eventId));
 
-            Assert.True(exception is KeyNotFoundException || exception is SemaphoreFullException,
-                $"Expected KeyNotFoundException or SemaphoreFullException, got {exception.GetType()}");
+            Assert.True(exception is KeyNotFoundException , $"Expected KeyNotFoundException, got {exception.GetType()}");
+
             _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
         }
 
