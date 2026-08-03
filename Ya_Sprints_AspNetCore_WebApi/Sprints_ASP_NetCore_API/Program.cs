@@ -24,7 +24,7 @@ namespace Sprints_Project_ASP_NetCore_API
                 .AddEndpointsApiExplorer()   // Тестовые ендпоинты (minimal API) -> пока отключил
                 .AddSwaggerGenWithDocumentation()  // Нужен для генерации метаданных Ыдля Swagger/Open Api 
                 .AddApiVersioningCustom()  // Добавляет и конфигурирует версионирование АПИЫ
-                .AddAutoMapper( typeof(Program))   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
+                .AddAutoMapper(cfg => { }, typeof(Program).Assembly)   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
                 .AddRepositories() // Добавляет репозитории в контейнер зависимостей
                 .AddServices(); // Добавляет сервисы в контейнер зависимостей
 
