@@ -29,14 +29,14 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
         public required DateTime StartAt { get; set; }  
         public required DateTime EndAt { get; set; }
          
-        public int TotalSeats { get; set; }  
+        public int TotalSeats     { get; set; }  
         public int AvailableSeats { get; set; }
-
 
 
         public static Event Create(string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
         {
-            if (totalSeats <= 0) throw new ValidationException("Общее количество мест должно быть больше 0");
+
+            if (totalSeats <= 0)  throw new ValidationException("Общее количество мест должно быть больше 0");
             if (startAt >= endAt) throw new ValidationException("Дата начала не может быть позже или равна дате окончания");
 
             return new Event
@@ -52,43 +52,15 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
         }
 
 
-        public void ReleaseSeats(int count = 1)
-        {
+        public void ReleaseSeats(int count = 1){
 
-            //using var transaction = await _context.Database.BeginTransactionAsync();
-            //var eventEntity = await _context.Events.FindAsync(eventId);
-            //if (eventEntity == null || eventEntity.AvailableSeats < count)
-            //    return false;
-
-            //// Атомарное обновление через SQL
-            //var rowsAffected = await _context.Database.ExecuteSqlRawAsync(
-            //    "UPDATE Events SET AvailableSeats = AvailableSeats - {0} WHERE Id = {1} AND AvailableSeats >= {0}",
-            //    count, eventId);
-
-            //if (rowsAffected > 0)
-            //{
-            //    await transaction.CommitAsync();
-            //    return true;
-            //}
-            //else
-            //{
-            //    await transaction.RollbackAsync();
-            //    return false;
-            //}
-
-            //для освобождения мест (на будущее, при отклонении брони).
-             
-            if((AvailableSeats + count) > TotalSeats)
-            {
-                throw new InvalidOperationException("Значение превышает количество мест");
-            }
+            if((AvailableSeats + count) > TotalSeats) throw new InvalidOperationException("Значение превышает количество мест"); 
             AvailableSeats += count;
         }
 
-        public bool TryReserveSeats(int count = 1)
-        { 
-            //  возвращает false, если свободных мест недостаточно;
-            //  уменьшает AvailableSeats на count и возвращает true, если места есть. 
+
+        public bool TryReserveSeats(int count = 1){
+            
             if (AvailableSeats >= count) { AvailableSeats -= count; return true; }
             else return false; 
         }
