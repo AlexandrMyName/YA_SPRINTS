@@ -9,6 +9,7 @@ using SprintASP_NetCore_API.Services;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
+using System.Collections.Concurrent;
 using System.ComponentModel.DataAnnotations;
 using static System.Net.WebRequestMethods;
 
@@ -32,7 +33,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         }
          
         private readonly IServiceScopeFactory _scopeFactory; // на будущее когда БД появится мб. переместить лучше в репозиторий
-         
+        private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _eventLocks = new(); // симофоры для событий 
         private readonly IRepository<IEvent> _repository;
         private readonly ILogger<EventsService> _logger;
         private readonly IMapper _mapper;
@@ -40,11 +41,24 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
          
         public async Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count)
         {
-            var eventEntity = await _repository.GetByIdAsync(eventId);
 
-            if (!eventEntity.IsSuccesfuly || eventEntity.Data == null) throw new NullReferenceException("Event is null");
-            eventEntity.Data.ReleaseSeats(count);
+            var semaphore = _eventLocks.GetOrAdd(eventId, _ => new SemaphoreSlim(1, 1));
+            await semaphore.WaitAsync();
+
+            try
+            {
+                var eventResult = await _repository.GetByIdAsync(eventId);
+                if (!eventResult.IsSuccesfuly || eventResult.Data == null) throw new NullReferenceException("Event is null");
+                eventResult.Data.ReleaseSeats(count);
+                await _repository.UpdateAsync(eventResult.Data);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
+         
+
          
         public async Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto)
         {

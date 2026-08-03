@@ -56,6 +56,8 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
     public async Task<IResultDto<IBookingInfoDto>> CreateBookingAsync(Guid eventId)
     {
 
+        await _bookingLock.WaitAsync(); //  предотвразает выброс SemaphoreFullException при исключении до захвата  (исправленый баг) 
+
         IEvent? eventEntity = null;
         BookingInfoDto? createdBooking = null;
         bool seatsReserved = false;
@@ -67,7 +69,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
             eventEntity = eventResult.Data;
             if (eventEntity == null) throw new NullReferenceException("Data was null");
              
-            await _bookingLock.WaitAsync();
+            
               
             seatsReserved = eventEntity.TryReserveSeats();
             if (!seatsReserved) throw new NoAvailableSeatsException("No available seats for this event");

@@ -88,8 +88,6 @@ public class BookingBackgroundService : BackgroundService
                 booking.Status = Data.Entities.BookingStatus.Confirmed;
                 booking.ProcessedAt = DateTime.UtcNow;
                 await _bookingStore.UpdateBookingAsync(booking);
-
-                throw new Exception("Неожиданое");
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
