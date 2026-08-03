@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Записки.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
 	  <Content Update="appsettings.Production.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>

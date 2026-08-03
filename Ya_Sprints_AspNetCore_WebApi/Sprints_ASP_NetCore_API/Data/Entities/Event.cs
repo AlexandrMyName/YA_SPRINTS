@@ -33,7 +33,7 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
         public int AvailableSeats { get; set; }
 
 
-        public static Event Create(string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
+        public static Event Create(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
         {
 
             if (totalSeats <= 0)  throw new ValidationException("Общее количество мест должно быть больше 0");
@@ -41,7 +41,7 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
 
             return new Event
             {
-                Id = Guid.NewGuid(),
+                Id = id == default ? Guid.NewGuid() : id,
                 Title = title,
                 Description = description,
                 StartAt = startAt,

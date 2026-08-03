@@ -1,11 +1,10 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
+﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
+using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
 using SprintASP_NetCore_API.Data.Dtos.Filters;
 using SprintASP_NetCore_API.Data.Entities;
-using SprintASP_NetCore_API.Data.Dtos;
 using AutoMapper;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
 
 
 namespace SprintASP_NetCore_API.Services.DataServices;

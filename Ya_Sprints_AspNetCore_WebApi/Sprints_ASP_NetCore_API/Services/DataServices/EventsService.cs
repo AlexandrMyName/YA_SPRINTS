@@ -62,18 +62,16 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
          
         public async Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto)
         {
-            // Логика валидации входящего totalSeat в ValidateInputModelAttribute (Action Filter)  + вместо создания через фабричный метод - AutoMap (Но фабричный метод так же работет) 
-            // 6. Убедитесь, что Event.Create(...) теперь принимает totalSeats и валидирует его: значение должно быть больше нуля.При нарушении — ValidationException.
-            // 7. Обновите EventService.CreateEventAsync — передавайте TotalSeats в фабричный метод и возвращайте оба новых поля в EventInfo. 
+           
             _logger.LogInformation("Запрос добавления события с ID: " + dto.Id);
-            var eventEntity = await _repository.AddAsync(_mapper.Map<Event>(dto)); 
-            // _repository.AddAsync(Event.Create(dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats ?? 0));  Добавил на всякий случай. Логика внутри валидируется (через фабричный метод)
 
-            if (eventEntity.IsSuccesfuly){
-                _logger.LogInformation($"Добавлена модель: {eventEntity?.Data?.Id}");
-                return ResultDto<IEventInfoDto>.Ok(_mapper.Map<EventInfoDto>(eventEntity.Data), eventEntity?.Message ?? "");
+            var eventEntity = Event.Create(dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats ?? 0);
+            var result = await _repository.AddAsync(eventEntity); 
+            if (result.IsSuccesfuly){
+                _logger.LogInformation($"Добавлена модель: {eventEntity?.Id}");
+                return ResultDto<IEventInfoDto>.Ok(_mapper.Map<EventInfoDto>(eventEntity), result?.Message ?? "");
             } 
-            return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? ""); 
+            return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? ""); 
         }
 
         public Task<PaginatedResult<IBookingInfoDto>> GetFilteredEventsAsync(IEntityFilter<IEntity> filter)
