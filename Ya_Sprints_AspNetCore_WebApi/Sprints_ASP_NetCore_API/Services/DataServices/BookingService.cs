@@ -13,6 +13,8 @@ namespace SprintASP_NetCore_API.Services.DataServices;
 public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBookingService
 {
 
+    private const int MaxPendingBookingsPerPage = 1000;
+
     public BookingService(
        IRepository<IBooking> repository,
        IRepository<IEvent> eventRepository, // зависимость по хранилищу событий 
@@ -34,7 +36,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
     /// </summary>
     /// <param name="maxCountRange">Максимальное количество</param>
     /// <returns></returns>
-    public async Task<IEnumerable<IBookingInfoDto>> GetPendingBookingsAsync(int maxCountRange = 1000)
+    public async Task<IEnumerable<IBookingInfoDto>> GetPendingBookingsAsync(int maxCountRange = MaxPendingBookingsPerPage)
     {
 
         var pendingBookings = await GetFilteredAsync(new BookingFilterDto()

@@ -20,7 +20,9 @@ public class BookingBackgroundService : BackgroundService
 
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
-     
+    private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan ProcessingDelay = TimeSpan.FromSeconds(2);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
 
@@ -36,7 +38,7 @@ public class BookingBackgroundService : BackgroundService
                     var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
                     await Task.WhenAll(tasks); 
                 }
-                else await Task.Delay(1000, stoppingToken); 
+                else await Task.Delay(PollingInterval, stoppingToken); 
             }
             catch(OperationCanceledException operationCanceledExcept)
             {
@@ -63,7 +65,7 @@ public class BookingBackgroundService : BackgroundService
         try
         {
             // 1. Имитация внешнего вызова (до семафора)
-            await Task.Delay(2000, stoppingToken);
+            await Task.Delay(ProcessingDelay, stoppingToken);
 
             // 2. Захват семафора
             await _processingSemaphore.WaitAsync(stoppingToken);
