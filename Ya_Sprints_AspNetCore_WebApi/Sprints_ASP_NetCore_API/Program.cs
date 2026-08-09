@@ -5,6 +5,7 @@ using Sprints_Project_ASP_NetCore_API.Middlewares;
 using SprintASP_NetCore_API.Services.Intercepts;
 using Microsoft.AspNetCore.Mvc;
 using SprintASP_NetCore_API.Data.DataAccess.DbContexts.Extetions;
+using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
 
 [assembly: ApiController] // Все контроллеры будут API 
 
@@ -42,7 +43,9 @@ namespace Sprints_Project_ASP_NetCore_API
             });
 
             var app = builder.Build();
-            app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
+
+            app.InitializeDataBases()  // Инициализирует базы данных по DbContext 
+               .UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
 
             if (app.Environment.IsDevelopment())
             {

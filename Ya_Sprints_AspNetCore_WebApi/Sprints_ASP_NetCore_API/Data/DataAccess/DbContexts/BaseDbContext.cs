@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
 
 
 namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts
@@ -74,17 +75,18 @@ namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts
         public BaseDbContext(DbContextOptions options ) : base(options)
         { 
 
-            if (!_databaseInitialized)
-            {
-                lock (_lock)
-                {
-                    if (!_databaseInitialized)
-                    {
-                        Database.EnsureCreated();
-                        _databaseInitialized = true; 
-                    }
-                }
-            }
+            //if (!_databaseInitialized)
+            //{
+            //    lock (_lock)
+            //    {
+            //        if (!_databaseInitialized)
+            //        {
+            //            Database.EnsureCreated();
+                        
+            //            _databaseInitialized = true; 
+            //        }
+            //    }
+            //}
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -111,6 +113,14 @@ namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts
             // Применяем ко всем свойствам типа DateTime и DateTime?
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
+
+                if (typeof(IEntity).IsAssignableFrom(entityType.ClrType))
+                {
+                    modelBuilder.Entity(entityType.ClrType)
+                        .Property<uint>("Version")
+                        .IsRowVersion();
+                } // указываем на объект синхронизации
+
                 foreach (var property in entityType.GetProperties())
                 {
                     if (property.ClrType == typeof(DateTime))

@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SprintASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
-
+using dataBase_autoMigration_Lib;
 
 namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts;
 
@@ -42,6 +42,8 @@ public class AppDbContext : BaseDbContext
                 }
             }
         }
+
+       
 
     }
 }

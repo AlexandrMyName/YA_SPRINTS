@@ -1,11 +1,15 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities; 
-using System.Collections.Concurrent; 
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Query;
+using System.Collections.Concurrent;
+using System.Linq.Expressions;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Repositories
 {
 
+    [Obsolete("Используете EFCoreRepository с опцией: options =>\r\n    options.UseInMemoryDatabase(\"TestDb\")")]
     public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
     {
 
@@ -156,10 +160,30 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
             return false;
         }
 
+        public Task<int> UpdateBatchAsync(Expression<Func<T, bool>> filter, Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls) => Task.FromResult(_items.Count); // Заглушка 
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync() => new NullDbContextTransaction(); // Заглушка
+      
+        public Task<int> SaveChangesAsync() =>  Task.FromResult(_items.Count); // Заглушка 
+
+    }
 
 
 
+    public class NullDbContextTransaction : IDbContextTransaction
+    {
+        public Guid TransactionId => Guid.Empty;
 
+        public void Commit() { }
+        public void Rollback() { }
+        public void Dispose() { }
 
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        public Task CommitAsync(CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
+        public Task RollbackAsync(CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
     }
 }

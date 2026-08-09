@@ -10,14 +10,14 @@ using AutoMapper;
 
 namespace SprintASP_NetCore_API.Services.DataServices;
 
-public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBookingService
+public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookingService
 {
 
     private const int MaxPendingBookingsPerPage = 1000;
 
     public BookingService(
-       IRepository<IBooking> repository,
-       IRepository<IEvent> eventRepository, // зависимость по хранилищу событий 
+       IRepository<Booking> repository,
+       IRepository<Event> eventRepository, // зависимость по хранилищу событий 
        ILogger<BookingService> logger,
        IInterceptLockings interceptLockings,
        IMapper mapper) : base(repository, logger, mapper)
@@ -26,7 +26,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
         _eventRepository = eventRepository;
     }
 
-    private readonly IRepository<IEvent> _eventRepository;
+    private readonly IRepository<Event> _eventRepository;
     private readonly ILogger<BookingService> _logger;
     private readonly IMapper _mapper;
     private readonly IInterceptLockings _interceptLockings;
@@ -63,10 +63,13 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
         var semaphore = _interceptLockings.GetOrAddByEventId(eventId);
         await semaphore.WaitAsync();
          
-        IEvent? eventEntity = null;
+        Event? eventEntity = null;
         BookingInfoDto? createdBooking = null;
         bool seatsReserved = false;
 
+
+        await using var transaction = await _eventRepository.BeginTransactionAsync();
+         
         try
         {
             var eventResult = await _eventRepository.GetByIdAsync(eventId);
@@ -77,8 +80,8 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
             seatsReserved = eventEntity.TryReserveSeats();
             if (!seatsReserved) throw new NoAvailableSeatsException("No available seats for this event");
 
-            var updateResult = await _eventRepository.UpdateAsync(eventEntity);
-            if (!updateResult.IsSuccesfuly) throw new Exception("Не удалось обновить количество мест");
+            var updateResult = await _eventRepository.UpdateAsync(eventEntity); 
+            if (!updateResult.IsSuccesfuly) throw new Exception("Не удалось обновить количество мест: " + updateResult.Reason);
 
             createdBooking = new BookingInfoDto()
             {
@@ -91,12 +94,19 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
             var bookingResult = await AddAsync(createdBooking);
             if (!bookingResult.IsSuccesfuly) throw new Exception("Не удалось создать бронь");
 
+            await _eventRepository.SaveChangesAsync(); 
+            await transaction.CommitAsync();
+
             return bookingResult;
         }
         catch
         {
+
+            await transaction.RollbackAsync();
+
             // Откатываем резервирование мест, если оно было выполнено
-            if (seatsReserved && eventEntity != null) eventEntity.ReleaseSeats(1);
+            if (seatsReserved && eventEntity != null) eventEntity.ReleaseSeats(1); 
+            
             throw;
         }
         finally
@@ -130,7 +140,14 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
         await semaphore.WaitAsync();
         try
         {
-           return await base.UpdateAsync(item); 
+           var result = await base.UpdateAsync(item); // только меняет состояние (ChangeTracker)
+
+            if (result.IsSuccesfuly)
+            {
+                var updatedCount = await Repository.SaveChangesAsync();
+                return result;
+            }
+            else throw new Exception("Не удалось обновить сущность: " + result.Reason);
         }
         finally
         {

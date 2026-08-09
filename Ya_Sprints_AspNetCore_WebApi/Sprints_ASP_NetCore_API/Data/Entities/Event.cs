@@ -35,6 +35,8 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
         public int TotalSeats { get; set; }
         public int AvailableSeats { get; set; }
 
+        public uint Version { get; set; } // xmin в Postgres 
+
 
         private Event() { }
 
