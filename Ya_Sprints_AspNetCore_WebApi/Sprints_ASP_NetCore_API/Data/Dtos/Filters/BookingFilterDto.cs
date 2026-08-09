@@ -22,7 +22,7 @@ public class BookingFilterDto : IEntityFilter<IEntity>
     /// Статус обработки
     /// </summary>
     public BookingStatus? Status { get; set; }
-        
+
     /// <summary>
     /// Поле для сортировки (Title, StartAt, EndAt, Priority)
     /// </summary>
@@ -62,11 +62,11 @@ public class BookingFilterDto : IEntityFilter<IEntity>
                 queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.Id), "==", Id);
 
             if (EventId.HasValue)
-                queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.EventId), "==", EventId); 
-           
-            if(Status.HasValue)
+                queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.EventId), "==", EventId);
+
+            if (Status.HasValue)
                 queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.Status), "==", Status);
-             
+
             // 2. Применяем сортировку
             if (!string.IsNullOrEmpty(SortBy))
                 queryBookings = DynamicQueryBuilder<IBooking>.ApplySort(queryBookings, SortBy, !SortDesc);

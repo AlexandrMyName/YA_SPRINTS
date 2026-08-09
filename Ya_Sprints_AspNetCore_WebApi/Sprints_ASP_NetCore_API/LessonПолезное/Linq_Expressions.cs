@@ -27,10 +27,10 @@ namespace SprintASP_NetCore_API.LessonПолезное
 
             // Шаг 4. Создание узла сравнения
             BinaryExpression comparison = Expression.GreaterThan(ageProperty, threshold); // Узел должен описывать операцию обращения к свойству Age параметра u.
-             
+
             // Шаг 5. Формирование итоговой лямбды
             Expression<Func<User, bool>> lambda = Expression.Lambda<Func<User, bool>>(comparison, userParam); // Тело выражения (сравнение) связывается с параметром.
-             
+
             // Компиляция дерева в делегат Func<User, bool>
             Func<User, bool> compiledFunc = lambda.Compile();
 

@@ -9,13 +9,16 @@ RESTful API для управления событиями. Проект вып�
 
 - **.NET 9**
 - **ASP.NET Core Web API**
+- **Entity Framework Core** (PostgreSQL + InMemory для тестов)
+- **Npgsql.EntityFrameworkCore.PostgreSQL** – провайдер для PostgreSQL
 - **Swagger / Swashbuckle** – автоматическая документация
 - **AutoMapper** – маппинг сущностей и DTO
-- **DataAnnotations** – валидация моделей + кастомный `ActionFilter` для бизнес-правил
-- **In‑memory хранение** (`ConcurrentDictionary`)
+- **Fluent API** – конфигурация моделей
 - **API Versioning** (v1.0)
 - **CORS** – настроены политики доступа
 - **xUnit + Moq** – юнит-тестирование
+- **SemaphoreSlim** – синхронизация при бронировании
+- **BackgroundService** – фоновая обработка броней
 
 ### 📚 Собственные библиотеки
 
@@ -30,6 +33,7 @@ RESTful API для управления событиями. Проект вып�
 ### Требования
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download)
+- [PostgreSQL](https://www.postgresql.org/download/) (локально или удалённо)
 - Любая IDE (Visual Studio, Rider, VS Code)
 
 ### 🛠 Клонирование, сборка и запуск
@@ -55,6 +59,39 @@ https://localhost:5001/swagger
 ```
 
 ---
+
+
+## 🗄️ Настройка базы данных
+
+### Строка подключения
+Строка подключения задаётся в appsettings.json (или appsettings.Development.json):
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
+  }
+}
+```
+Если PostgreSQL установлен с другими параметрами – измените строку.
+
+
+### Автоматическое создание схемы
+При первом запуске приложение автоматически создаёт базу данных и все таблицы с помощью EnsureCreated():
+```csharp
+ using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
+```
+Никаких ручных миграций не требуется – EF Core создаст структуру на основе моделей и Fluent API.
+
+## Важно
+ - EnsureCreated не совместим с миграциями. Если в будущем понадобятся миграции – переключитесь на Migrate().  
+
+
+
+
 
 ## 📖 Документация API
 
@@ -349,6 +386,24 @@ public async Task ConcurrentBookings_20Requests_5Seats_Exactly5Success_15Excepti
 dotnet test
 ```
 
+### InMemory-провайдер EF Core
+В тестах используется Microsoft.EntityFrameworkCore.InMemory – каждый тестовый класс получает уникальную базу данных, что гарантирует изоляцию тестов.
+
+Пример настройки DI для тестов:
+
+```csharp
+var dbName = Guid.NewGuid().ToString();
+var services = new ServiceCollection();
+services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase(dbName));
+services.AddScoped<IRepository<Event>, EfCoreRepository<Event>>();
+services.AddScoped<IEventService, EventsService>();
+// ...
+var provider = services.BuildServiceProvider();
+```
+Для конкурентных тестов каждый параллельный запрос использует отдельный IServiceScope.
+
+
 ### Покрытие тестами
 
 - **EventService** – основные CRUD-операции, фильтрация, сортировка, пагинация
@@ -358,119 +413,79 @@ dotnet test
 
 ---
 
+## 🧩 Архитектура (слои)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Presentation Layer                     │
+│  Controllers, ActionFilters, Middleware                     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       Business Layer                        │
+│  Services (Events, Bookings, Background)                    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Data Access Layer                      │
+│  Repositories, DbContext, Configurations, Entities          │
+└─────────────────────────────────────────────────────────────┘
+```
+- Presentation – обрабатывает HTTP, валидирует входные/выходные данные.
+- Business – содержит бизнес-логику (создание брони, проверка мест, синхронизация).
+- Data – взаимодействие с БД через EF Core, конфигурация моделей.
+
 ## 📁 Структура проекта
 
 ```
 Ya_Sprints_AspNetCore_WebApi/
-├── .vs/                                    # Visual Studio файлы
-│
-├── Sprints_ASP_NetCore_API/                # 📦 Основной проект
+├── SprintASP_NetCore_API/                 # Основной проект
 │   ├── Actions/
 │   │   └── ActionFilters/
-│   │       ├── LogFilterAttribute.cs
 │   │       └── ValidateInputModelAttribute.cs
-│   │
 │   ├── Controllers/
 │   │   ├── EventsController.cs
 │   │   └── BookingsController.cs
-│   │
 │   ├── Data/
+│   │   ├── DataAccess/
+│   │   │   ├── Configurations/            # Fluent API конфигурации
+│   │   │   │   ├── EventConfiguration.cs
+│   │   │   │   └── BookingConfiguration.cs
+│   │   │   └── DbContexts/
+│   │   │       ├── AppDbContext.cs
+│   │   │       └── BaseDbContext.cs
 │   │   ├── Dtos/
 │   │   │   ├── EntitiesDtos/
-│   │   │   │   ├── BookingInfoDto.cs
-│   │   │   │   ├── CreateEventDto.cs
-│   │   │   │   ├── EventInfoDto.cs
-│   │   │   │   └── IEntityDto.cs
 │   │   │   ├── Filters/
-│   │   │   │   ├── BookingFilterDto.cs
-│   │   │   │   ├── EventFilterDto.cs
-│   │   │   │   ├── IEntityFilter.cs
-│   │   │   │   └── IFilter.cs
 │   │   │   └── Internal/
-│   │   │       ├── ApiBaseResult.cs
-│   │   │       └── PaginatedResult.cs
-│   │   ├── Entities/
-│   │   │   ├── Booking.cs
-│   │   │   ├── Event.cs
-│   │   │   ├── IBooking.cs
-│   │   │   ├── IEvent.cs
-│   │   │   └── IEntity.cs
-│   │   └── LessonПолезное/
-│   │
-│   ├── Helpers/
-│   │   └── ValidatorHelper.cs
-│   │
+│   │   └── Entities/
+│   │       ├── Booking.cs
+│   │       ├── Event.cs
+│   │       └── ...
 │   ├── Middlewares/
-│   │   ├── Extentions/
-│   │   │   ├── Configurations/
-│   │   │   │   ├── ConfigureApiVersioned_Ext.cs
-│   │   │   │   ├── ConfigureControllersWithCacheProfiles_Ext.cs
-│   │   │   │   ├── ConfigureCors_Ext.cs
-│   │   │   │   └── SwaggerGen_Ext.cs
-│   │   │   └── Endpoints/
-│   │   │       └── ProductsEndpoints.cs
 │   │   └── GlobalExceptionMiddleware.cs
-│   │
+│   ├── Migrations/                        # (будущие миграции)
 │   ├── ProfilesAndConfigs/
-│   │   ├── MappingDtoProfile.cs
-│   │   └── MappingEntityProfile.cs
-│   │
-│   ├── Properties/
-│   │   └── launchSettings.json
-│   │
+│   │   └── MappingProfile.cs
 │   ├── Repositories/
-│   │   ├── Extenions/
-│   │   │   └── AddRepositoryExtention.cs
-│   │   ├── BaseInMemoryRepository.cs
-│   │   ├── IFilterModel.cs
+│   │   ├── EfCoreRepository.cs
 │   │   └── IRepository.cs
-│   │
 │   ├── Services/
 │   │   ├── Background/
-│   │   |   └── BookingBackgroundService.cs
+│   │   │   └── BookingBackgroundService.cs
 │   │   ├── DataServices/
-│   │   |   ├── BaseDataService.cs
-│   │   |   ├── BookingService.cs
-│   │   │   └── EventsService.cs
-│   │   └── Extentions/
-│   │       ├── AddServicesExtention.cs
-│   │   ├── IBookingService.cs
-│   │   ├── IDataStorageService.cs
-│   │   └── IEventService.cs
+│   │   │   ├── EventsService.cs
+│   │   │   └── BookingService.cs
+│   │   └── Intercepts/
+│   │       └── InterceptLockings.cs
 │   ├── Program.cs
-│   ├── SprintASP_NetCore_API.csproj
-│   ├── SprintASP_NetCore_API.csproj.user
-│   ├── Sprints_ASP_NetCore_API.http
-│   ├── appsettings.Development.json
-│   ├── appsettings.Production.json
 │   ├── appsettings.json
-│   └── Записки.txt
-│
-├── Tests/                                  # 🧪 Тестовый проект
-│   ├── ActionFilterHelpers/
-│   │   └── FilterTestHelper.cs
-│   ├── Factories/
-│   │   └── TestDataFactory.cs
+│   └── ...
+├── Tests/                                 # Тестовый проект
+│   ├── Tests_EventsService_Integration.cs
 │   ├── Tests_BookingService.cs
-│   ├── Tests_EventsService.cs
-│   ├── Tests_Reflection.cs
-│   ├── Tests_ValidateInputModelAttribute.cs
-│   └── Tests.csproj
-│
-├── dataBase_autoMigration_Lib/             # 📚 Библиотека миграции
-│   ├── DynamicEntityMigration.cs
-│   └── dataBase_autoMigration_Lib.csproj
-│
-├── queryBuilder_Lib/                       # 📚 Библиотека построения запросов
-│   ├── DemoRunner.cs
-│   ├── DynamicQueryBuilder.cs
-│   └── queryBuilder_Lib.csproj
-│
-├── reflectionPropertyAccessor_Lib/         # 📚 Библиотека рефлексии
-│   ├── PropertyAccessor.cs
-│   └── reflectionPropertyAccessor_Lib.csproj
-│
-├── Sprints_ASP_NetCore_API.sln             # Решение
+│   └── ...
 └── README.md
 ```
 ---
@@ -586,7 +601,10 @@ Ya_Sprints_AspNetCore_WebApi/
 - **DynamicQueryBuilder** – кеширование PropertyInfo и лямбда-выражений для фильтрации/сортировки
 - **In‑memory репозиторий** – потокобезопасный `ConcurrentDictionary` для конкурентного доступа
 - **PaginatedResult** – эффективный подсчет общего количества без загрузки всех данных
-
+- **Асинхронные операции** – все обращения к БД асинхронны.
+- **Оптимистическая блокировка** – через xmin для предотвращения конкурентных изменений.
+- **Батчинг** – EF Core группирует несколько SaveChanges в один раунд-трип.
+- **Кеширование** –  отсутствует (для простоты), но может быть добавлено при необходимости.
 ---
 
 ## 🤝 Вклад в проект

@@ -12,17 +12,17 @@ namespace Sprints_Project_ASP_NetCore_API.Services;
 /// Интерфейс для сервиса взаимодействия с данными 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public interface IDataStorageService<T> where T : class, IEntityDto    
-{ 
+public interface IDataStorageService<T> where T : class, IEntityDto
+{
     Task<IEnumerable<T>> GetAllAsync();
     Task<PaginatedResult<T>> GetFilteredAsync(IEntityFilter<IEntity> filter);
 
     Task<IResultDto<T>> GetByIdAsync(Guid id);
-    Task<IResultDto<T>> AddAsync(T item); 
-    Task<IResultDto<T>> AddRangeAsync(IEnumerable<T> items); 
-    Task<IResultDto<T>> UpdateAsync(T item); 
-    Task<IResultDto<T>> UpdateRangeAsync(IEnumerable<T> items); 
-    Task<IResultDto<T>> DeleteAsync(Guid id); 
-    bool IsExisted(Guid id); 
+    Task<IResultDto<T>> AddAsync(T item);
+    Task<IResultDto<T>> AddRangeAsync(IEnumerable<T> items);
+    Task<IResultDto<T>> UpdateAsync(T item);
+    Task<IResultDto<T>> UpdateRangeAsync(IEnumerable<T> items);
+    Task<IResultDto<T>> DeleteAsync(Guid id);
+    bool IsExisted(Guid id);
     bool IsExistedByTitle(string name);
 }

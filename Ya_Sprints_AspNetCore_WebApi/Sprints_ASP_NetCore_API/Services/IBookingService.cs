@@ -13,9 +13,9 @@ namespace SprintASP_NetCore_API.Services;
 /// <summary>
 /// Абстракция сервиса хранилища (IBookingService) - Сервис-хранилище бронирования
 /// </summary>
-public interface IBookingService   
+public interface IBookingService
 {
-     
+
     /// <summary>
     /// создание брони для указанного события
     /// </summary>
@@ -28,7 +28,7 @@ public interface IBookingService
     /// <param name="bookingId"></param>
     Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(Guid bookingId);
 
-    
+
     Task<PaginatedResult<IBookingInfoDto>> GetFilteredAsync(IEntityFilter<IEntity> filter);
 
     Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item);

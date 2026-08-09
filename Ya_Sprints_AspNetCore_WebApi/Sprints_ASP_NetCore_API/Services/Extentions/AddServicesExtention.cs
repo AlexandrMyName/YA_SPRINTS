@@ -20,8 +20,8 @@ public static class AddServicesExtention
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
 
-        services.AddSingleton<IEventService, EventsService>();     // Сервис событий  
-        services.AddSingleton<IBookingService, BookingService>();  // Сервис бронирований 
+        services.AddScoped<IEventService, EventsService>();     // Сервис событий  
+        services.AddScoped<IBookingService, BookingService>();  // Сервис бронирований 
         services.AddSingleton<IReferenciesData, RefDataService>(); // Дополнительный класс для ссылок данных 
 
         // Hosted Services

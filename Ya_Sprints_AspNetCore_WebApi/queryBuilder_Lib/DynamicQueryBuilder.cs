@@ -35,7 +35,7 @@ public class DynamicQueryBuilder<T>
 
     // Кеш для скомпилированных лямбда-выражений сортировки/группировки.
     // Ключ – имя свойства, значение – Expression<Func<T, object>>.
-    private static readonly ConcurrentDictionary<string, Expression<Func<T, object>>> _sortLambdaCache = new ConcurrentDictionary<string, Expression<Func<T, object>>>(); 
+    private static readonly ConcurrentDictionary<string, Expression<Func<T, object>>> _sortLambdaCache = new ConcurrentDictionary<string, Expression<Func<T, object>>>();
     #endregion
 
     #region Публичные методы
@@ -99,9 +99,9 @@ public class DynamicQueryBuilder<T>
                     "ne" => Expression.NotEqual(propAccess, valueExpr),
                     "!=" => Expression.NotEqual(propAccess, valueExpr),
                     "gt" => Expression.GreaterThan(propAccess, valueExpr),
-                    ">"  => Expression.GreaterThan(propAccess, valueExpr),
+                    ">" => Expression.GreaterThan(propAccess, valueExpr),
                     "lt" => Expression.LessThan(propAccess, valueExpr),
-                    "<"  => Expression.LessThan(propAccess, valueExpr),
+                    "<" => Expression.LessThan(propAccess, valueExpr),
                     "ge" => Expression.GreaterThanOrEqual(propAccess, valueExpr),
                     ">=" => Expression.GreaterThanOrEqual(propAccess, valueExpr),
                     "le" => Expression.LessThanOrEqual(propAccess, valueExpr),
@@ -274,21 +274,21 @@ public class DynamicQueryBuilder<T>
         //var method = typeof(string).GetMethod(methodName, new[] { typeof(string) });
         //if (method == null) throw new NotSupportedException($"Метод '{methodName}' не найден в классе string.");
         //return Expression.Call(instance, method, argument);
-         
+
         if (argument.Type != typeof(string)) throw new ArgumentException("Argument must be a string", nameof(argument));
-         
+
         var method = typeof(string).GetMethod(
             methodName,
-            new[] { typeof(string), typeof(StringComparison) }
+            new[] { typeof(string)/*, typeof(StringComparison)*/ }
         );
 
         if (method == null)
             throw new NotSupportedException($"Метод '{methodName}' с StringComparison не найден.");
          
-        var comparison = Expression.Constant(StringComparison.OrdinalIgnoreCase); // Добавил OriginalIgnoreCase (регистро независимый метод)
-         
-        return Expression.Call(instance, method, argument, comparison);
-    } 
+        // var comparison = Expression.Constant(StringComparison.OrdinalIgnoreCase); // Добавил OriginalIgnoreCase (регистро независимый метод) НЕ РАБОТАЕТ С EF
+
+        return Expression.Call(instance, method, argument/*, comparison*/);
+    }
 
     /// <summary>
     /// Строит выражение для IN: member == val1 || member == val2 || ...

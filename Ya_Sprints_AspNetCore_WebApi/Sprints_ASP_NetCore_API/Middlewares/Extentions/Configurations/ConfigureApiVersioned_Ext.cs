@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning; 
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
@@ -26,5 +26,5 @@ public static class ConfigureApiVersioned_Ext
         });
 
         return services;
-    }  
+    }
 }

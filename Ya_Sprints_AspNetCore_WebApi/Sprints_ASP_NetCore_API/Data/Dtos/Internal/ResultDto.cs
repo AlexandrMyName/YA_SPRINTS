@@ -18,9 +18,9 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal
         public static implicit operator bool(ResultDto<T> resultDto) => resultDto.IsSuccesfuly;
 
         public static ResultDto<T> Ok(T data, string msg) => new() { Data = data, IsSuccesfuly = true, Message = msg, Reason = "" };
-        public static ResultDto<T> Ok(string msg) => new() { Data = null, IsSuccesfuly = true, Message = msg, Reason = "" }; 
+        public static ResultDto<T> Ok(string msg) => new() { Data = null, IsSuccesfuly = true, Message = msg, Reason = "" };
         public static ResultDto<T> Fail(string reason) => new() { Data = null, IsSuccesfuly = false, Message = "", Reason = reason };
-         
+
         public string? Reason { get; private set; }
 
         public bool IsSuccesfuly { get; private set; }

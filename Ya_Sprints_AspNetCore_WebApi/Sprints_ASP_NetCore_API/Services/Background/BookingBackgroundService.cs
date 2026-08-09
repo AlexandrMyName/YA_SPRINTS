@@ -1,4 +1,8 @@
-﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings; 
+﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;  
+using Sprints_Project_ASP_NetCore_API.Services.DataServices;
+using Sprints_Project_ASP_NetCore_API.Repositories;
+using SprintASP_NetCore_API.Services.DataServices;
+using SprintASP_NetCore_API.Data.Entities;
 
 
 namespace SprintASP_NetCore_API.Services.Background;
@@ -7,16 +11,14 @@ namespace SprintASP_NetCore_API.Services.Background;
 public class BookingBackgroundService : BackgroundService
 {
 
-    public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingService bookingService, IEventService eventStore)
+    public BookingBackgroundService(IServiceScopeFactory scopeFactory, ILogger<BookingBackgroundService> logger )
     {
-        _bookingStore = bookingService;
-        _eventStore = eventStore;
-        _logger = logger; 
+        _scopeFactory = scopeFactory;  
+        _logger = logger;
     }
 
     private ILogger<BookingBackgroundService> _logger;
-    private IBookingService _bookingStore;
-    private IEventService _eventStore;
+    private readonly IServiceScopeFactory _scopeFactory;  
 
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
@@ -30,28 +32,46 @@ public class BookingBackgroundService : BackgroundService
         {
             try
             {
+                 
+                while (!stoppingToken.IsCancellationRequested)
+                {
 
-                var pendingBookings = await _bookingStore.GetPendingBookingsAsync();  
+                    await Task.Delay(PollingInterval, stoppingToken);
 
-                if (pendingBookings.Count() > 0){
-                      
-                    var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
-                    await Task.WhenAll(tasks); 
-                }
-                else await Task.Delay(PollingInterval, stoppingToken); 
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        // Получаем репозиторий для броней
+                        var bookingRepo = scope.ServiceProvider.GetRequiredService<IRepository<Booking>>();
+                        // И более высокоуровневый сервис:
+                        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+                        
+                        // Работаем с репозиторием/сервисом
+                        var bookings = await bookingRepo.GetAllAsync();
+                         
+                        var pendingBookings = await bookingService.GetPendingBookingsAsync();
+
+                        if (pendingBookings.Count() > 0)
+                        { 
+                            var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, bookingService, eventService, stoppingToken));
+                            await Task.WhenAll(tasks);
+                        }
+                        else continue; 
+                    } 
+                }  
             }
-            catch(OperationCanceledException operationCanceledExcept)
+            catch (OperationCanceledException operationCanceledExcept)
             {
                 _logger.LogDebug("Работа BookingService была отменена: " + operationCanceledExcept.Message);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                
+
                 _logger.LogError("Вызвано исключение (BookingBackground): " + ex.Message);
-            } 
+            }
         }
 
-        _logger.LogDebug("Работа BookingService завершена"); 
+        _logger.LogDebug("Работа BookingService завершена");
     }
 
     /// <summary>
@@ -60,10 +80,11 @@ public class BookingBackgroundService : BackgroundService
     /// <param name="booking"></param>
     /// <param name="stoppingToken"></param>
     /// <returns></returns>
-    private async Task ProcessBookingAsync(IBookingInfoDto booking, CancellationToken stoppingToken)
+    private async Task ProcessBookingAsync(IBookingInfoDto booking, IBookingService bookingService, IEventService eventService,  CancellationToken stoppingToken)
     {
         try
         {
+  
             // 1. Имитация внешнего вызова (до семафора)
             await Task.Delay(ProcessingDelay, stoppingToken);
 
@@ -73,13 +94,13 @@ public class BookingBackgroundService : BackgroundService
             try
             {
                 // 3. Проверяем существование события
-                var eventResult = await _eventStore.GetByIdAsync(booking.EventId);
+                var eventResult = await eventService.GetByIdAsync(booking.EventId);
                 if (!eventResult.IsSuccesfuly || eventResult.Data == null)
                 {
                     // Событие не найдено - отклоняем бронь
                     booking.Status = Data.Entities.BookingStatus.Rejected;
                     booking.ProcessedAt = DateTime.UtcNow;
-                    await _bookingStore.UpdateBookingAsync(booking);
+                    await bookingService.UpdateBookingAsync(booking);
                     _logger.LogWarning($"Бронирование {booking.Id} отклонено: событие {booking.EventId} не найдено");
                     return;
                 }
@@ -89,17 +110,17 @@ public class BookingBackgroundService : BackgroundService
                 // 4. Подтверждаем бронь
                 booking.Status = Data.Entities.BookingStatus.Confirmed;
                 booking.ProcessedAt = DateTime.UtcNow;
-                await _bookingStore.UpdateBookingAsync(booking);
+                await bookingService.UpdateBookingAsync(booking);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // 5. Неожиданное исключение: отклоняем бронь, возвращаем место, обновляем хранилища 
-                await _eventStore.ReleaseSeatsAndUpdateAsync(booking.EventId, count: 1);
-               
+                await eventService.ReleaseSeatsAndUpdateAsync(booking.EventId, count: 1);
+
                 booking.Status = Data.Entities.BookingStatus.Rejected;
                 booking.ProcessedAt = DateTime.UtcNow;
-                await _bookingStore.UpdateBookingAsync(booking);
-                _logger.LogError(ex, $"Ошибка при обработке брони {booking.Id}, бронь отклонена, места возвращены"); 
+                await bookingService.UpdateBookingAsync(booking);
+                _logger.LogError(ex, $"Ошибка при обработке брони {booking.Id}, бронь отклонена, места возвращены");
             }
             finally
             {

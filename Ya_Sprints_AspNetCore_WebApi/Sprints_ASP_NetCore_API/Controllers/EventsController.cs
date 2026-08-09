@@ -10,21 +10,21 @@ using AutoMapper;
 
 namespace Sprints_Project_ASP_NetCore_API.Controllers;
 
- 
+
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "v1")]
-[Route("api/v{version:apiVersion}/[controller]")] 
+[Route("api/v{version:apiVersion}/[controller]")]
 public class EventsController : ControllerBase
 {
 
     public EventsController(IEventService eventsService, IBookingService bookingService, IWebHostEnvironment environment, IMapper mapper)
-    {   
+    {
         _eventsService = eventsService;
         _bookingsService = bookingService;
         _environment = environment;
         _mapper = mapper;
     }
-     
+
     private readonly IEventService _eventsService;
     private readonly IBookingService _bookingsService;
     private readonly IWebHostEnvironment _environment;
@@ -47,26 +47,26 @@ public class EventsController : ControllerBase
     public async Task<IActionResult> BookEvent([FromRoute] Guid id)
     {
 
-            var bookingResult = await _bookingsService.CreateBookingAsync(id); 
+        var bookingResult = await _bookingsService.CreateBookingAsync(id);
 
-            var booking = bookingResult.Data;
+        var booking = bookingResult.Data;
 
-            if (booking == null) throw new NullReferenceException(nameof(booking));
+        if (booking == null) throw new NullReferenceException(nameof(booking));
 
-            var response = new
-            {
-                booking.Id,
-                EventId = booking.EventId,
-                booking.Status
-            };
+        var response = new
+        {
+            booking.Id,
+            EventId = booking.EventId,
+            booking.Status
+        };
 
-            var location = Url.Action(
-                action: nameof(BookingsController.GetBooking),
-                controller: "Bookings",
-                values: new { version = "1", id = booking.Id },
-                protocol: Request.Scheme);
+        var location = Url.Action(
+            action: nameof(BookingsController.GetBooking),
+            controller: "Bookings",
+            values: new { version = "1", id = booking.Id },
+            protocol: Request.Scheme);
 
-            return Accepted(location, booking);
+        return Accepted(location, booking);
     }
 
 
@@ -78,14 +78,14 @@ public class EventsController : ControllerBase
     /// и HTTP статус-кодом 200 Ok в случае успеха</response>
     [ProducesResponseType(typeof(ApiResult<EventInfoDto>), StatusCodes.Status200OK)]
     [Produces("application/json")]
-    [HttpGet("{index:guid}")] 
+    [HttpGet("{index:guid}")]
     public async Task<IActionResult> Get([FromRoute] Guid index)
     {
 
         var eventDto = await _eventsService.GetByIdAsync(index);
         return eventDto.IsSuccesfuly ? Ok(eventDto.Data) : NotFound(eventDto.Reason);
     }
-     
+
     /// Метод возвращает список событий с пагинацией и фильтрацией
     /// </summary>  
     /// <response code="200">Возвращает пагинированный список событий</response>
@@ -116,7 +116,7 @@ public class EventsController : ControllerBase
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status201Created)]
     [Produces("application/json")]
     [HttpPost()]
-    public async Task<IActionResult> Create( [FromBody] CreateEventDto createDto)
+    public async Task<IActionResult> Create([FromBody] CreateEventDto createDto)
     {
 
         if (createDto.Id == Guid.Empty || createDto.Id == default)
@@ -129,7 +129,7 @@ public class EventsController : ControllerBase
         {
             return Conflict("Уже существует сущность c таким идентификатором или названием");
         }
-         
+
         var result = await _eventsService.CreateEventAsync(createDto);
         if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
 
@@ -152,13 +152,13 @@ public class EventsController : ControllerBase
             d.Id = Guid.NewGuid();
             while (_eventsService.IsExisted(d.Id)) d.Id = Guid.NewGuid();
 
-            if (_eventsService.IsExistedByTitle(d.Title)) return Conflict("Уже существует событие с таким названием: " + d.Title); 
+            if (_eventsService.IsExistedByTitle(d.Title)) return Conflict("Уже существует событие с таким названием: " + d.Title);
             collectionDto.Add(_mapper.Map<EventInfoDto>(d));
         }
 
         var result = await _eventsService.AddRangeAsync(collectionDto);
         if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
-        return StatusCode(201, result?.Message ?? ""); 
+        return StatusCode(201, result?.Message ?? "");
     }
 
 
@@ -172,30 +172,30 @@ public class EventsController : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateRange([FromBody] IEnumerable<EventInfoDto> dtos)
     {
-        
-            List<string> notExistedEvents = new(0);
 
-            foreach (var d in dtos)
+        List<string> notExistedEvents = new(0);
+
+        foreach (var d in dtos)
+        {
+            if (!_eventsService.IsExisted(d.Id))
             {
-                if (!_eventsService.IsExisted(d.Id))
-                {
-                    notExistedEvents.Add($"{d.Id}:{d.Title}");
-                }
+                notExistedEvents.Add($"{d.Id}:{d.Title}");
             }
-            
-            // В будущем добавить проверку на уникальность названия. Если необходимо его заменить
-            if (notExistedEvents.Count > 0)
-            {
-                return NotFound("Не существуют указанные сущности: " + string.Join(", ", notExistedEvents));
-            } 
+        }
 
-            var result = await _eventsService.UpdateRangeAsync(dtos);
-            if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+        // В будущем добавить проверку на уникальность названия. Если необходимо его заменить
+        if (notExistedEvents.Count > 0)
+        {
+            return NotFound("Не существуют указанные сущности: " + string.Join(", ", notExistedEvents));
+        }
 
-            return Ok(result?.Message ?? "");
-    
+        var result = await _eventsService.UpdateRangeAsync(dtos);
+        if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+
+        return Ok(result?.Message ?? "");
+
     }
-     
+
     /// <summary>
     /// Метод обновляет событие
     /// </summary>  
@@ -220,7 +220,7 @@ public class EventsController : ControllerBase
 
         return Ok(result?.Message ?? "");
     }
-     
+
     /// <summary>
     /// Метод удаляет событие
     /// </summary>  

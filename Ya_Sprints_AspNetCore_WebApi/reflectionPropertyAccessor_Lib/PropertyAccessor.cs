@@ -22,7 +22,7 @@ public class PropertyAccessor
     private readonly ConcurrentDictionary<string, Action<object, object>> _setters = new();
 
     private PropertyAccessor() { }
-     
+
     /// <summary>
     /// Получить делегат для чтения свойства.
     /// </summary>
@@ -42,15 +42,15 @@ public class PropertyAccessor
             if (propInfo.GetIndexParameters().Length > 0) throw new ArgumentException($"Свойство '{name}' является индексатором и не поддерживается.");
 
             // Получить
-            var objParam      = Expression.Parameter(typeof(object), "obj");
-            var castObj       = Expression.Convert(objParam, targetType);
-            var property      = Expression.Property(castObj, propInfo);
+            var objParam = Expression.Parameter(typeof(object), "obj");
+            var castObj = Expression.Convert(objParam, targetType);
+            var property = Expression.Property(castObj, propInfo);
             var convertResult = Expression.Convert(property, typeof(object));
             var lambda = Expression.Lambda<Func<object, object>>(convertResult, objParam);
             return lambda.Compile();
         });
     }
-    
+
     /// <summary>
     /// Получить делегат для записи свойства.
     /// </summary>
@@ -64,7 +64,7 @@ public class PropertyAccessor
         return accessor._setters.GetOrAdd(propertyName, name =>
         {
             var propInfo = targetType.GetProperty(name, BindingFlags.Public | BindingFlags.Instance);
-            if (propInfo == null)   throw new ArgumentException($"Свойство '{name}' не найдено в типе {targetType.Name}"); 
+            if (propInfo == null) throw new ArgumentException($"Свойство '{name}' не найдено в типе {targetType.Name}");
             if (!propInfo.CanWrite) throw new ArgumentException($"Свойство '{name}' в типе {targetType.Name} не имеет публичного сеттера");
 
             var objParam = Expression.Parameter(typeof(object), "obj");

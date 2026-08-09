@@ -9,7 +9,7 @@ namespace SprintASP_NetCore_API.Filters.ActionFilters;
 public class ValidateInputModelAttribute : ActionFilterAttribute
 {
     public override void OnActionExecuting(ActionExecutingContext context)
-    { 
+    {
 
         if (!context.ModelState.IsValid)
         {
@@ -29,7 +29,7 @@ public class ValidateInputModelAttribute : ActionFilterAttribute
             if (arg == null) continue;
 
             if (arg is IEnumerable enumerable && arg is not string)
-            { 
+            {
                 ValidatorHelper.ValidateCollection(enumerable, errors);
             }
             else
