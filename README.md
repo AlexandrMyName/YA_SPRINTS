@@ -62,7 +62,22 @@ https://localhost:5001/swagger
 
 ```
 /api/v1/events
-```
+``` 
+
+### Модель события (Event)
+
+| Поле | Тип | Описание |
+|------|-----|----------|
+| `id` | `Guid` | Уникальный идентификатор события |
+| `title` | `string` | Название события |
+| `description` | `string` | Описание события |
+| `startAt` | `datetime` | Дата и время начала события |
+| `endAt` | `datetime` | Дата и время окончания события |
+| `totalSeats` | `int` | **Общее количество мест** на событии (указывается при создании) |
+| `availableSeats` | `int` | **Количество свободных мест** на текущий момент (вычисляется автоматически) |
+ 
+- Поле availableSeats не передаётся при создании – оно автоматически устанавливается равным totalSeats.
+- При каждом успешном бронировании availableSeats уменьшается на 1.
 
 ### Таблица методов Events
 
@@ -88,9 +103,6 @@ https://localhost:5001/swagger
 | `SortDesc` | bool | Сортировка по убыванию (true) или возрастанию (false) |
 | `Page` | int | Номер страницы (по умолчанию: 1) |
 | `PageSize` | int | Размер страницы (по умолчанию: 10, максимум: 100) |
-
-
-
 
 #### Пример запроса с фильтрацией
 
@@ -120,15 +132,44 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
 }
 ```
 
-### Пример тела запроса (EventDto)
+### Пример тела запроса (CreateEventDto)
 
 ```json
 {
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "title": "Встреча команды",
   "description": "Обсуждение спринта",
   "startAt": "2026-03-20T10:00:00",
-  "endAt": "2026-03-20T11:30:00"
+  "endAt": "2026-03-20T11:30:00",
+  "totalSeats": 10
+}
+```
+
+### Создание бронирования
+```
+POST /api/v1/events/{id}/book
+```
+
+### Успешный ответ
+
+```json
+json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "eventId": "3fa85f64-5717-4562-a3fc-2c963f66afbc",
+  "status": 0
+}
+```
+
+### Ошибка при отсутствии мест (409 Conflict)
+
+``` 
+json
+{
+  "type": "https://tools.ietf.org/html/rfc7807",
+  "title": "Ошибка обработки запроса",
+  "status": 409,
+  "detail": "No available seats for this event",
+  "instance": "/api/v1/events/..."
 }
 ```
 
@@ -152,7 +193,7 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
   "eventId": "3fa85f64-5717-4562-a3fc-2c963f66afbc",
   "status": 0,
   "createdAt": "2026-03-20T10:00:00",
-  "processedAt": "2026-03-20T11:30:00"
+  "processedAt": null
 }
 ```
 
@@ -177,8 +218,127 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
 - **Middleware** `GlobalExceptionMiddleware` – перехватывает все необработанные исключения
 - Возвращает стандартизированные ответы в формате [Problem Details](https://tools.ietf.org/html/rfc7807)
 - Логирует ошибки через `ILogger`
-- В `Development` окружении возвращает детальную информацию (стек-трейс), в `Production` – общее сообщение
 
+ 
+
+## 🔒 Примитивы синхронизации и защита от овербукинга
+
+### Зачем нужна синхронизация?
+- При одновременных запросах на бронирование одного события может возникнуть ситуация гонки (race condition).
+- Например, если два пользователя одновременно пытаются занять последнее свободное место, оба могут прочитать значение AvailableSeats = 1, уменьшить его до 0 и записать обратно.
+- В результате будет создано 2 брони, хотя место было только одно.
+  
+### Используемый примитив: SemaphoreSlim
+- В сервисе BookingService используется SemaphoreSlim с ёмкостью 1:
+```csharp
+{
+   private readonly SemaphoreSlim _bookingLock = new(1, 1);
+}
+``` 
+- Это позволяет сериализовать операции создания бронирования – только один поток может выполнять критическую секцию одновременно.
+- Другие потоки ожидают освобождения семафора.
+ 
+### Почему SemaphoreSlim, а не lock?
+- SemaphoreSlim поддерживает асинхронное ожидание (await WaitAsync()), что критично для async/await операций с БД или репозиторием.
+- lock не работает с await и может привести к взаимоблокировкам.
+ 
+### Критическая секция включает:
+- 1. Проверку AvailableSeats > 0
+- 2. Уменьшение AvailableSeats на 1
+- 3. Сохранение обновлённого события в репозитории
+- 4. Создание бронирования
+ 
+### Освобождение семафора гарантируется блоком finally, даже если произошло исключение:
+```csharp
+{
+try
+{
+    await _bookingLock.WaitAsync();
+    // критическая секция
+}
+finally
+{
+    _bookingLock.Release();
+}
+}
+```
+
+### Откат изменений при ошибке
+ 
+- Если после успешного резервирования места происходит ошибка (например, не удалось создать бронь), сущность события откатывается – место возвращается обратно:
+ 
+```csharp
+{
+catch
+{
+    if (seatsReserved && eventEntity != null)
+        eventEntity.ReleaseSeats(1);
+    throw;
+}
+}
+- Это гарантирует, что данные останутся консистентными даже при сбоях.
+```
+
+## 📉 Пример сценария с овербукингом
+
+### Сценарий: 5 запросов на 3 места
+
+### Исходные данные:
+- Событие с totalSeats = 3, availableSeats = 3
+- 5 параллельных запросов на бронирование
+ 
+### Ожидаемый результат:
+- 3 успешных бронирования (202 Accepted)
+- 2 ошибки 409 Conflict (NoAvailableSeatsException)
+- availableSeats становится равным 0
+ 
+### Как это достигается:
+- 1. SemaphoreSlim пропускает только один поток в критическую секцию.
+- 2. Первый поток проверяет availableSeats = 3, уменьшает до 2, создаёт бронь.
+- 3. Второй поток проверяет availableSeats = 2, уменьшает до 1, создаёт бронь.
+- 4. Третий поток проверяет availableSeats = 1, уменьшает до 0, создаёт бронь.
+- 5. Четвёртый поток проверяет availableSeats = 0 – выбрасывает NoAvailableSeatsException.
+- 6. Пятый поток – аналогично, исключение.
+ 
+### Как это достигается:
+- благодаря синхронизации, даже если все 5 запросов придут одновременно, овербукинг не произойдёт.
+
+## Юнит-тест для сценария
+``` 
+[Fact]
+public async Task ConcurrentBookings_20Requests_5Seats_Exactly5Success_15Exceptions()
+{
+    // Arrange
+    var eventId = await CreateTestEvent(5);
+    var tasks = new List<Task>();
+    var success = 0;
+    var exceptions = 0;
+
+    // Act
+    for (int i = 0; i < 20; i++)
+    {
+        tasks.Add(Task.Run(async () =>
+        {
+            try
+            {
+                await _bookingService.CreateBookingAsync(eventId);
+                Interlocked.Increment(ref success);
+            }
+            catch (NoAvailableSeatsException)
+            {
+                Interlocked.Increment(ref exceptions);
+            }
+        }));
+    }
+    await Task.WhenAll(tasks);
+
+    // Assert
+    Assert.Equal(5, success);
+    Assert.Equal(15, exceptions);
+    var finalSeats = (await _eventRepository.GetByIdAsync(eventId)).Data.AvailableSeats;
+    Assert.Equal(0, finalSeats);
+}
+```
 ---
 
 ## 🧪 Тестирование
@@ -211,13 +371,15 @@ Ya_Sprints_AspNetCore_WebApi/
 │   │       └── ValidateInputModelAttribute.cs
 │   │
 │   ├── Controllers/
-│   │   └── EventsController.cs
+│   │   ├── EventsController.cs
+│   │   └── BookingsController.cs
 │   │
 │   ├── Data/
 │   │   ├── Dtos/
 │   │   │   ├── EntitiesDtos/
 │   │   │   │   ├── BookingInfoDto.cs
-│   │   │   │   ├── EventDto.cs
+│   │   │   │   ├── CreateEventDto.cs
+│   │   │   │   ├── EventInfoDto.cs
 │   │   │   │   └── IEntityDto.cs
 │   │   │   ├── Filters/
 │   │   │   │   ├── BookingFilterDto.cs
@@ -228,7 +390,10 @@ Ya_Sprints_AspNetCore_WebApi/
 │   │   │       ├── ApiBaseResult.cs
 │   │   │       └── PaginatedResult.cs
 │   │   ├── Entities/
+│   │   │   ├── Booking.cs
 │   │   │   ├── Event.cs
+│   │   │   ├── IBooking.cs
+│   │   │   ├── IEvent.cs
 │   │   │   └── IEntity.cs
 │   │   └── LessonПолезное/
 │   │
@@ -269,8 +434,9 @@ Ya_Sprints_AspNetCore_WebApi/
 │   │   │   └── EventsService.cs
 │   │   └── Extentions/
 │   │       ├── AddServicesExtention.cs
+│   │   ├── IBookingService.cs
 │   │   ├── IDataStorageService.cs
-│   │   └── IBookingService.cs/
+│   │   └── IEventService.cs
 │   ├── Program.cs
 │   ├── SprintASP_NetCore_API.csproj
 │   ├── SprintASP_NetCore_API.csproj.user
@@ -284,12 +450,12 @@ Ya_Sprints_AspNetCore_WebApi/
 │   ├── ActionFilterHelpers/
 │   │   └── FilterTestHelper.cs
 │   ├── Factories/
-│   │   └── TestDataFactory.cs/
-│   ├── Tests.csproj
-│   ├── Tests_EventsServicer.cs
-│   ├── Tests_Reflection.cs
+│   │   └── TestDataFactory.cs
 │   ├── Tests_BookingService.cs
-│   └── Tests_ValidateInputModelAttribute.cs
+│   ├── Tests_EventsService.cs
+│   ├── Tests_Reflection.cs
+│   ├── Tests_ValidateInputModelAttribute.cs
+│   └── Tests.csproj
 │
 ├── dataBase_autoMigration_Lib/             # 📚 Библиотека миграции
 │   ├── DynamicEntityMigration.cs
@@ -313,7 +479,9 @@ Ya_Sprints_AspNetCore_WebApi/
 ┌─────────────────────────────────────────────────────────────┐
 │                     PRESENTATION LAYER                       │
 │  ┌─────────────────────────────────────────────────────────┐│
-│  │  Controllers/EventsController.cs                        ││
+│  │  Controllers/                                          ││
+│  │  ├── EventsController.cs                               ││
+│  │  └── BookingsController.cs                             ││
 │  │  - REST API endpoints                                   ││
 │  │  - Обработка HTTP запросов                             ││
 │  └─────────────────────────────────────────────────────────┘│
@@ -333,8 +501,9 @@ Ya_Sprints_AspNetCore_WebApi/
 │                      BUSINESS LAYER                         │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Services/                                              ││
-│  │  - EventsService.cs (бизнес-логика)                    ││
-│  │  - IDataStorageService<T> (интерфейс)                  ││
+│  │  ├── EventsService.cs                                   ││
+│  │  ├── BookingService.cs                                 ││
+│  │  └── IDataStorageService<T> (интерфейс)               ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -348,7 +517,7 @@ Ya_Sprints_AspNetCore_WebApi/
 │  └─────────────────────────────────────────────────────────┘│
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Data/Entities/                                         ││
-│  │  - Event.cs, IEvent.cs, IEntity.cs                     ││
+│  │  - Event.cs, IEvent.cs, Booking.cs, IBooking.cs        ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -357,7 +526,8 @@ Ya_Sprints_AspNetCore_WebApi/
 │                       DTO LAYER                             │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Data/Dtos/                                             ││
-│  │  - EntitiesDtos/ (EventDto, IEntityDto)                ││
+│  │  - EntitiesDtos/ (EventInfoDto, CreateEventDto,        ││
+│  │                    BookingInfoDto, IEntityDto)          ││
 │  │  - Filters/ (EventFilterDto, IFilter<T>)               ││
 │  │  - Internal/ (ApiBaseResult, PaginatedResult)          ││
 │  └─────────────────────────────────────────────────────────┘│
@@ -370,9 +540,9 @@ Ya_Sprints_AspNetCore_WebApi/
 ```
 ---
 
-### 🔄 Поток данных
+### 🔄 Поток данных (создание бронирования)
 ```
-1. HTTP Request
+1. HTTP POST /api/v1/events/{id}/book
    │
    ▼
 2. GlobalExceptionMiddleware (catch errors)
@@ -380,35 +550,31 @@ Ya_Sprints_AspNetCore_WebApi/
    ▼
 3. ValidateInputModelAttribute (OnActionExecuting)
    │   - ModelState validation
-   │   - Business rules (StartAt < EndAt)
-   │   - Filter validation (Page, PageSize)
+   │   - Business rules
    │
    ▼
-4. EventsController.GetAll()
+4. EventsController.BookEvent(id)
    │
    ▼
-5. EventsService.GetFilteredAsync()
-   │   - Получение IQueryable из репозитория
-   │   - Применение фильтра через DynamicQueryBuilder
-   │   - Подсчет TotalCount
-   │   - Применение пагинации
-   │   - Маппинг через AutoMapper
+5. BookingService.CreateBookingAsync(id)
+   │   - await _bookingLock.WaitAsync()  ← 🔒 синхронизация
+   │   - Проверка существования события
+   │   - TryReserveSeats() → уменьшает AvailableSeats
+   │   - Обновление события в репозитории
+   │   - Создание брони (Pending)
+   │   - Сохранение брони в репозитории
+   │   - Освобождение семафора (finally)
    │
    ▼
 6. BaseInMemoryRepository<T>
    │   - ConcurrentDictionary хранение
    │
    ▼
-7. PaginatedResult<EventDto>
-   │   - Items, TotalCount, Page, PageSize
-   │   - TotalPages, HasPreviousPage, HasNextPage
+7. BookingInfoDto (возвращается клиенту)
+   │   - Id, EventId, Status, CreatedAt
    │
    ▼
-8. ValidateInputModelAttribute (OnActionExecuted)
-   │   - Валидация выходных данных
-   │
-   ▼
-9. HTTP Response
+8. 202 Accepted + Location header
 ```
   
 

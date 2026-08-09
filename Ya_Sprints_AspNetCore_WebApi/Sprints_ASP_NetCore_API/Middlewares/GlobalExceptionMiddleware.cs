@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using System.Net;
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
 
 
-namespace YourNamespace.Middleware;
+namespace Sprints_Project_ASP_NetCore_API.Middlewares;
 
 
 public class GlobalExceptionMiddleware
@@ -49,6 +50,7 @@ public class GlobalExceptionMiddleware
             InvalidOperationException => (int)HttpStatusCode.BadRequest,
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
             NotImplementedException => (int)HttpStatusCode.NotImplemented,
+            NoAvailableSeatsException => (int) HttpStatusCode.Conflict ,
             _ => (int)HttpStatusCode.InternalServerError
         };
 

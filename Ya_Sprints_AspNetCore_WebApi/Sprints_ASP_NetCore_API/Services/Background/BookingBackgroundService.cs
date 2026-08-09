@@ -1,7 +1,5 @@
-﻿
+﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings; 
 
-
-using SprintASP_NetCore_API.Data.Dtos.Filters;
 
 namespace SprintASP_NetCore_API.Services.Background;
 
@@ -9,15 +7,21 @@ namespace SprintASP_NetCore_API.Services.Background;
 public class BookingBackgroundService : BackgroundService
 {
 
-    public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingService bookingService)
+    public BookingBackgroundService(ILogger<BookingBackgroundService> logger, IBookingService bookingService, IEventService eventStore)
     {
-        _bookingService = bookingService;
-        _logger = logger;
+        _bookingStore = bookingService;
+        _eventStore = eventStore;
+        _logger = logger; 
     }
 
     private ILogger<BookingBackgroundService> _logger;
-    private IBookingService _bookingService;
+    private IBookingService _bookingStore;
+    private IEventService _eventStore;
 
+    private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
+
+    private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan ProcessingDelay = TimeSpan.FromSeconds(2);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -27,25 +31,14 @@ public class BookingBackgroundService : BackgroundService
             try
             {
 
-                var filtredDatas = await _bookingService.GetFilteredAsync(new BookingFilterDto()
-                {
-                    Status = Data.Entities.BookingStatus.Pending,
-                });
+                var pendingBookings = await _bookingStore.GetPendingBookingsAsync();  
 
-                if(filtredDatas.TotalCount > 0)
-                { 
-                    foreach(var data in filtredDatas.Items)
-                    {
-                        await Task.Delay(2000, stoppingToken); 
-                        data.Status = Data.Entities.BookingStatus.Confirmed;
-                        data.ProcessedAt = DateTime.Now;
-                        await _bookingService.UpdateBookingAsync(data);
-                    } 
+                if (pendingBookings.Count() > 0){
+                      
+                    var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
+                    await Task.WhenAll(tasks); 
                 }
-                else
-                {
-                    await Task.Delay(1000, stoppingToken);
-                }
+                else await Task.Delay(PollingInterval, stoppingToken); 
             }
             catch(OperationCanceledException operationCanceledExcept)
             {
@@ -59,5 +52,70 @@ public class BookingBackgroundService : BackgroundService
         }
 
         _logger.LogDebug("Работа BookingService завершена"); 
+    }
+
+    /// <summary>
+    /// Метод подтверждения бронирования
+    /// </summary>
+    /// <param name="booking"></param>
+    /// <param name="stoppingToken"></param>
+    /// <returns></returns>
+    private async Task ProcessBookingAsync(IBookingInfoDto booking, CancellationToken stoppingToken)
+    {
+        try
+        {
+            // 1. Имитация внешнего вызова (до семафора)
+            await Task.Delay(ProcessingDelay, stoppingToken);
+
+            // 2. Захват семафора
+            await _processingSemaphore.WaitAsync(stoppingToken);
+
+            try
+            {
+                // 3. Проверяем существование события
+                var eventResult = await _eventStore.GetByIdAsync(booking.EventId);
+                if (!eventResult.IsSuccesfuly || eventResult.Data == null)
+                {
+                    // Событие не найдено - отклоняем бронь
+                    booking.Status = Data.Entities.BookingStatus.Rejected;
+                    booking.ProcessedAt = DateTime.UtcNow;
+                    await _bookingStore.UpdateBookingAsync(booking);
+                    _logger.LogWarning($"Бронирование {booking.Id} отклонено: событие {booking.EventId} не найдено");
+                    return;
+                }
+
+                var eventEntity = eventResult.Data;
+
+                // 4. Подтверждаем бронь
+                booking.Status = Data.Entities.BookingStatus.Confirmed;
+                booking.ProcessedAt = DateTime.UtcNow;
+                await _bookingStore.UpdateBookingAsync(booking);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // 5. Неожиданное исключение: отклоняем бронь, возвращаем место, обновляем хранилища 
+                await _eventStore.ReleaseSeatsAndUpdateAsync(booking.EventId, count: 1);
+               
+                booking.Status = Data.Entities.BookingStatus.Rejected;
+                booking.ProcessedAt = DateTime.UtcNow;
+                await _bookingStore.UpdateBookingAsync(booking);
+                _logger.LogError(ex, $"Ошибка при обработке брони {booking.Id}, бронь отклонена, места возвращены"); 
+            }
+            finally
+            {
+                // 6. Освобождаем семафор всегда
+                _processingSemaphore.Release();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug($"Обработка брони {booking.Id} отменена");
+            // не пробрасываем, просто завершаем
+        }
+        catch (Exception ex)
+        {
+            // Ловим все остальные исключения, которые могли возникнуть до захвата семафора (например, Task.Delay)
+            _logger.LogError(ex, $"Критическая ошибка при обработке брони {booking.Id}");
+        }
     }
 }

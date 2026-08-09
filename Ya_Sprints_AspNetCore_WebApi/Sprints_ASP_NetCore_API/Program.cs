@@ -1,12 +1,8 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations; 
 using Sprints_Project_ASP_NetCore_API.Repositories.Extenions;
-using Sprints_Project_ASP_NetCore_API.Services.Extentions;
-using System.Collections.Concurrent;
+using Sprints_Project_ASP_NetCore_API.Services.Extentions; 
+using Sprints_Project_ASP_NetCore_API.Middlewares;
 using Microsoft.AspNetCore.Mvc;
-using YourNamespace.Middleware;
-using System.Linq.Expressions;
-using System.Reflection;
-  
 
 [assembly: ApiController] // Все контроллеры будут API 
  
@@ -28,7 +24,7 @@ namespace Sprints_Project_ASP_NetCore_API
                 .AddEndpointsApiExplorer()   // Тестовые ендпоинты (minimal API) -> пока отключил
                 .AddSwaggerGenWithDocumentation()  // Нужен для генерации метаданных Ыдля Swagger/Open Api 
                 .AddApiVersioningCustom()  // Добавляет и конфигурирует версионирование АПИЫ
-                .AddAutoMapper( typeof(Program))   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
+                .AddAutoMapper(cfg => { }, typeof(Program).Assembly)   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
                 .AddRepositories() // Добавляет репозитории в контейнер зависимостей
                 .AddServices(); // Добавляет сервисы в контейнер зависимостей
 
@@ -42,21 +38,17 @@ namespace Sprints_Project_ASP_NetCore_API
             });
 
             var app = builder.Build();
-             
+            app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
+
             if (app.Environment.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage(); (При отладке раскоментировать)  (Если требуется стек вызовов) 
                 app.UseSwagger();
-                app.UseSwaggerUI(opt => { }); 
-                app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
+                app.UseSwaggerUI(opt => { });   
                 app.UseCors($"{CorsPoliticType.AllowAll}"); 
             }
-            else
-            {
-                app.UseMiddleware<GlobalExceptionMiddleware>();  // Добавляет глобальный обработчик исключений 
-                app.UseCors($"{CorsPoliticType.Production}");
-            }
-
+            else app.UseCors($"{CorsPoliticType.Production}");
+             
             app.UseHttpsRedirection(); // Перенаправление на Https
             app.UseRouting();          // Анализ URL и вычисление конечного Endpoint (Без него маршрута к контроллеру не будет)   
             app.MapControllers();      // Использовать набор контроллеров 
