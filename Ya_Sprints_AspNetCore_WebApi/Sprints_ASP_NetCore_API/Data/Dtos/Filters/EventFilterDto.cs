@@ -70,12 +70,12 @@ public class EventFilterDto : IEntityFilter<IEntity>
                 queryEvents = DynamicQueryBuilder<IEvent>.ApplyFilter(queryEvents, nameof(Event.StartAt), ">=", From.Value);
 
             if (To.HasValue)
-                queryEvents = DynamicQueryBuilder<IEvent>.ApplyFilter(queryEvents, nameof(Event.EndAt), "<=", To.Value); 
+                queryEvents = DynamicQueryBuilder<IEvent>.ApplyFilter(queryEvents, nameof(Event.EndAt), "<=", To.Value);
 
             // 2. Применяем сортировку
             if (!string.IsNullOrEmpty(SortBy))
                 queryEvents = DynamicQueryBuilder<IEvent>.ApplySort(queryEvents, SortBy, !SortDesc);
-             
+
             return queryEvents;
         }
 

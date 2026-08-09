@@ -6,7 +6,7 @@ namespace SprintASP_NetCore_API.Data.Entities;
 
 
 public interface IBooking : IEntity
-{ 
+{
 
     /// <summary>
     /// ID события
@@ -59,6 +59,31 @@ public class Booking : IBooking
     /// Дата и время обработки
     /// </summary>
     public DateTime? ProcessedAt { get; set; }
+
+    private Booking( )
+    {
+       
+    }
+
+
+    public static Booking Create(Guid bookingId, Guid eventId, BookingStatus status, DateTime createdAt, DateTime? processedAt = default)
+    {
+        return new Booking()
+        {
+            CreatedAt = createdAt,
+            ProcessedAt = processedAt,
+            EventId = eventId,
+            Id = bookingId,
+            Status = status,
+        };
+    }
+
+    // Навигационное свойство (многие к одному)
+    public Event Event { get; private set; } = null!;
+
+    public void Confirm() => Status = BookingStatus.Confirmed;
+    public void Cancel() => Status = BookingStatus.Canceled;
+
 }
 
 
@@ -79,4 +104,9 @@ public enum BookingStatus
     /// </summary>
     [Description("Бронь отклонена")]
     Rejected,
+    /// <summary>
+    /// бронь отменена
+    /// </summary>
+    [Description("Бронь отменена")]
+    Canceled,
 }

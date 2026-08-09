@@ -16,7 +16,6 @@ namespace SprintASP_NetCore_API.Services
         /// </summary>
         /// <param name="eventId"></param>
         Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto); 
-        Task<PaginatedResult<IBookingInfoDto>> GetFilteredEventsAsync(IEntityFilter<IEntity> filter); 
         Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item);
 
         Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count);

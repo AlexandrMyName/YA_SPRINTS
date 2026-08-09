@@ -8,7 +8,8 @@ using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Xunit;
 using Moq;
- 
+using SprintASP_NetCore_API.Services.Intercepts;
+
 
 namespace Tests;
 
@@ -27,6 +28,7 @@ public class Tests_EventsService
     private readonly Event _testEvent;
     private readonly EventInfoDto _testEventDto;
     private readonly List<IEvent> _testEvents;
+    private readonly IInterceptLockings _interceptLockings;
 
 
     public Tests_EventsService()
@@ -35,23 +37,18 @@ public class Tests_EventsService
         _mockLogger = new Mock<ILogger<EventsService>>();
         _mockMapper = new Mock<IMapper>();
         _mockScopeFactory = new Mock<IServiceScopeFactory>();
-
+        _interceptLockings = new InterceptLockings();
+         
         _service = new EventsService(
             _mockScopeFactory.Object,
-            _mockRepository.Object,
+            _mockRepository.Object, 
             _mockLogger.Object,
+            _interceptLockings,
             _mockMapper.Object
         );
 
-        _testEvent = new Event
-        {
-            Id = Guid.NewGuid(),
-            Title = "Test Event",
-            Description = "Test Description",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddHours(1)
-        };
-
+        _testEvent = Event.Create(Guid.NewGuid(), "Test Event", "Test Description", DateTime.Now, DateTime.Now.AddHours(1), 0);
+         
         _testEventDto = new EventInfoDto
         {
             Id = _testEvent.Id,
@@ -64,30 +61,9 @@ public class Tests_EventsService
         // Тестовые данные для сортировки и пагинации
         _testEvents = new List<IEvent>
         {
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Alpha Event",
-                Description = "First event",
-                StartAt = DateTime.Now.AddDays(-2),
-                EndAt = DateTime.Now.AddDays(-1)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Beta Event",
-                Description = "Second event",
-                StartAt = DateTime.Now.AddDays(-1),
-                EndAt = DateTime.Now.AddDays(0)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Gamma Event",
-                Description = "Third event",
-                StartAt = DateTime.Now.AddDays(0),
-                EndAt = DateTime.Now.AddDays(1)
-            }
+            Event.Create(Guid.NewGuid(), "Alpha Event", "First Description", DateTime.Now.AddDays(-2), DateTime.Now.AddHours(-1), 0),
+            Event.Create(Guid.NewGuid(), "Beta Event", "Second Description", DateTime.Now.AddDays(-1), DateTime.Now.AddHours(0), 0),
+            Event.Create(Guid.NewGuid(), "Gamma Event", "Third Description", DateTime.Now.AddDays(0), DateTime.Now.AddHours(1), 0), 
         };
     }
 
@@ -218,14 +194,8 @@ public class Tests_EventsService
             EndAt = DateTime.Now.AddHours(1)
         };
 
-        var newEvent = new Event
-        {
-            Id = newEventDto.Id,
-            Title = newEventDto.Title,
-            StartAt = newEventDto.StartAt,
-            EndAt = newEventDto.EndAt
-        };
-
+        var newEvent = Event.Create(newEventDto.Id, newEventDto.Title, newEventDto.Description, newEventDto.StartAt, newEventDto.EndAt, newEventDto.TotalSeats);
+     
         var resultEntity = ResultEntity<IEvent>.Ok(newEvent, "Added successfully");
 
         _mockMapper.Setup(m => m.Map<Event>(newEventDto))
@@ -258,16 +228,13 @@ public class Tests_EventsService
             Id = Guid.NewGuid(),
             Title = "New Event",
             StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddHours(1)
+            EndAt = DateTime.Now.AddHours(1),
+            TotalSeats = 5,
+            AvailableSeats = 5,
         };
 
-        var newEvent = new Event
-        {
-            Id = newEventDto.Id,
-            Title = newEventDto.Title,
-            StartAt = newEventDto.StartAt,
-            EndAt = newEventDto.EndAt
-        };
+        var newEvent = Event.Create(newEventDto.Id, newEventDto.Title, newEventDto.Description, newEventDto.StartAt, newEventDto.EndAt, newEventDto.TotalSeats);
+ 
 
         var resultEntity = ResultEntity<IEvent>.Fail("Failed to add event");
 
@@ -304,17 +271,13 @@ public class Tests_EventsService
             Id = _testEventDto.Id,
             Title = "Updated Event",
             StartAt = _testEventDto.StartAt,
-            EndAt = _testEventDto.EndAt
+            EndAt = _testEventDto.EndAt,
+            TotalSeats = 5,
+            AvailableSeats = 5,
         };
 
-        var updatedEvent = new Event
-        {
-            Id = updatedEventDto.Id,
-            Title = updatedEventDto.Title,
-            StartAt = updatedEventDto.StartAt,
-            EndAt = updatedEventDto.EndAt
-        };
-
+        var updatedEvent = Event.Create(updatedEventDto.Id, updatedEventDto.Title, updatedEventDto.Description, updatedEventDto.StartAt, updatedEventDto.EndAt, updatedEventDto.TotalSeats);
+      
         var resultEntity = ResultEntity<IEvent>.Ok(updatedEvent, "Updated successfully");
 
         _mockMapper.Setup(m => m.Map<Event>(updatedEventDto))
@@ -346,16 +309,14 @@ public class Tests_EventsService
             Id = _testEventDto.Id,
             Title = "Updated Event",
             StartAt = _testEventDto.StartAt,
-            EndAt = _testEventDto.EndAt
+            EndAt = _testEventDto.EndAt,
+            TotalSeats = 5,
+            AvailableSeats = 5,
         };
 
-        var updatedEvent = new Event
-        {
-            Id = updatedEventDto.Id,
-            Title = updatedEventDto.Title,
-            StartAt = updatedEventDto.StartAt,
-            EndAt = updatedEventDto.EndAt
-        };
+        var updatedEvent = Event.Create(updatedEventDto.Id, updatedEventDto.Title, updatedEventDto.Description, updatedEventDto.StartAt, updatedEventDto.EndAt, updatedEventDto.TotalSeats);
+        
+   
 
         var resultEntity = ResultEntity<IEvent>.Fail("Failed to update event");
 
@@ -441,24 +402,13 @@ public class Tests_EventsService
             new() { Id = Guid.NewGuid(), Title = "Event 2", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) }
         };
 
-        var events = eventDtos.Select(d => new Event
-        {
-            Id = d.Id,
-            Title = d.Title,
-            StartAt = d.StartAt,
-            EndAt = d.EndAt
-        }).ToList();
+        var events = eventDtos.Select(d =>  Event.Create(d.Id, d.Title, d.Description, d.StartAt, d.EndAt, d.TotalSeats)).ToList();
 
         var resultEntity = ResultEntity<IEvent>.Ok("Added successfully");
 
         _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventInfoDto>()))
-                  .Returns((EventInfoDto dto) => new Event
-                  {
-                      Id = dto.Id,
-                      Title = dto.Title,
-                      StartAt = dto.StartAt,
-                      EndAt = dto.EndAt
-                  });
+                  .Returns((EventInfoDto dto) => Event.Create(dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats));
+         
 
         _mockRepository.Setup(r => r.AddRangeAsync(It.IsAny<IEnumerable<IEvent>>()))
                       .ReturnsAsync(resultEntity);
@@ -491,24 +441,12 @@ public class Tests_EventsService
             new() { Id = Guid.NewGuid(), Title = "Updated Event 2", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) }
         };
 
-        var events = eventDtos.Select(d => new Event
-        {
-            Id = d.Id,
-            Title = d.Title,
-            StartAt = d.StartAt,
-            EndAt = d.EndAt
-        }).ToList();
+        var events = eventDtos.Select(d => Event.Create(d.Id, d.Title, d.Description, d.StartAt, d.EndAt, d.TotalSeats)).ToList();
 
         var resultEntity = ResultEntity<IEvent>.Ok("Updated successfully");
 
         _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventInfoDto>()))
-                  .Returns((EventInfoDto dto) => new Event
-                  {
-                      Id = dto.Id,
-                      Title = dto.Title,
-                      StartAt = dto.StartAt,
-                      EndAt = dto.EndAt
-                  });
+                  .Returns((EventInfoDto dto) => Event.Create(dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats));
 
         _mockRepository.Setup(r => r.UpdateRangeAsync(It.IsAny<IEnumerable<IEvent>>()))
                       .ReturnsAsync(resultEntity);
@@ -652,13 +590,7 @@ public class Tests_EventsService
 
         var events = new List<IEvent>
         {
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Past Event",
-                StartAt = DateTime.Now.AddDays(-5),
-                EndAt = DateTime.Now.AddDays(-4)
-            },
+            Event.Create( Guid.NewGuid(), "Past Event", "Past Event", DateTime.Now.AddDays(-5), DateTime.Now.AddDays(-4), 0), 
             _testEvent // StartAt = DateTime.Now (после fromDate)
         };
 
@@ -696,14 +628,8 @@ public class Tests_EventsService
         var toDate = DateTime.Now.AddDays(-3);
         var filter = new EventFilterDto { To = toDate };
 
-        var pastEvent = new Event
-        {
-            Id = Guid.NewGuid(),
-            Title = "Past Event",
-            StartAt = DateTime.Now.AddDays(-5),
-            EndAt = DateTime.Now.AddDays(-4)
-        };
-
+        var pastEvent = Event.Create(Guid.NewGuid(), "Past Event", "Past Event", DateTime.Now.AddDays(-5), DateTime.Now.AddDays(-4), 0);
+         
         var events = new List<IEvent>
         {
             pastEvent,
@@ -749,28 +675,10 @@ public class Tests_EventsService
         };
 
         var events = new List<IEvent>
-        {
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Alpha Event",
-                StartAt = DateTime.Now.AddDays(-2),
-                EndAt = DateTime.Now.AddDays(-1)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Alpha Event 2",
-                StartAt = DateTime.Now,
-                EndAt = DateTime.Now.AddDays(1)
-            },
-            new Event
-            {
-                Id = Guid.NewGuid(),
-                Title = "Beta Event",
-                StartAt = DateTime.Now,
-                EndAt = DateTime.Now.AddDays(1)
-            }
+        { 
+              Event.Create( Guid.NewGuid(), "Alpha Event", "Past Event", DateTime.Now.AddDays(-2), DateTime.Now.AddDays(-1), 0),
+              Event.Create( Guid.NewGuid(), "Alpha Event 2", "Past Event", DateTime.Now, DateTime.Now.AddDays(-1), 0),
+              Event.Create( Guid.NewGuid(), "Beta Event", "Past Event", DateTime.Now , DateTime.Now.AddDays(1), 0), 
         };
 
         var queryable = events.AsQueryable();

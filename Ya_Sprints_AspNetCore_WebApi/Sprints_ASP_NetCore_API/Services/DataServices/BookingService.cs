@@ -1,7 +1,8 @@
-﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
+﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings; 
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
+using SprintASP_NetCore_API.Services.Intercepts;
 using SprintASP_NetCore_API.Data.Dtos.Filters;
 using SprintASP_NetCore_API.Data.Entities;
 using AutoMapper;
@@ -18,17 +19,19 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
        IRepository<IBooking> repository,
        IRepository<IEvent> eventRepository, // зависимость по хранилищу событий 
        ILogger<BookingService> logger,
+       IInterceptLockings interceptLockings,
        IMapper mapper) : base(repository, logger, mapper)
     {
+        _interceptLockings = interceptLockings;
         _eventRepository = eventRepository;
     }
 
     private readonly IRepository<IEvent> _eventRepository;
     private readonly ILogger<BookingService> _logger;
     private readonly IMapper _mapper;
+    private readonly IInterceptLockings _interceptLockings;
 
-
-    private readonly SemaphoreSlim _bookingLock = new(1, 1);
+     
 
     /// <summary>
     ///  Получает список бронирований в статусе (Pending) 
@@ -43,7 +46,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
             Status = Data.Entities.BookingStatus.Pending,
             Page = 1,
             PageSize = maxCountRange, // Количество бронирований
-        }); 
+        });
 
         return pendingBookings.Items.ToList();
 
@@ -57,8 +60,9 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
     public async Task<IResultDto<IBookingInfoDto>> CreateBookingAsync(Guid eventId)
     {
 
-        await _bookingLock.WaitAsync(); //  предотвразает выброс SemaphoreFullException при исключении до захвата  (исправленый баг) 
-
+        var semaphore = _interceptLockings.GetOrAddByEventId(eventId);
+        await semaphore.WaitAsync();
+         
         IEvent? eventEntity = null;
         BookingInfoDto? createdBooking = null;
         bool seatsReserved = false;
@@ -70,14 +74,12 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
             eventEntity = eventResult.Data;
             if (eventEntity == null) throw new NullReferenceException("Data was null");
              
-            
-              
             seatsReserved = eventEntity.TryReserveSeats();
             if (!seatsReserved) throw new NoAvailableSeatsException("No available seats for this event");
-             
+
             var updateResult = await _eventRepository.UpdateAsync(eventEntity);
             if (!updateResult.IsSuccesfuly) throw new Exception("Не удалось обновить количество мест");
-             
+
             createdBooking = new BookingInfoDto()
             {
                 Id = Guid.NewGuid(),
@@ -92,14 +94,14 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
             return bookingResult;
         }
         catch
-        { 
+        {
             // Откатываем резервирование мест, если оно было выполнено
-            if (seatsReserved && eventEntity != null) eventEntity.ReleaseSeats(1); 
+            if (seatsReserved && eventEntity != null) eventEntity.ReleaseSeats(1);
             throw;
         }
         finally
         {
-            _bookingLock.Release();
+            semaphore.Release();
         }
     }
 
@@ -121,6 +123,19 @@ public class BookingService : BaseDataService<IBookingInfoDto, IBooking>, IBooki
     /// </summary>
     /// <param name="item"></param>
     /// <returns></returns>
-    public async Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item) => await base.UpdateAsync(item);
+    public async Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item)
+    {
+
+        var semaphore = _interceptLockings.GetOrAddByBookingId(item.Id);
+        await semaphore.WaitAsync();
+        try
+        {
+           return await base.UpdateAsync(item); 
+        }
+        finally
+        {
+            semaphore.Release();
+        }  
+    }
 
 }

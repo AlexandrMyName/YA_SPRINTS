@@ -14,11 +14,11 @@ public static class ConfigureControllersWithCacheProfiles_Ext
     /// <param name="services"></param>
     /// <returns></returns>
     public static IServiceCollection AddControllersWithCacheAndValidation(this IServiceCollection services)
-    { 
+    {
 
         services.AddControllers(options =>
         {
-           
+
             options.Filters.Add<ValidateInputModelAttribute>(); // Кастомный Middleware валидации входящих и исходящих данных
 
             // Определяем профили кеширования
@@ -41,7 +41,7 @@ public static class ConfigureControllersWithCacheProfiles_Ext
                 VaryByHeader = "Accept-Language"
             });
         }).ConfigureApiBehaviorOptions(options =>
-        { 
+        {
             // Эта опция отключает автоматическую проверку валидации 
             options.SuppressModelStateInvalidFilter = true;
 
@@ -74,5 +74,5 @@ public static class ConfigureControllersWithCacheProfiles_Ext
         });
 
         return services;
-    }  
+    }
 }

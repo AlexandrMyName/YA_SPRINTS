@@ -5,8 +5,8 @@ namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 
 public static class ConfigureCors_Ext
 {
-    
-    public static IServiceCollection AddCorsPolicies(this IServiceCollection services) 
+
+    public static IServiceCollection AddCorsPolicies(this IServiceCollection services)
        => services.AddCors(options =>
         {
             options.AddPolicy($"{CorsPoliticType.AllowAll}", policy => // Первым аргументом указывается название политики
@@ -23,7 +23,7 @@ public static class ConfigureCors_Ext
                       .WithHeaders("Content-Type", "Authorization"); // Только эти заголовки
             });
         });
-     
+
 }
 
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.Models; 
+﻿using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations
@@ -7,12 +7,12 @@ namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations
     {
         public static IServiceCollection AddSwaggerGenWithDocumentation(this IServiceCollection services)
         {
-             
+
             services.AddSwaggerGen(options =>
-            { 
+            {
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                options.IncludeXmlComments(xmlPath); 
+                options.IncludeXmlComments(xmlPath);
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "YA Sprint One", Version = "v1" });
                 options.OrderActionsBy(apiDesc =>
                 {
@@ -26,9 +26,9 @@ namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations
                         _ => $"Z_{httpMethod}"
                     };
                 });
-                 
+
             });
             return services;
-        }  
+        }
     }
-} 
+}

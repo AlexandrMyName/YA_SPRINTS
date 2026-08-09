@@ -17,8 +17,8 @@ public class MappingDtoProfile : Profile
 
         CreateMap<Booking, BookingInfoDto>();
         CreateMap<Booking, IBookingInfoDto>().As<BookingInfoDto>();
-         
-        CreateMap<CreateEventDto, Event>().ForMember(dest => dest.AvailableSeats, opt => opt.MapFrom(src => src.TotalSeats)); 
+
+        CreateMap<CreateEventDto, Event>().ForMember(dest => dest.AvailableSeats, opt => opt.MapFrom(src => src.TotalSeats));
         CreateMap<CreateEventDto, EventInfoDto>();
-    } 
+    }
 }

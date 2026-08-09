@@ -12,15 +12,15 @@ public class MappingEntityProfile : Profile
 {
 
     public MappingEntityProfile()
-    { 
+    {
 
         CreateMap<EventInfoDto, Event>();
         CreateMap<IEventInfoDto, Event>();
         CreateMap<IEventInfoDto, IEvent>().As<Event>();
-         
-        CreateMap<BookingInfoDto, Booking>(); 
+
+        CreateMap<BookingInfoDto, Booking>();
         CreateMap<IBookingInfoDto, Booking>();
         CreateMap<IBookingInfoDto, IBooking>().As<Booking>();
-         
+
     }
 }

@@ -14,22 +14,22 @@ namespace SprintASP_NetCore_API.Services.DataServices;
 public class BaseDataService<TDto, TEntity> : IDataStorageService<TDto> where TDto : class, IEntityDto where TEntity : class, IEntity
 {
 
-    public BaseDataService( 
+    public BaseDataService(
        IRepository<TEntity> repository,
        ILogger<BaseDataService<TDto, TEntity>> logger,
        IMapper mapper)
-    { 
+    {
         Repository = repository;
         _logger = logger;
         _mapper = mapper;
     }
-     
+
     protected readonly IRepository<TEntity> Repository;
     private readonly ILogger<BaseDataService<TDto, TEntity>> _logger;
     private readonly IMapper _mapper;
 
 
-     
+
 
     public async Task<IEnumerable<TDto>> GetAllAsync()
     {
@@ -170,6 +170,6 @@ public class BaseDataService<TDto, TEntity> : IDataStorageService<TDto> where TD
     public bool IsExisted(Guid id) => Repository.IsExisted(id);
 
     public bool IsExistedByTitle(string name) => throw new NotSupportedException("Проверка по названию не поддерживается");
-    
-     
+
+
 }

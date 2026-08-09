@@ -3,7 +3,7 @@ using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
 
 
 namespace Tests.Factories
-{ 
+{
 
     public static class TestDataFactory
     {

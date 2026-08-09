@@ -1,25 +1,24 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using System.Collections.Concurrent;
-using System.Security.Cryptography;
+using Sprints_Project_ASP_NetCore_API.Data.Entities; 
+using System.Collections.Concurrent; 
 
 
 namespace Sprints_Project_ASP_NetCore_API.Repositories
 {
 
-    public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity  
-    { 
+    public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
+    {
 
-        private ConcurrentDictionary<Guid,T> _items = new();
+        private ConcurrentDictionary<Guid, T> _items = new();
         private ReaderWriterLockSlim _locker = new();
-
+ 
         public Task<IQueryable<T>> GetQueryAsync() => Task.FromResult(_items.Values.AsQueryable());
 
         public async Task<IResultEntity<T>> AddAsync(T item)
         {
             _locker.EnterReadLock();
-            if (_items.TryGetValue(item.Id, out var result)) {
+            if (_items.TryGetValue(item.Id, out var result))
+            {
                 _locker.ExitReadLock();
                 return ResultEntity<T>.Fail($"Ошибка добавления модели <{typeof(T)}>. Модель с указанным идентификатором уже находится в коллекции");
             }
@@ -34,7 +33,7 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
             }
             _locker.ExitWriteLock();
             return ResultEntity<T>.Ok(item, "Успешно");
-        } 
+        }
 
 
         public async Task<IResultEntity<T>> DeleteAsync(Guid id)
@@ -55,18 +54,18 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
         }
 
         public async Task<IEnumerable<T>> GetAllAsync() => _items.Values.ToList();
-       
+
 
         public async Task<IResultEntity<T>> GetByIdAsync(Guid id)
         {
             if (!_items.TryGetValue(id, out var result))
             {
                 return ResultEntity<T>.Fail($"Ошибка получения модели <{typeof(T)}>. Модель с указанным идентификатором не найдена");
-            } 
+            }
             return ResultEntity<T>.Ok(result, "Успешно");
         }
 
-        
+
         public async Task<IResultEntity<T>> UpdateAsync(T item)
         {
 
@@ -80,15 +79,15 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
         }
 
 
-         
+
 
         public async Task<IResultEntity<T>> AddRangeAsync(IEnumerable<T> items)
         {
 
             List<string> itemsNotAdded = new();
-            foreach(var i in items)
+            foreach (var i in items)
             {
-                if (!_items.TryAdd(i.Id,   i))
+                if (!_items.TryAdd(i.Id, i))
                 {
                     itemsNotAdded.Add($"{i.Id} не добавлен в коллекцию");
                 }
@@ -98,7 +97,7 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
             {
                 return ResultEntity<T>.Fail(string.Join(", ", itemsNotAdded));
             }
-            return ResultEntity<T>.Ok( "Успешно");
+            return ResultEntity<T>.Ok("Успешно");
         }
 
 
@@ -111,7 +110,7 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
                 if (!_items.TryGetValue(i.Id, out var itemExisted))
                 {
                     itemsNotUpdated.Add($"{i.Id} не существует в коллекции");
-                } 
+                }
             }
 
             if (itemsNotUpdated.Count > 0)
@@ -119,9 +118,10 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
                 return ResultEntity<T>.Fail(string.Join(", ", itemsNotUpdated));
             }
 
-            foreach (var i in items){ 
+            foreach (var i in items)
+            {
                 _items[i.Id] = i;
-            } 
+            }
             return ResultEntity<T>.Ok("Успешно");
         }
 
@@ -131,19 +131,21 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
         public bool IsExistedByTitle(string name)
         {
 
-            foreach(var i in _items) {
+            foreach (var i in _items)
+            {
 
-               var properties =  i.GetType().GetProperties();
+                var properties = i.GetType().GetProperties();
 
-               var titleProperty = properties.Where(p => string.Equals(p.Name, "Title")).FirstOrDefault();
+                var titleProperty = properties.Where(p => string.Equals(p.Name, "Title")).FirstOrDefault();
 
-                if(titleProperty != null) {
+                if (titleProperty != null)
+                {
 
                     var value = titleProperty.GetValue(i);
 
-                    if (value != null && value is string vStr )
+                    if (value != null && value is string vStr)
                     {
-                        if(string.Equals(vStr, name))
+                        if (string.Equals(vStr, name))
                         {
                             return true;
                         }
@@ -154,10 +156,10 @@ namespace Sprints_Project_ASP_NetCore_API.Repositories
             return false;
         }
 
-        
-       
 
-         
-        
+
+
+
+
     }
 }

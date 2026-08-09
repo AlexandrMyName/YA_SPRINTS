@@ -17,19 +17,19 @@ public interface IApiResult
 }
 
 public abstract class ApiBaseResult : IApiResult
-{   
+{
     /// <summary>
     /// Флаг, указывающий на успешность выполненного запроса
     /// </summary>
-    public required bool Success { get; set; }  
+    public required bool Success { get; set; }
     /// <summary>
     /// Возвращаемый HTTP-код
     /// </summary>
-    public required HttpStatusCode StatusCode { get; set; }  
+    public required HttpStatusCode StatusCode { get; set; }
     /// <summary>
     /// Дата и время ответа
     /// </summary>
-    public DateTime DateTime { get; set; }  
+    public DateTime DateTime { get; set; }
     /// <summary>
     /// Кастомное сообщение с дополнительной информацией
     /// Здесь может быть информация об ошибке в случае неуспеха
@@ -43,10 +43,11 @@ public abstract class ApiBaseResult : IApiResult
     public virtual object GetData() => "";
 }
 
- 
-public class ApiResult : ApiBaseResult {
 
-     
+public class ApiResult : ApiBaseResult
+{
+
+
     public static ApiResult Ok(string msg)
     {
         return new()
@@ -63,7 +64,7 @@ public class ApiResult : ApiBaseResult {
         return new()
         {
             Message = reason,
-            StatusCode = (HttpStatusCode) 400,
+            StatusCode = (HttpStatusCode)400,
             Success = true,
             DateTime = System.DateTime.UtcNow,
         };
@@ -104,7 +105,7 @@ public class ApiResult : ApiBaseResult {
 
 
 }
- 
+
 public class ApiResult<T> : ApiBaseResult
 {
 
@@ -161,7 +162,7 @@ public class ApiResult<T> : ApiBaseResult
     /// <typeparam name="T"></typeparam>
     /// <param name="data"></param>
     /// <returns></returns>
-    public static ApiResult<T> NotFound<T>( string reason)
+    public static ApiResult<T> NotFound<T>(string reason)
     {
         return new()
         {

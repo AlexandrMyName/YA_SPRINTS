@@ -1,48 +1,45 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
-using SprintASP_NetCore_API.Data.Dtos;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using SprintASP_NetCore_API.Filters.ActionFilters;
-using SprintASP_NetCore_API.Services;
+﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events; 
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Repositories;
-using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations;
-using static System.Net.WebRequestMethods;
+using Sprints_Project_ASP_NetCore_API.Repositories; 
+using SprintASP_NetCore_API.Services.Intercepts;
+using SprintASP_NetCore_API.Data.Dtos.Filters;
+using SprintASP_NetCore_API.Data.Dtos;
+using SprintASP_NetCore_API.Services;
+using AutoMapper;
 
 
 namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
 {
-    
+
     public class EventsService : IEventService
     {
 
         public EventsService(
             IServiceScopeFactory scopeFactory,
-            IRepository<IEvent> repository, 
-            ILogger<EventsService> logger, 
+            IRepository<Event> repository,
+            ILogger<EventsService> logger,
+            IInterceptLockings interceptLockings,
             IMapper mapper)
         {
             _scopeFactory = scopeFactory;
             _repository = repository;
+            _interceptLockings = interceptLockings;
             _logger = logger;
             _mapper = mapper;
         }
-         
-        private readonly IServiceScopeFactory _scopeFactory; // на будущее когда БД появится мб. переместить лучше в репозиторий
-        private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _eventLocks = new(); // симофоры для событий 
-        private readonly IRepository<IEvent> _repository;
+
+        private readonly IServiceScopeFactory _scopeFactory; // на будущее когда БД появится мб. переместить лучше в репозиторий 
+        private readonly IInterceptLockings _interceptLockings;
+        private readonly IRepository<Event> _repository;
         private readonly ILogger<EventsService> _logger;
         private readonly IMapper _mapper;
-         
-         
+
+
         public async Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count)
         {
 
-            var semaphore = _eventLocks.GetOrAdd(eventId, _ => new SemaphoreSlim(1, 1));
+            var semaphore = _interceptLockings.GetOrAddByEventId(eventId);
             await semaphore.WaitAsync();
 
             try
@@ -57,31 +54,45 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
                 semaphore.Release();
             }
         }
-         
 
-         
+
+        /// <summary>
+        /// Создать событие
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         public async Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto)
         {
-           
+
             _logger.LogInformation("Запрос добавления события с ID: " + dto.Id);
 
             var eventEntity = Event.Create(dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats ?? 0);
-            var result = await _repository.AddAsync(eventEntity); 
-            if (result.IsSuccesfuly){
+            var result = await _repository.AddAsync(eventEntity);
+            if (result.IsSuccesfuly)
+            {
                 _logger.LogInformation($"Добавлена модель: {eventEntity?.Id}");
                 return ResultDto<IEventInfoDto>.Ok(_mapper.Map<EventInfoDto>(eventEntity), result?.Message ?? "");
-            } 
-            return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? ""); 
+            }
+            return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? "");
         }
-
-        public Task<PaginatedResult<IBookingInfoDto>> GetFilteredEventsAsync(IEntityFilter<IEntity> filter)
+         
+        /// <summary>
+        /// Обновить событие
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public async Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item)
         {
-            throw new NotImplementedException();
-        }
+             
+            var result = await UpdateAsync(_mapper.Map<EventInfoDto>(item));  
+              
+            if (result != null && result.IsSuccesfuly && result.Data != null)
+            {
+                _logger.LogInformation($"Обновлена модель: {result?.Data?.Title}");
+                return ResultDto<IEventInfoDto>.Ok(result!.Data, result?.Message ?? "");
+            }
 
-        public Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item)
-        {
-            throw new NotImplementedException();
+            return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? "");
         }
 
 
@@ -90,9 +101,9 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
         {
             _logger.LogInformation("Запрос всех событий");
             var events = await _repository.GetAllAsync();
-            _logger.LogInformation($"Количество: {events.Count()} данных");  
+            _logger.LogInformation($"Количество: {events.Count()} данных");
             // действие с Entity (на будущее)
-            return events.Select(e=>_mapper.Map<EventInfoDto>(e)).ToList();
+            return events.Select(e => _mapper.Map<EventInfoDto>(e)).ToList();
         }
 
         public async Task<PaginatedResult<EventInfoDto>> GetFilteredAsync(IEntityFilter<IEntity> filter)
@@ -109,7 +120,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
             var filteredQuery = filter.Apply(query) as IQueryable<IEvent>;
 
             if (filteredQuery == null) throw new InvalidOperationException("Не удалось преминить фильтр");
-            
+
             // Получаем общее количество (ДО пагинации!)
             var totalCount = filteredQuery.Count();
 
@@ -148,7 +159,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
                 return ResultDto<EventInfoDto>.Ok(_mapper.Map<EventInfoDto>((Event)eventEntity?.Data), eventEntity?.Message ?? "");
             }
 
-            return ResultDto<EventInfoDto>.Fail(  eventEntity?.Reason ?? "");  
+            return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
         }
 
         public async Task<IResultDto<EventInfoDto>> AddAsync(EventInfoDto item)
@@ -156,7 +167,7 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
 
             _logger.LogInformation("Запрос добавления события с ID: " + item.Id);
             var eventEntity = await _repository.AddAsync(_mapper.Map<Event>(item));
-         
+
             if (eventEntity.IsSuccesfuly)
             {
                 _logger.LogInformation($"Добавлена модель: {eventEntity?.Data?.Title}");
@@ -164,21 +175,30 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
             }
 
             return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
-        } 
+        }
 
         public async Task<IResultDto<EventInfoDto>> UpdateAsync(EventInfoDto item)
         {
 
-            _logger.LogInformation("Запрос обновления события с ID: " + item.Id);
-            var eventEntity = await _repository.UpdateAsync(_mapper.Map<Event>(item));
-
-            if (eventEntity.IsSuccesfuly)
+            var semaphore = _interceptLockings.GetOrAddByEventId(item.Id);
+            await semaphore.WaitAsync();
+            try
             {
-                _logger.LogInformation($"Обновлена модель: {eventEntity?.Data?.Title}");
-                return ResultDto<EventInfoDto>.Ok(item, eventEntity?.Message ?? "");
-            }
+                _logger.LogInformation("Запрос обновления события с ID: " + item.Id);
+                var eventEntity = await _repository.UpdateAsync(_mapper.Map<Event>(item));
 
-            return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
+                if (eventEntity.IsSuccesfuly)
+                {
+                    _logger.LogInformation($"Обновлена модель: {eventEntity?.Data?.Title}");
+                    return ResultDto<EventInfoDto>.Ok(item, eventEntity?.Message ?? "");
+                }
+
+                return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
+            }
+            finally
+            {
+                semaphore.Release();
+            } 
         }
 
         public async Task<IResultDto<EventInfoDto>> DeleteAsync(Guid id)
@@ -191,37 +211,49 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
             {
                 _logger.LogInformation($"Удалена модель c ID: {id}");
                 return ResultDto<EventInfoDto>.Ok(eventEntity?.Message ?? "");
-            } 
+            }
             return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
         }
-        
+
 
         public async Task<IResultDto<EventInfoDto>> AddRangeAsync(IEnumerable<EventInfoDto> items)
         {
 
-            _logger.LogInformation("Запрос добавления списка событий в коллекцию"); 
-            var eventEntity = await _repository.AddRangeAsync(items.Select(i=> _mapper.Map<Event>(i)).ToList());
+            _logger.LogInformation("Запрос добавления списка событий в коллекцию");
+            var eventEntity = await _repository.AddRangeAsync(items.Select(i => _mapper.Map<Event>(i)).ToList());
 
             if (eventEntity.IsSuccesfuly)
             {
                 _logger.LogInformation($"Добавление моделей данных - успешно");
                 return ResultDto<EventInfoDto>.Ok(eventEntity?.Message ?? "");
-            } 
+            }
             return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
         }
 
 
         public async Task<IResultDto<EventInfoDto>> UpdateRangeAsync(IEnumerable<EventInfoDto> items)
         {
+            var semaphors = new List<SemaphoreSlim>();
 
-            _logger.LogInformation("Запрос обновления списка событий в коллекции");
-            var eventEntity = await _repository.UpdateRangeAsync(items.Select(i => _mapper.Map<Event>(i)).ToList());
+            foreach(var item in items) semaphors.Add(_interceptLockings.GetOrAddByEventId(item.Id)); 
+            foreach (var semaphore in semaphors) await semaphore.WaitAsync();
 
-            if (eventEntity.IsSuccesfuly){
-                _logger.LogInformation($"Обновление моделей данных - успешно");
-                return ResultDto<EventInfoDto>.Ok(eventEntity?.Message ?? "");
+            try
+            {
+                _logger.LogInformation("Запрос обновления списка событий в коллекции");
+                var eventEntity = await _repository.UpdateRangeAsync(items.Select(i => _mapper.Map<Event>(i)).ToList());
+
+                if (eventEntity.IsSuccesfuly)
+                {
+                    _logger.LogInformation($"Обновление моделей данных - успешно");
+                    return ResultDto<EventInfoDto>.Ok(eventEntity?.Message ?? "");
+                }
+                return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
             }
-            return ResultDto<EventInfoDto>.Fail(eventEntity?.Reason ?? "");
+            finally
+            {
+                foreach (var semaphore in semaphors) semaphore.Release(); 
+            } 
         }
 
 
@@ -229,6 +261,6 @@ namespace Sprints_Project_ASP_NetCore_API.Services.DataServices
 
         public bool IsExistedByTitle(string name) => _repository.IsExistedByTitle(name);
 
-       
+
     }
 }

@@ -30,11 +30,12 @@ public class GlobalExceptionMiddleware
             _logger.LogError(ex, "Необработанная ошибка: {Message}", ex.Message);
 
             // Если ответ уже начат – не можем его изменить, только логируем
-            if (context.Response.HasStarted){
+            if (context.Response.HasStarted)
+            {
                 _logger.LogWarning("Невозможно обработать ошибку, так как ответ уже начал передаваться клиенту.");
                 // Завершаем обработку, чтобы не выбросить исключение повторно
                 return;
-            }  
+            }
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -50,16 +51,16 @@ public class GlobalExceptionMiddleware
             InvalidOperationException => (int)HttpStatusCode.BadRequest,
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
             NotImplementedException => (int)HttpStatusCode.NotImplemented,
-            NoAvailableSeatsException => (int) HttpStatusCode.Conflict ,
+            NoAvailableSeatsException => (int)HttpStatusCode.Conflict,
             _ => (int)HttpStatusCode.InternalServerError
         };
 
         var problemDetails = new
         {
-            Type     = "https://tools.ietf.org/html/rfc7807",
-            Title    = "Ошибка обработки запроса",
-            Status   = statusCode,
-            Detail   = exception.Message,
+            Type = "https://tools.ietf.org/html/rfc7807",
+            Title = "Ошибка обработки запроса",
+            Status = statusCode,
+            Detail = exception.Message,
             Instance = context.Request.Path,
         };
 

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq.Expressions; 
+using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit; 
+using System.Reflection.Emit;
 
 
 namespace SprintASP_NetCore_API.LessonПолезное
@@ -166,90 +166,90 @@ namespace SprintASP_NetCore_API.LessonПолезное
 
     // Авто добавление 
 
-//    protected override void Up(MigrationBuilder migrationBuilder)
-//    {
-//        // 1. Получаем список динамических типов, которые были зарегистрированы
-//        //    (вы храните их где-то, например, в статическом списке)
-//        var entityTypes = DynamicEntityRegistry.GetAllTypes();
+    //    protected override void Up(MigrationBuilder migrationBuilder)
+    //    {
+    //        // 1. Получаем список динамических типов, которые были зарегистрированы
+    //        //    (вы храните их где-то, например, в статическом списке)
+    //        var entityTypes = DynamicEntityRegistry.GetAllTypes();
 
-//        foreach (Type entityType in entityTypes)
-//        {
-//            string tableName = entityType.Name; // или возьмите из атрибута Table
-//            EnsureColumnsExist(migrationBuilder, entityType, tableName);
-//        }
-//    }
+    //        foreach (Type entityType in entityTypes)
+    //        {
+    //            string tableName = entityType.Name; // или возьмите из атрибута Table
+    //            EnsureColumnsExist(migrationBuilder, entityType, tableName);
+    //        }
+    //    }
 
-//    private void EnsureColumnsExist(MigrationBuilder migrationBuilder, Type entityType, string tableName)
-//    {
-//        // 2. Получаем все публичные свойства (кроме игнорируемых)
-//        var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-//                                   .Where(p => p.CanWrite && p.GetMethod != null);
+    //    private void EnsureColumnsExist(MigrationBuilder migrationBuilder, Type entityType, string tableName)
+    //    {
+    //        // 2. Получаем все публичные свойства (кроме игнорируемых)
+    //        var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+    //                                   .Where(p => p.CanWrite && p.GetMethod != null);
 
-//        // 3. Для каждого свойства генерируем ALTER TABLE ADD COLUMN,
-//        //    но только если колонка ещё не существует (проверка через INFORMATION_SCHEMA)
-//        foreach (var prop in properties)
-//        {
-//            // Пропускаем свойства, помеченные [NotMapped] или [Ignore] (если используете)
-//            if (prop.GetCustomAttribute<NotMappedAttribute>() != null)
-//                continue;
+    //        // 3. Для каждого свойства генерируем ALTER TABLE ADD COLUMN,
+    //        //    но только если колонка ещё не существует (проверка через INFORMATION_SCHEMA)
+    //        foreach (var prop in properties)
+    //        {
+    //            // Пропускаем свойства, помеченные [NotMapped] или [Ignore] (если используете)
+    //            if (prop.GetCustomAttribute<NotMappedAttribute>() != null)
+    //                continue;
 
-//            // Определяем имя колонки (можно взять из [Column] атрибута)
-//            string columnName = prop.Name;
-//            var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
-//            if (columnAttr != null && !string.IsNullOrEmpty(columnAttr.Name))
-//                columnName = columnAttr.Name;
+    //            // Определяем имя колонки (можно взять из [Column] атрибута)
+    //            string columnName = prop.Name;
+    //            var columnAttr = prop.GetCustomAttribute<ColumnAttribute>();
+    //            if (columnAttr != null && !string.IsNullOrEmpty(columnAttr.Name))
+    //                columnName = columnAttr.Name;
 
-//            // Определяем, является ли тип nullable
-//            bool isNullable = Nullable.GetUnderlyingType(prop.PropertyType) != null
-//                              || !prop.PropertyType.IsValueType;
+    //            // Определяем, является ли тип nullable
+    //            bool isNullable = Nullable.GetUnderlyingType(prop.PropertyType) != null
+    //                              || !prop.PropertyType.IsValueType;
 
-//            // Определяем тип PostgreSQL
-//            string pgType = MapToPostgreSqlType(prop);
+    //            // Определяем тип PostgreSQL
+    //            string pgType = MapToPostgreSqlType(prop);
 
-//            // Формируем SQL с проверкой существования колонки (безопасно для повторных запусков)
-//            string sql = $@"
-//DO $$ 
-//BEGIN
-//    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-//                   WHERE table_name = '{tableName}' AND column_name = '{columnName}') 
-//    THEN
-//        ALTER TABLE ""{tableName}"" ADD COLUMN ""{columnName}"" {pgType} {(isNullable ? "NULL" : "NOT NULL")};
-//    END IF;
-//END $$;";
+    //            // Формируем SQL с проверкой существования колонки (безопасно для повторных запусков)
+    //            string sql = $@"
+    //DO $$ 
+    //BEGIN
+    //    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    //                   WHERE table_name = '{tableName}' AND column_name = '{columnName}') 
+    //    THEN
+    //        ALTER TABLE ""{tableName}"" ADD COLUMN ""{columnName}"" {pgType} {(isNullable ? "NULL" : "NOT NULL")};
+    //    END IF;
+    //END $$;";
 
-//            // Выполняем SQL
-//            migrationBuilder.Sql(sql);
-//        }
-//    }
+    //            // Выполняем SQL
+    //            migrationBuilder.Sql(sql);
+    //        }
+    //    }
 
-//    private string MapToPostgreSqlType(PropertyInfo prop)
-//    {
-//        Type type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+    //    private string MapToPostgreSqlType(PropertyInfo prop)
+    //    {
+    //        Type type = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
 
-//        // Базовая маппинг (можно расширить под ваши нужды)
-//        if (type == typeof(int)) return "integer";
-//        if (type == typeof(long)) return "bigint";
-//        if (type == typeof(short)) return "smallint";
-//        if (type == typeof(decimal)) return "numeric(18,2)"; // можно вынести в атрибут
-//        if (type == typeof(float)) return "real";
-//        if (type == typeof(double)) return "double precision";
-//        if (type == typeof(bool)) return "boolean";
-//        if (type == typeof(DateTime)) return "timestamp with time zone";
-//        if (type == typeof(DateTimeOffset)) return "timestamp with time zone";
-//        if (type == typeof(TimeSpan)) return "interval";
-//        if (type == typeof(string))
-//        {
-//            // Читаем атрибут MaxLength
-//            var maxLen = prop.GetCustomAttribute<MaxLengthAttribute>()?.Length
-//                         ?? prop.GetCustomAttribute<StringLengthAttribute>()?.MaximumLength;
-//            return maxLen.HasValue ? $"character varying({maxLen.Value})" : "text";
-//        }
-//        if (type == typeof(Guid)) return "uuid";
-//        if (type == typeof(byte[])) return "bytea";
-//        // JSON, enum, и т.д. – добавляйте по необходимости
+    //        // Базовая маппинг (можно расширить под ваши нужды)
+    //        if (type == typeof(int)) return "integer";
+    //        if (type == typeof(long)) return "bigint";
+    //        if (type == typeof(short)) return "smallint";
+    //        if (type == typeof(decimal)) return "numeric(18,2)"; // можно вынести в атрибут
+    //        if (type == typeof(float)) return "real";
+    //        if (type == typeof(double)) return "double precision";
+    //        if (type == typeof(bool)) return "boolean";
+    //        if (type == typeof(DateTime)) return "timestamp with time zone";
+    //        if (type == typeof(DateTimeOffset)) return "timestamp with time zone";
+    //        if (type == typeof(TimeSpan)) return "interval";
+    //        if (type == typeof(string))
+    //        {
+    //            // Читаем атрибут MaxLength
+    //            var maxLen = prop.GetCustomAttribute<MaxLengthAttribute>()?.Length
+    //                         ?? prop.GetCustomAttribute<StringLengthAttribute>()?.MaximumLength;
+    //            return maxLen.HasValue ? $"character varying({maxLen.Value})" : "text";
+    //        }
+    //        if (type == typeof(Guid)) return "uuid";
+    //        if (type == typeof(byte[])) return "bytea";
+    //        // JSON, enum, и т.д. – добавляйте по необходимости
 
-//        throw new NotSupportedException($"Тип {type.Name} не поддерживается для автоматической миграции");
-//    }
+    //        throw new NotSupportedException($"Тип {type.Name} не поддерживается для автоматической миграции");
+    //    }
 
 
     // В методе инициализации (например, после OnConfiguring)

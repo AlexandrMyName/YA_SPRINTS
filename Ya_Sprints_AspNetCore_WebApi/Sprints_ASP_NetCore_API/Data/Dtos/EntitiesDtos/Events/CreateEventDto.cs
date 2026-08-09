@@ -32,9 +32,9 @@ public class CreateEventDto : ICreateEventDto
     /// <summary>
     /// Время окончания события
     /// </summary>
-    [Required(ErrorMessage = "Дата окончания обязательна")] 
+    [Required(ErrorMessage = "Дата окончания обязательна")]
     public required DateTime EndAt { get; set; }
-      
+
     /// <summary>
     /// общее количество мест на событии
     /// </summary>
@@ -52,7 +52,7 @@ public interface ICreateEventDto : IEntityDto
     string Title { get; set; }
     string? Description { get; set; }
     DateTime StartAt { get; set; }
-    DateTime EndAt { get; set; } 
+    DateTime EndAt { get; set; }
     int? TotalSeats { get; set; }
-     
+
 }

@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Reflection;
- 
+
 
 namespace dataBase_autoMigration_Lib
 {
@@ -18,8 +18,8 @@ namespace dataBase_autoMigration_Lib
         /// Вызывать следует при первом запуске приложения и если есть флаг изменения данных (в рантайме)
         /// </summary>
         /// <param name="dbContext"></param>
-        public static void CreateOrUpdateMigration(this DbContext dbContext)  => EnsureColumnsForAllEntities(dbContext);
-    
+        public static void CreateOrUpdateMigration(this DbContext dbContext) => EnsureColumnsForAllEntities(dbContext);
+
 
         private static void EnsureColumnsForAllEntities(DbContext context)
         {
@@ -73,7 +73,7 @@ namespace dataBase_autoMigration_Lib
                 Debug.WriteLine("Исключение выполнения миграции", ex.Message + " " + ex.InnerException?.Message);
             }
         }
-         
+
         private static string GetDefaultValue(Type type)
         {
             // Для nullable типов берём underlying

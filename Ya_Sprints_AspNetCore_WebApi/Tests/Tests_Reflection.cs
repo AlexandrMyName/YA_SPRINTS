@@ -14,10 +14,10 @@ public class Tests_Reflection
 
     private readonly ITestOutputHelper _output;
     public Tests_Reflection(ITestOutputHelper output) { _output = output; }
-     
+
 
     public class TestData()
-    {  
+    {
         public string? TestPropertyString { get; set; } = "123567890xz";
     }
 

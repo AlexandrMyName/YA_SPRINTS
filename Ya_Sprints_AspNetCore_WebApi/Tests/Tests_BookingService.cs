@@ -4,6 +4,7 @@ using Moq;
 using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
 using SprintASP_NetCore_API.Data.Entities;
 using SprintASP_NetCore_API.Services.DataServices;
+using SprintASP_NetCore_API.Services.Intercepts;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
@@ -24,6 +25,7 @@ namespace Tests
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<ILogger<BookingService>> _mockLogger_BookingService;
         private readonly Mock<ILogger<EventsService>> _mockLogger_EventsService;
+        private readonly IInterceptLockings _interceptLockings;
         private readonly BookingService _bookingService;
         private readonly EventsService _eventService;
 
@@ -34,8 +36,10 @@ namespace Tests
             _mockMapper = new Mock<IMapper>();
             _mockLogger_BookingService = new Mock<ILogger<BookingService>>();
             _mockLogger_EventsService = new Mock<ILogger<EventsService>>();
+            _interceptLockings = new InterceptLockings();
 
             _bookingService = new BookingService(
+                interceptLockings: _interceptLockings,
                 repository: _mockBookingRepo.Object,
                 eventRepository: _mockEventRepo.Object,
                 logger: _mockLogger_BookingService.Object,
@@ -44,6 +48,7 @@ namespace Tests
 
             _eventService = new EventsService(
                 scopeFactory: null,
+                interceptLockings: _interceptLockings,
                 repository: _mockEventRepo.Object,
                 logger: _mockLogger_EventsService.Object,
                 mapper: _mockMapper.Object
@@ -57,16 +62,10 @@ namespace Tests
         private async Task<Guid> CreateTestEvent(int totalSeats)
         {
             var eventId = Guid.NewGuid();
-            var eventEntity = new Event
-            {
-                Id = eventId,
-                Title = "Test",
-                Description = "Test",
-                StartAt = DateTime.UtcNow.AddDays(1),
-                EndAt = DateTime.UtcNow.AddDays(2),
-                TotalSeats = totalSeats,
-                AvailableSeats = totalSeats
-            };
+            var eventEntity = Event.Create( eventId, "Test", "Test", DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(2), totalSeats);
+
+
+          
 
             _mockEventRepo.Setup(r => r.GetByIdAsync(eventId))
                 .ReturnsAsync(ResultEntity<IEvent>.Ok(eventEntity, "Found"));
@@ -96,13 +95,13 @@ namespace Tests
 
             // Настройка AddAsync для брони
             var bookingId = Guid.NewGuid();
-            var bookingEntity = new Booking { Id = bookingId, EventId = eventId, Status = BookingStatus.Pending };
+            var bookingEntity =   Booking.Create(  bookingId,   eventId,   BookingStatus.Pending , DateTime.UtcNow);
             _mockBookingRepo.Setup(r => r.AddAsync(It.IsAny<IBooking>()))
                 .ReturnsAsync(ResultEntity<IBooking>.Ok(bookingEntity, "Created"));
 
             // Мапперы
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt)); 
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -129,7 +128,7 @@ namespace Tests
                 .ReturnsAsync((IBooking b) => ResultEntity<IBooking>.Ok(b, "Created"));
 
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -159,7 +158,7 @@ namespace Tests
             _mockBookingRepo.Setup(r => r.AddAsync(It.IsAny<IBooking>()))
                 .ReturnsAsync((IBooking b) => ResultEntity<IBooking>.Ok(b, "Created"));
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -188,7 +187,7 @@ namespace Tests
                 _bookingService.CreateBookingAsync(invalidId));
 
             Assert.True(exception is KeyNotFoundException, $"Expected KeyNotFoundException, got {exception.GetType()}");
-            
+
         }
 
         /// <summary>
@@ -216,7 +215,7 @@ namespace Tests
             // Arrange
             var eventId = await CreateTestEvent(5);
             var bookingId = Guid.NewGuid();
-            var bookingEntity = new Booking { Id = bookingId, EventId = eventId, Status = BookingStatus.Pending };
+            var bookingEntity = Booking.Create( bookingId, eventId, BookingStatus.Pending, DateTime.UtcNow);
             _mockBookingRepo.Setup(r => r.GetByIdAsync(bookingId))
                 .ReturnsAsync(ResultEntity<IBooking>.Ok(bookingEntity, "Found"));
             _mockBookingRepo.Setup(r => r.UpdateAsync(It.IsAny<IBooking>()))
@@ -226,7 +225,7 @@ namespace Tests
                     return ResultEntity<IBooking>.Ok(bookingEntity, "Updated");
                 });
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status, ProcessedAt = dto.ProcessedAt });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status, ProcessedAt = entity.ProcessedAt });
 
@@ -252,7 +251,7 @@ namespace Tests
             // Arrange
             var eventId = await CreateTestEvent(5);
             var bookingId = Guid.NewGuid();
-            var bookingEntity = new Booking { Id = bookingId, EventId = eventId, Status = BookingStatus.Pending };
+            var bookingEntity = Booking.Create(bookingId, eventId, BookingStatus.Pending, DateTime.UtcNow);
             _mockBookingRepo.Setup(r => r.GetByIdAsync(bookingId))
                 .ReturnsAsync(ResultEntity<IBooking>.Ok(bookingEntity, "Found"));
             _mockBookingRepo.Setup(r => r.UpdateAsync(It.IsAny<IBooking>()))
@@ -262,7 +261,7 @@ namespace Tests
                     return ResultEntity<IBooking>.Ok(bookingEntity, "Updated");
                 });
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status, ProcessedAt = dto.ProcessedAt });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status, ProcessedAt = entity.ProcessedAt });
 
@@ -290,7 +289,7 @@ namespace Tests
             _mockBookingRepo.Setup(r => r.AddAsync(It.IsAny<IBooking>()))
                 .ReturnsAsync((IBooking b) => ResultEntity<IBooking>.Ok(b, "Created"));
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -317,7 +316,7 @@ namespace Tests
             _mockBookingRepo.Setup(r => r.AddAsync(It.IsAny<IBooking>()))
                 .ReturnsAsync((IBooking b) => ResultEntity<IBooking>.Ok(b, "Created"));
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -354,7 +353,7 @@ namespace Tests
                 .ReturnsAsync((IBooking b) => ResultEntity<IBooking>.Ok(b, "Created"));
 
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -400,7 +399,7 @@ namespace Tests
             _mockBookingRepo.Setup(r => r.AddAsync(It.IsAny<IBooking>()))
                 .ReturnsAsync((IBooking b) => ResultEntity<IBooking>.Ok(b, "Created"));
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking { Id = dto.Id, EventId = dto.EventId, Status = dto.Status });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto { Id = entity.Id, EventId = entity.EventId, Status = entity.Status });
 
@@ -428,22 +427,10 @@ namespace Tests
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventEntity = new Event
-            {
-                Id = eventId,
-                Title = "TestTitle",
-                StartAt = DateTime.Now,
-                EndAt = DateTime.Now.AddDays(2),
-                AvailableSeats = 5
-            };
-
-            var bookingEntity = new Booking
-            {
-                Id = Guid.NewGuid(),
-                EventId = eventId,
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
+            var eventEntity   = Event.Create(eventId, "TestTitle", null, DateTime.Now, DateTime.Now.AddDays(2), 5); 
+            var bookingEntity = Booking.Create(Guid.NewGuid(), eventId, BookingStatus.Pending, DateTime.UtcNow);
+            
+            
 
             _mockEventRepo.Setup(r => r.GetByIdAsync(eventId))
                 .ReturnsAsync(() => ResultEntity<IEvent>.Ok(eventEntity, "Found"));
@@ -456,12 +443,7 @@ namespace Tests
                 });
 
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking
-                {
-                    Id = dto.Id,
-                    EventId = dto.EventId,
-                    Status = dto.Status
-                });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
 
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto
@@ -494,14 +476,7 @@ namespace Tests
         {
             // Arrange
             var eventId = Guid.NewGuid();
-            var eventEntity = new Event
-            {
-                Id = eventId,
-                Title = "TestTitle",
-                StartAt = DateTime.Now,
-                EndAt = DateTime.Now.AddDays(10),
-                AvailableSeats = 10
-            };
+            var eventEntity = Event.Create(eventId, "TestTitle", null, DateTime.Now, DateTime.Now.AddDays(10), 10);
 
             _mockEventRepo.Setup(r => r.GetByIdAsync(eventId))
                 .ReturnsAsync(() => ResultEntity<IEvent>.Ok(eventEntity, "Found"));
@@ -514,12 +489,7 @@ namespace Tests
                 });
 
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking
-                {
-                    Id = dto.Id,
-                    EventId = dto.EventId,
-                    Status = dto.Status
-                });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
 
             _mockMapper.Setup(m => m.Map<BookingInfoDto>(It.IsAny<IBooking>()))
                 .Returns((IBooking entity) => new BookingInfoDto
@@ -550,13 +520,7 @@ namespace Tests
         {
             // Arrange
             var bookingId = Guid.NewGuid();
-            var bookingEntity = new Booking
-            {
-                Id = bookingId,
-                EventId = Guid.NewGuid(),
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
+            var bookingEntity = Booking.Create(bookingId, Guid.NewGuid(), BookingStatus.Pending, DateTime.UtcNow);
 
             _mockBookingRepo.Setup(r => r.GetByIdAsync(bookingId))
                 .ReturnsAsync(ResultEntity<IBooking>.Ok(bookingEntity, "Found"));
@@ -589,14 +553,8 @@ namespace Tests
         {
             // Arrange
             var bookingId = Guid.NewGuid();
-            var bookingEntity = new Booking
-            {
-                Id = bookingId,
-                EventId = Guid.NewGuid(),
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
-
+            var bookingEntity = Booking.Create(bookingId, Guid.NewGuid(), BookingStatus.Pending, DateTime.UtcNow);
+             
             var currentBooking = bookingEntity;
 
             _mockBookingRepo.Setup(r => r.GetByIdAsync(bookingId))
@@ -616,13 +574,7 @@ namespace Tests
                 });
 
             _mockMapper.Setup(m => m.Map<IBooking>(It.IsAny<IBookingInfoDto>()))
-                .Returns((IBookingInfoDto dto) => new Booking
-                {
-                    Id = dto.Id,
-                    EventId = dto.EventId,
-                    Status = dto.Status,
-                    CreatedAt = dto.CreatedAt
-                });
+                .Returns((IBookingInfoDto dto) => Booking.Create(dto.Id, dto.EventId, dto.Status, dto.CreatedAt, dto.ProcessedAt));
 
             var updateDto = new BookingInfoDto
             {
@@ -659,7 +611,7 @@ namespace Tests
 
             Assert.True(exception is KeyNotFoundException,
                 $"Expected KeyNotFoundException , got {exception.GetType()}");
-  
+
             _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
         }
 
@@ -678,7 +630,7 @@ namespace Tests
             var exception = await Assert.ThrowsAnyAsync<Exception>(() =>
                 _bookingService.CreateBookingAsync(eventId));
 
-            Assert.True(exception is KeyNotFoundException , $"Expected KeyNotFoundException, got {exception.GetType()}");
+            Assert.True(exception is KeyNotFoundException, $"Expected KeyNotFoundException, got {exception.GetType()}");
 
             _mockBookingRepo.Verify(r => r.AddAsync(It.IsAny<IBooking>()), Times.Never);
         }
