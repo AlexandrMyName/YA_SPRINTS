@@ -27,15 +27,18 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
 
         [Key]
         public Guid Id { get; set; }
-        public required string Title { get; set; }
+        public required string Title { get; set; } = null!;
         public string? Description { get; set; }
-        public required DateTime StartAt { get; set; }
-        public required DateTime EndAt { get; set; }
+        public required DateTime StartAt { get; set; } 
+        public required DateTime EndAt { get; set; }  
 
-        public int TotalSeats { get; set; }
-        public int AvailableSeats { get; set; }
+        public int TotalSeats { get; set; } = default!;
+        public int AvailableSeats { get; set; } = default!;
 
         public uint Version { get; set; } // xmin в Postgres 
+
+        // Навигационное свойство (один ко многим)
+        public ICollection<Booking> Bookings { get; private set; } = new List<Booking>();
 
 
         private Event() { }
@@ -48,14 +51,9 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
             StartAt = startAt;
             EndAt = endAt;
             TotalSeats = totalSeats;
-            AvailableSeats = totalSeats;
-            Bookings = new List<Booking>();
+            AvailableSeats = totalSeats; 
         }
-
-
-        // Навигационное свойство (один ко многим)
-        public ICollection<Booking> Bookings { get; private set; } = null!;
-
+          
 
         public static Event Create(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
         {

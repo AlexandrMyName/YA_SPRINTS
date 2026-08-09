@@ -43,22 +43,22 @@ public class Booking : IBooking
     /// <summary>
     /// ID события
     /// </summary>
-    public Guid EventId { get; set; }
+    public Guid EventId { get; set; } = default!;
 
     /// <summary>
     /// Статус обработки
     /// </summary>
-    public BookingStatus Status { get; set; }
+    public BookingStatus Status { get; set; } = default!;
 
     /// <summary>
     /// Дата и время создания
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = default!;
 
     /// <summary>
     /// Дата и время обработки
     /// </summary>
-    public DateTime? ProcessedAt { get; set; }
+    public DateTime? ProcessedAt { get; set; }  
      
     public uint Version { get; set; } // xmin
 

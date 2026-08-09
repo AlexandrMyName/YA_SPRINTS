@@ -16,7 +16,11 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.HasKey(b => b.Id);
         builder.Property(b => b.Id).ValueGeneratedNever();
-          
+
+        // Настройка свойства Version для использования xmin
+        builder.Property(e => e.Version).IsRowVersion();
+
+
         builder.Property(b => b.CreatedAt)
           .IsRequired();
 
