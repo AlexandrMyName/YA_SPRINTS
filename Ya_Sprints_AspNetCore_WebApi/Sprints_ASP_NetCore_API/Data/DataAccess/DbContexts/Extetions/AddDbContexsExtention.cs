@@ -11,10 +11,15 @@ public static class AddDbContexsExtention
     /// </summary>
     /// <param name="services"></param>
     /// <param name="builder"></param>
+    /// <param name="useInMemoryEF"></param>
     /// <returns></returns>
-    public static IServiceCollection AddDbContexts(this IServiceCollection services, WebApplicationBuilder builder)
+    public static IServiceCollection AddDbContexts(this IServiceCollection services, WebApplicationBuilder builder, bool useInMemoryEF = false)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        if (useInMemoryEF)
+        {
+            services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TestDb"));
+        } else
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
         return services;
     }
 }

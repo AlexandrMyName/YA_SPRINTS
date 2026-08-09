@@ -29,7 +29,7 @@ namespace Sprints_Project_ASP_NetCore_API
                 .AddApiVersioningCustom()  // Добавляет и конфигурирует версионирование АПИЫ
                 .AddAutoMapper(cfg => { }, typeof(Program).Assembly)   // Добавляет автоматический маппинг моделей (Конфигурация в /ProfilesAndConfigs/MappingProfile находится по сборке автоматически) 
                 .AddInterceptLockings() // Добавляет коллекцию синхронизаторов (SemaphoreSlim для каждого ID entity)
-                .AddDbContexts(builder)   // Добавляет контексты Баз Данных (Требуются сервисам)
+                .AddDbContexts(builder, useInMemoryEF: true)   // Добавляет контексты Баз Данных (Требуются сервисам) | Можно настроить InMemory (EF) для тестирования
                 .AddRepositories() // Добавляет репозитории в контейнер зависимостей
                 .AddServices(); // Добавляет сервисы в контейнер зависимостей
 

@@ -1,1130 +1,509 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Services.DataServices;
 using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
+using Sprints_Project_ASP_NetCore_API.ProfilesAndConfigs;
+using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
+using SprintASP_NetCore_API.Services.Intercepts;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using SprintASP_NetCore_API.Repositories;
+using SprintASP_NetCore_API.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Xunit;
 using Moq;
-using SprintASP_NetCore_API.Services.Intercepts;
 
 
-namespace Tests;
-
-/// <summary>
-/// Тесты для <see cref="EventsService"/>.
-/// Проверяют CRUD-операции, фильтрацию, сортировку и пагинацию событий.
-/// </summary>
-public class Tests_EventsService
+namespace Tests
 {
 
-    private readonly Mock<IRepository<Event>> _mockRepository;
-    private readonly Mock<ILogger<EventsService>> _mockLogger;
-    private readonly Mock<IMapper> _mockMapper;
-    private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
-    private readonly EventsService _service;
-    private readonly Event _testEvent;
-    private readonly EventInfoDto _testEventDto;
-    private readonly List<Event> _testEvents;
-    private readonly IInterceptLockings _interceptLockings;
-
-
-    public Tests_EventsService()
+    public class Tests_EventsService_Integration : IDisposable
     {
-        _mockRepository = new Mock<IRepository<Event>>();
-        _mockLogger = new Mock<ILogger<EventsService>>();
-        _mockMapper = new Mock<IMapper>();
-        _mockScopeFactory = new Mock<IServiceScopeFactory>();
-        _interceptLockings = new InterceptLockings();
-         
-        _service = new EventsService(
-            _mockScopeFactory.Object,
-            _mockRepository.Object, 
-            _mockLogger.Object,
-            _interceptLockings,
-            _mockMapper.Object
-        );
 
-        _testEvent = Event.Create(Guid.NewGuid(), "Test Event", "Test Description", DateTime.Now, DateTime.Now.AddHours(1), 1);
-         
-        _testEventDto = new EventInfoDto
+        private readonly ServiceProvider _serviceProvider;
+        private readonly string _dbName;
+
+
+        public Tests_EventsService_Integration()
         {
-            Id = _testEvent.Id,
-            Title = _testEvent.Title,
-            Description = _testEvent.Description,
-            StartAt = _testEvent.StartAt,
-            EndAt = _testEvent.EndAt
-        };
 
-        // Тестовые данные для сортировки и пагинации
-        _testEvents = new List<Event>
+            _dbName = Guid.NewGuid().ToString();
+            var services = new ServiceCollection();
+
+            // InMemory DbContext
+            services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(_dbName));
+
+            // Репозитории
+            services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
+
+            // Сервисы
+            services.AddScoped<IEventService, EventsService>();
+            services.AddSingleton<IInterceptLockings, InterceptLockings>();
+
+            // Логгеры (моки)
+            services.AddSingleton<ILogger<EventsService>>(sp => Mock.Of<ILogger<EventsService>>());
+
+            // AutoMapper
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<MappingEntityProfile>();
+                cfg.AddProfile<MappingDtoProfile>();
+            }, NullLoggerFactory.Instance);
+            services.AddSingleton<IMapper>(mapperConfig.CreateMapper());
+
+            _serviceProvider = services.BuildServiceProvider();
+        }
+
+
+        public void Dispose() => _serviceProvider?.Dispose();
+
+
+        private IEventService GetService() => _serviceProvider.GetRequiredService<IEventService>();
+        private IRepository<Event> GetRepository() => _serviceProvider.GetRequiredService<IRepository<Event>>();
+
+
+        #region Tests
+
+        [Fact]
+        public async Task GetAllAsync_ShouldReturnAllEvents()
         {
-            Event.Create(Guid.NewGuid(), "Alpha Event", "First Description", DateTime.Now.AddDays(-2), DateTime.Now.AddHours(-1), 1),
-            Event.Create(Guid.NewGuid(), "Beta Event", "Second Description", DateTime.Now.AddDays(-1), DateTime.Now.AddHours(0), 1),
-            Event.Create(Guid.NewGuid(), "Gamma Event", "Third Description", DateTime.Now.AddDays(0), DateTime.Now.AddHours(1), 1), 
-        };
-    }
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-    #region GetAllAsync Tests
+            var testEvent = Event.Create(Guid.NewGuid(), "Test Event", "Desc", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 10);
+            await repo.AddAsync(testEvent);
+            await repo.SaveChangesAsync();
 
-    /// <summary>
-    /// Проверяет, что GetAllAsync возвращает все события из репозитория.
-    /// </summary>
-    [Fact]
-    public async Task GetAllAsync_ShouldReturnAllEvents()
-    {
-        // Arrange
-        var events = new List<Event> { _testEvent };
-        var expectedDtos = new List<EventInfoDto> { _testEventDto };
+            var result = await service.GetAllAsync();
 
-        _mockRepository.Setup(r => r.GetAllAsync())
-                       .ReturnsAsync(events);
+            Assert.NotNull(result);
+            var list = result.ToList();
+            Assert.Single(list);
+            Assert.Equal(testEvent.Title, list.First().Title);
+        }
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(_testEvent))
-                   .Returns(_testEventDto);
-
-        // Act
-        var result = await _service.GetAllAsync();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal(_testEventDto.Id, result.First().Id);
-        Assert.Equal(_testEventDto.Title, result.First().Title);
-
-        _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что GetAllAsync возвращает пустой список, если репозиторий пуст.
-    /// </summary>
-    [Fact]
-    public async Task GetAllAsync_WhenRepositoryReturnsEmpty_ShouldReturnEmptyList()
-    {
-        // Arrange
-        var events = new List<Event>();
-        _mockRepository.Setup(r => r.GetAllAsync())
-                      .ReturnsAsync(events);
-
-        // Act
-        var result = await _service.GetAllAsync();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
-        _mockRepository.Verify(r => r.GetAllAsync(), Times.Once);
-    }
-
-    #endregion
-
-    #region GetByIdAsync Tests
-
-    /// <summary>
-    /// Проверяет, что GetByIdAsync возвращает событие по валидному ID.
-    /// </summary>
-    [Fact]
-    public async Task GetByIdAsync_WithValidId_ShouldReturnEvent()
-    {
-        // Arrange
-        var id = _testEvent.Id;
-        var resultEntity = ResultEntity<Event>.Ok(_testEvent, "Success");
-
-        _mockRepository.Setup(r => r.GetByIdAsync(id))
-                      .ReturnsAsync(resultEntity);
-
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(_testEvent))
-                  .Returns(_testEventDto);
-
-        // Act
-        var result = await _service.GetByIdAsync(id);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccesfuly);
-        Assert.NotNull(result.Data);
-        Assert.Equal(_testEventDto.Id, result.Data.Id);
-        Assert.Equal(_testEventDto.Title, result.Data.Title);
-
-        _mockRepository.Verify(r => r.GetByIdAsync(id), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что GetByIdAsync возвращает ошибку для несуществующего ID.
-    /// </summary>
-    [Fact]
-    public async Task GetByIdAsync_WithInvalidId_ShouldReturnFail()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-        var resultEntity = ResultEntity<Event>.Fail("Event not found");
-
-        _mockRepository.Setup(r => r.GetByIdAsync(id))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.GetByIdAsync(id);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.False(result.IsSuccesfuly);
-        Assert.Null(result.Data);
-        Assert.Equal("Event not found", result.Reason);
-
-        _mockRepository.Verify(r => r.GetByIdAsync(id), Times.Once);
-    }
-
-    #endregion
-
-    #region AddAsync Tests
-
-    /// <summary>
-    /// Проверяет, что AddAsync успешно добавляет событие.
-    /// </summary>
-    [Fact]
-    public async Task AddAsync_WithValidDto_ShouldAddEvent()
-    {
-        // Arrange
-        var newEventDto = new EventInfoDto
+        [Fact]
+        public async Task GetAllAsync_WhenRepositoryEmpty_ShouldReturnEmptyList()
         {
-            Id = Guid.NewGuid(),
-            Title = "New Event",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddHours(1),
-            TotalSeats = 1,
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
 
-        var newEvent = Event.Create(newEventDto.Id, newEventDto.Title, newEventDto.Description, newEventDto.StartAt, newEventDto.EndAt, newEventDto.TotalSeats);
-     
-        var resultEntity = ResultEntity<Event>.Ok(newEvent, "Added successfully");
+            var result = await service.GetAllAsync();
 
-        _mockMapper.Setup(m => m.Map<Event>(newEventDto))
-                  .Returns(newEvent);
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
 
-        _mockRepository.Setup(r => r.AddAsync(newEvent))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.AddAsync(newEventDto);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccesfuly);
-        Assert.Equal("Added successfully", result.Message);
-
-        _mockRepository.Verify(r => r.AddAsync(It.IsAny<Event>()), Times.Once);
-        _mockMapper.Verify(m => m.Map<Event>(newEventDto), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что AddAsync возвращает ошибку при неудачном добавлении.
-    /// </summary>
-    [Fact]
-    public async Task AddAsync_WhenAddFails_ShouldReturnFail()
-    {
-        // Arrange
-        var newEventDto = new EventInfoDto
+        [Fact]
+        public async Task GetByIdAsync_WithValidId_ShouldReturnEvent()
         {
-            Id = Guid.NewGuid(),
-            Title = "New Event",
-            StartAt = DateTime.Now,
-            EndAt = DateTime.Now.AddHours(1),
-            TotalSeats = 5,
-            AvailableSeats = 5,
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var newEvent = Event.Create(newEventDto.Id, newEventDto.Title, newEventDto.Description, newEventDto.StartAt, newEventDto.EndAt, 5);
- 
+            var testEvent = Event.Create(Guid.NewGuid(), "Test", "Desc", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 10);
+            await repo.AddAsync(testEvent);
+            await repo.SaveChangesAsync();
 
-        var resultEntity = ResultEntity<Event>.Fail("Failed to add event");
+            var result = await service.GetByIdAsync(testEvent.Id);
 
-        _mockMapper.Setup(m => m.Map<Event>(newEventDto))
-                  .Returns(newEvent);
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccesfuly);
+            Assert.Equal(testEvent.Title, result.Data.Title);
+        }
 
-        _mockRepository.Setup(r => r.AddAsync(newEvent))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.AddAsync(newEventDto);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.False(result.IsSuccesfuly);
-        Assert.Equal("Failed to add event", result.Reason);
-
-        _mockRepository.Verify(r => r.AddAsync(It.IsAny<Event>()), Times.Once);
-    }
-
-    #endregion
-
-    #region UpdateAsync Tests
-
-    /// <summary>
-    /// Проверяет, что UpdateAsync успешно обновляет событие.
-    /// </summary>
-    [Fact]
-    public async Task UpdateAsync_WithValidDto_ShouldUpdateEvent()
-    {
-        // Arrange
-        var updatedEventDto = new EventInfoDto
+        [Fact]
+        public async Task GetByIdAsync_WithInvalidId_ShouldReturnFail()
         {
-            Id = _testEventDto.Id,
-            Title = "Updated Event",
-            StartAt = _testEventDto.StartAt,
-            EndAt = _testEventDto.EndAt,
-            TotalSeats = 5,
-            AvailableSeats = 5,
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
 
-        var updatedEvent = Event.Create(updatedEventDto.Id, updatedEventDto.Title, updatedEventDto.Description, updatedEventDto.StartAt, updatedEventDto.EndAt, updatedEventDto.TotalSeats);
-      
-        var resultEntity = ResultEntity<Event>.Ok(updatedEvent, "Updated successfully");
+            var result = await service.GetByIdAsync(Guid.NewGuid());
 
-        _mockMapper.Setup(m => m.Map<Event>(updatedEventDto))
-                  .Returns(updatedEvent);
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccesfuly);
+            Assert.Null(result.Data);
+        }
 
-        _mockRepository.Setup(r => r.UpdateAsync(updatedEvent))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.UpdateAsync(updatedEventDto);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccesfuly);
-        Assert.Equal("Updated successfully", result.Message);
-
-        _mockRepository.Verify(r => r.UpdateAsync(It.IsAny<Event>()), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что UpdateAsync возвращает ошибку при неудачном обновлении.
-    /// </summary>
-    [Fact]
-    public async Task UpdateAsync_WhenUpdateFails_ShouldReturnFail()
-    {
-        // Arrange
-        var updatedEventDto = new EventInfoDto
+        [Fact]
+        public async Task AddAsync_WithValidDto_ShouldAddEvent()
         {
-            Id = _testEventDto.Id,
-            Title = "Updated Event",
-            StartAt = _testEventDto.StartAt,
-            EndAt = _testEventDto.EndAt,
-            TotalSeats = 5,
-            AvailableSeats = 5,
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var updatedEvent = Event.Create(updatedEventDto.Id, updatedEventDto.Title, updatedEventDto.Description, updatedEventDto.StartAt, updatedEventDto.EndAt, updatedEventDto.TotalSeats);
-        
-   
+            var dto = new EventInfoDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "New Event",
+                Description = "Desc",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(1),
+                TotalSeats = 10
+            };
 
-        var resultEntity = ResultEntity<Event>.Fail("Failed to update event");
+            var result = await service.AddAsync(dto);
 
-        _mockMapper.Setup(m => m.Map<Event>(updatedEventDto))
-                  .Returns(updatedEvent);
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccesfuly);
+            var added = await repo.GetByIdAsync(dto.Id);
+            Assert.NotNull(added.Data);
+            Assert.Equal(dto.Title, added.Data.Title);
+        }
 
-        _mockRepository.Setup(r => r.UpdateAsync(updatedEvent))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.UpdateAsync(updatedEventDto);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.False(result.IsSuccesfuly);
-        Assert.Equal("Failed to update event", result.Reason);
-    }
-
-    #endregion
-
-    #region DeleteAsync Tests
-
-    /// <summary>
-    /// Проверяет, что DeleteAsync успешно удаляет событие по ID.
-    /// </summary>
-    [Fact]
-    public async Task DeleteAsync_WithValidId_ShouldDeleteEvent()
-    {
-        // Arrange
-        var id = _testEvent.Id;
-        var resultEntity = ResultEntity<Event>.Ok("Deleted successfully");
-
-        _mockRepository.Setup(r => r.DeleteAsync(id))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.DeleteAsync(id);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccesfuly);
-        Assert.Equal("Deleted successfully", result.Message);
-
-        _mockRepository.Verify(r => r.DeleteAsync(id), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что DeleteAsync возвращает ошибку при неудачном удалении.
-    /// </summary>
-    [Fact]
-    public async Task DeleteAsync_WhenDeleteFails_ShouldReturnFail()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-        var resultEntity = ResultEntity<Event>.Fail("Failed to delete event");
-
-        _mockRepository.Setup(r => r.DeleteAsync(id))
-                      .ReturnsAsync(resultEntity);
-
-        // Act
-        var result = await _service.DeleteAsync(id);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.False(result.IsSuccesfuly);
-        Assert.Equal("Failed to delete event", result.Reason);
-    }
-
-    #endregion
-
-    #region AddRangeAsync Tests
-
-    /// <summary>
-    /// Проверяет, что AddRangeAsync успешно добавляет коллекцию событий.
-    /// </summary>
-    [Fact]
-    public async Task AddRangeAsync_WithValidDtos_ShouldAddAllEvents()
-    {
-        // Arrange
-        var eventDtos = new List<EventInfoDto>
+        [Fact]
+        public async Task AddAsync_WhenAddFails_ShouldReturnFail()
         {
-            new() { Id = Guid.NewGuid(), Title = "Event 1", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) , TotalSeats = 1,},
-            new() { Id = Guid.NewGuid(), Title = "Event 2", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) , TotalSeats = 1, }
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = eventDtos.Select(d =>  Event.Create(d.Id, d.Title, d.Description, d.StartAt, d.EndAt, d.TotalSeats)).ToList();
+            var id = Guid.NewGuid();
+            var existing = Event.Create(id, "Existing", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
+            await repo.AddAsync(existing);
+            await repo.SaveChangesAsync();
 
-        var resultEntity = ResultEntity<Event>.Ok("Added successfully");
+            var dto = new EventInfoDto
+            {
+                Id = id,
+                Title = "Duplicate",
+                Description = "Desc",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(1),
+                TotalSeats = 10
+            };
 
-        _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventInfoDto>()))
-                  .Returns((EventInfoDto dto) => Event.Create(dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats));
-         
+            var result = await service.AddAsync(dto);
 
-        _mockRepository.Setup(r => r.AddRangeAsync(It.IsAny<IEnumerable<Event>>()))
-                      .ReturnsAsync(resultEntity);
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccesfuly);
+        }
 
-        // Act
-        var result = await _service.AddRangeAsync(eventDtos);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccesfuly);
-        Assert.Equal("Added successfully", result.Message);
-
-        _mockRepository.Verify(r => r.AddRangeAsync(It.IsAny<IEnumerable<Event>>()), Times.Once);
-    }
-
-    #endregion
-
-    #region UpdateRangeAsync Tests
-
-    /// <summary>
-    /// Проверяет, что UpdateRangeAsync успешно обновляет коллекцию событий.
-    /// </summary>
-    [Fact]
-    public async Task UpdateRangeAsync_WithValidDtos_ShouldUpdateAllEvents()
-    {
-        // Arrange
-        var eventDtos = new List<EventInfoDto>
+        [Fact]
+        public async Task UpdateAsync_WithValidDto_ShouldUpdateEvent()
         {
-            new() { Id = Guid.NewGuid(), Title = "Updated Event 1", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) , TotalSeats = 1},
-            new() { Id = Guid.NewGuid(), Title = "Updated Event 2", StartAt = DateTime.Now, EndAt = DateTime.Now.AddHours(1) , TotalSeats = 1}
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = eventDtos.Select(d => Event.Create(d.Id, d.Title, d.Description, d.StartAt, d.EndAt, d.TotalSeats)).ToList();
+            var testEvent = Event.Create(Guid.NewGuid(), "Old Title", "Desc", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 10);
+            await repo.AddAsync(testEvent);
+            await repo.SaveChangesAsync();
 
-        var resultEntity = ResultEntity<Event>.Ok("Updated successfully");
+            var dto = new EventInfoDto
+            {
+                Id = testEvent.Id,
+                Title = "New Title",
+                Description = "New Desc",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(2),
+                TotalSeats = 20
+            };
 
-        _mockMapper.Setup(m => m.Map<Event>(It.IsAny<EventInfoDto>()))
-                  .Returns((EventInfoDto dto) => Event.Create(dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats));
+            var result = await service.UpdateAsync(dto);
 
-        _mockRepository.Setup(r => r.UpdateRangeAsync(It.IsAny<IEnumerable<Event>>()))
-                      .ReturnsAsync(resultEntity);
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccesfuly);
+            var updated = await repo.GetByIdAsync(testEvent.Id);
+            Assert.Equal("New Title", updated.Data.Title);
+            Assert.Equal(20, updated.Data.TotalSeats);
+        }
 
-        // Act
-        var result = await _service.UpdateRangeAsync(eventDtos);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccesfuly);
-        Assert.Equal("Updated successfully", result.Message);
-
-        _mockRepository.Verify(r => r.UpdateRangeAsync(It.IsAny<IEnumerable<Event>>()), Times.Once);
-    }
-
-    #endregion
-
-    #region IsExisted Tests
-
-    /// <summary>
-    /// Проверяет, что IsExisted возвращает true для существующего ID.
-    /// </summary>
-    [Fact]
-    public void IsExisted_WithValidId_ShouldReturnTrue()
-    {
-        // Arrange
-        var id = _testEvent.Id;
-        _mockRepository.Setup(r => r.IsExisted(id)).Returns(true);
-
-        // Act
-        var result = _service.IsExisted(id);
-
-        // Assert
-        Assert.True(result);
-        _mockRepository.Verify(r => r.IsExisted(id), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что IsExisted возвращает false для несуществующего ID.
-    /// </summary>
-    [Fact]
-    public void IsExisted_WithInvalidId_ShouldReturnFalse()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-        _mockRepository.Setup(r => r.IsExisted(id)).Returns(false);
-
-        // Act
-        var result = _service.IsExisted(id);
-
-        // Assert
-        Assert.False(result);
-        _mockRepository.Verify(r => r.IsExisted(id), Times.Once);
-    }
-
-    #endregion
-
-    #region IsExistedByTitle Tests
-
-    /// <summary>
-    /// Проверяет, что IsExistedByTitle возвращает true для существующего названия.
-    /// </summary>
-    [Fact]
-    public void IsExistedByTitle_WithValidTitle_ShouldReturnTrue()
-    {
-        // Arrange
-        var title = "Test Event";
-        _mockRepository.Setup(r => r.IsExistedByTitle(title)).Returns(true);
-
-        // Act
-        var result = _service.IsExistedByTitle(title);
-
-        // Assert
-        Assert.True(result);
-        _mockRepository.Verify(r => r.IsExistedByTitle(title), Times.Once);
-    }
-
-    /// <summary>
-    /// Проверяет, что IsExistedByTitle возвращает false для несуществующего названия.
-    /// </summary>
-    [Fact]
-    public void IsExistedByTitle_WithInvalidTitle_ShouldReturnFalse()
-    {
-        // Arrange
-        var title = "Non-existent Event";
-        _mockRepository.Setup(r => r.IsExistedByTitle(title)).Returns(false);
-
-        // Act
-        var result = _service.IsExistedByTitle(title);
-
-        // Assert
-        Assert.False(result);
-        _mockRepository.Verify(r => r.IsExistedByTitle(title), Times.Once);
-    }
-
-    #endregion
-
-    #region GetFilteredAsync Tests - Filtering
-
-    /// <summary>
-    /// Проверяет фильтрацию по названию (Title) с частичным совпадением (contains).
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithTitleFilter_ShouldReturnFilteredEvents()
-    {
-        // Arrange
-        var filter = new EventFilterDto { Title = "Test" };
-        var events = new List<Event> { _testEvent };
-        var expectedDtos = new List<EventInfoDto> { _testEventDto };
-
-        var queryable = events.AsQueryable();
-
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
-
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(_testEvent))
-                  .Returns(_testEventDto);
-
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal(_testEventDto.Id, result.Items.First().Id);
-        Assert.Equal(_testEventDto.Title, result.Items.First().Title);
-        Assert.Equal(1, result.TotalCount);
-        Assert.Equal(1, result.Page);
-        Assert.Equal(10, result.PageSize);
-    }
-
-    /// <summary>
-    /// Проверяет фильтрацию по дате начала (From): возвращает события, начинающиеся после указанной даты.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithDateFromFilter_ShouldReturnEventsAfterDate()
-    {
-        // Arrange
-        var fromDate = DateTime.Now.AddDays(-3);
-        var filter = new EventFilterDto { From = fromDate };
-
-        var events = new List<Event>
+        [Fact]
+        public async Task UpdateAsync_WhenUpdateFails_ShouldReturnFail()
         {
-            Event.Create( Guid.NewGuid(), "Past Event", "Past Event", DateTime.Now.AddDays(-5), DateTime.Now.AddDays(-4), 1), 
-            _testEvent // StartAt = DateTime.Now (после fromDate)
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
 
-        var queryable = events.AsQueryable();
+            var dto = new EventInfoDto
+            {
+                Id = Guid.NewGuid(),
+                Title = "NonExistent",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(2),
+                TotalSeats = 2,
+            };
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var result = await service.UpdateAsync(dto);
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccesfuly);
+        }
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal(_testEvent.Title, result.Items.First().Title);
-        Assert.Equal(1, result.TotalCount); // Только 1 событие после fromDate
-    }
-
-    /// <summary>
-    /// Проверяет фильтрацию по дате окончания (To): возвращает события, заканчивающиеся до указанной даты.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithDateToFilter_ShouldReturnEventsBeforeDate()
-    {
-        // Arrange
-        var toDate = DateTime.Now.AddDays(-3);
-        var filter = new EventFilterDto { To = toDate };
-
-        var pastEvent = Event.Create(Guid.NewGuid(), "Past Event", "Past Event", DateTime.Now.AddDays(-5), DateTime.Now.AddDays(-4), 1);
-         
-        var events = new List<Event>
+        [Fact]
+        public async Task DeleteAsync_WithValidId_ShouldDeleteEvent()
         {
-            pastEvent,
-            _testEvent // StartAt = DateTime.Now (после toDate)
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var queryable = events.AsQueryable();
+            var testEvent = Event.Create(Guid.NewGuid(), "ToDelete", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
+            await repo.AddAsync(testEvent);
+            await repo.SaveChangesAsync();
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var result = await service.DeleteAsync(testEvent.Id);
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccesfuly);
+            var deleted = await repo.GetByIdAsync(testEvent.Id);
+            Assert.False(deleted.IsSuccesfuly);
+        }
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal("Past Event", result.Items.First().Title);
-        Assert.Equal(1, result.TotalCount); // Только 1 событие до toDate
-    }
-
-    /// <summary>
-    /// Проверяет комбинацию нескольких фильтров (Title + From).
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithMultipleFilters_ShouldReturnFilteredEvents()
-    {
-        // Arrange
-        var fromDate = DateTime.Now.AddDays(-1);
-        var filter = new EventFilterDto
+        [Fact]
+        public async Task DeleteAsync_WithInvalidId_ShouldReturnFail()
         {
-            Title = "Alpha",
-            From = fromDate
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
 
-        var events = new List<Event>
-        { 
-              Event.Create( Guid.NewGuid(), "Alpha Event", "Past Event", DateTime.Now.AddDays(-2), DateTime.Now.AddDays(-1), 1),
-             Event.Create( Guid.NewGuid(), "Alpha Event 2", "Past Event", DateTime.Now.AddDays(-1),  DateTime.Now, 1 ),
-              Event.Create( Guid.NewGuid(), "Beta Event", "Past Event", DateTime.Now , DateTime.Now.AddDays(1), 1), 
-        };
+            var result = await service.DeleteAsync(Guid.NewGuid());
 
-        var queryable = events.AsQueryable();
+            Assert.NotNull(result);
+            Assert.False(result.IsSuccesfuly);
+        }
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
-
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt,
-                      TotalSeats = 1,
-                  });
-
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal("Alpha Event 2", result.Items.First().Title);
-        Assert.Equal(1, result.TotalCount);
-    }
-
-    /// <summary>
-    /// Проверяет, что при отсутствии подходящих событий возвращается пустой PaginatedResult.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WhenNoEventsMatchFilter_ShouldReturnEmptyPaginatedResult()
-    {
-        // Arrange
-        var filter = new EventFilterDto { Title = "NonExistent" };
-        var events = new List<Event> { _testEvent };
-        var queryable = events.AsQueryable();
-
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
-
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result.Items);
-        Assert.Equal(0, result.TotalCount);
-        Assert.Equal(1, result.Page);
-        Assert.Equal(10, result.PageSize);
-        Assert.Equal(0, result.TotalPages);
-        Assert.False(result.HasPreviousPage);
-        Assert.False(result.HasNextPage);
-    }
-
-    #endregion
-
-    #region GetFilteredAsync Tests - Sorting
-
-    /// <summary>
-    /// Проверяет сортировку по названию (Title) по возрастанию.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithSortByTitleAscending_ShouldReturnSortedEvents()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public async Task AddRangeAsync_WithValidDtos_ShouldAddAllEvents()
         {
-            SortBy = "Title",
-            SortDesc = false,
-            PageSize = 10 // Чтобы получить все элементы
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
+            var dtos = new List<EventInfoDto>
+            {
+                new() { Id = Guid.NewGuid(), Title = "Event 1", Description = "Desc1", StartAt = DateTime.UtcNow, EndAt = DateTime.UtcNow.AddHours(1), TotalSeats = 5 },
+                new() { Id = Guid.NewGuid(), Title = "Event 2", Description = "Desc2", StartAt = DateTime.UtcNow, EndAt = DateTime.UtcNow.AddHours(2), TotalSeats = 10 }
+            };
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var result = await service.AddRangeAsync(dtos);
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccesfuly);
+            var all = await repo.GetAllAsync();
+            Assert.Equal(2, all.Count());
+        }
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(3, result.Items.Count());
-        Assert.Equal(3, result.TotalCount);
-
-        var titles = result.Items.Select(e => e.Title).ToList();
-        Assert.Equal(new[] { "Alpha Event", "Beta Event", "Gamma Event" }, titles);
-    }
-
-    /// <summary>
-    /// Проверяет сортировку по названию (Title) по убыванию.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithSortByTitleDescending_ShouldReturnSortedEvents()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public async Task UpdateRangeAsync_WithValidDtos_ShouldUpdateAllEvents()
         {
-            SortBy = "Title",
-            SortDesc = true,
-            PageSize = 10 // Чтобы получить все элементы
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
+            var ev1 = Event.Create(Guid.NewGuid(), "Old1", "Desc1", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
+            var ev2 = Event.Create(Guid.NewGuid(), "Old2", "Desc2", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
+            await repo.AddRangeAsync(new[] { ev1, ev2 });
+            await repo.SaveChangesAsync();
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var dtos = new List<EventInfoDto>
+            {
+                new() { Id = ev1.Id, Title = "New1", Description = "NewDesc1", StartAt = ev1.StartAt, EndAt = ev1.EndAt, TotalSeats = 6 },
+                new() { Id = ev2.Id, Title = "New2", Description = "NewDesc2", StartAt = ev2.StartAt, EndAt = ev2.EndAt, TotalSeats = 11 }
+            };
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            var result = await service.UpdateRangeAsync(dtos);
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
+            Assert.NotNull(result);
+            Assert.True(result.IsSuccesfuly);
+            var updated1 = await repo.GetByIdAsync(ev1.Id);
+            var updated2 = await repo.GetByIdAsync(ev2.Id);
+            Assert.Equal("New1", updated1.Data.Title);
+            Assert.Equal(6, updated1.Data.TotalSeats);
+            Assert.Equal("New2", updated2.Data.Title);
+            Assert.Equal(11, updated2.Data.TotalSeats);
+        }
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(3, result.Items.Count());
-        Assert.Equal(3, result.TotalCount);
-
-        var titles = result.Items.Select(e => e.Title).ToList();
-        Assert.Equal(new[] { "Gamma Event", "Beta Event", "Alpha Event" }, titles);
-    }
-
-    /// <summary>
-    /// Проверяет сортировку по дате начала (StartAt) по возрастанию.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithSortByStartAtAscending_ShouldReturnSortedEvents()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public void IsExisted_WithValidId_ShouldReturnTrue()
         {
-            SortBy = "StartAt",
-            SortDesc = false,
-            PageSize = 10 // Чтобы получить все элементы
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
+            var testEvent = Event.Create(Guid.NewGuid(), "Test", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
+            repo.AddAsync(testEvent).Wait();
+            repo.SaveChangesAsync().Wait();
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var result = service.IsExisted(testEvent.Id);
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            Assert.True(result);
+        }
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(3, result.Items.Count());
-        Assert.Equal(3, result.TotalCount);
-
-        var startDates = result.Items.Select(e => e.StartAt).ToList();
-        Assert.Equal(startDates.OrderBy(d => d), startDates);
-    }
-
-    #endregion
-
-    #region GetFilteredAsync Tests - Pagination
-
-    /// <summary>
-    /// Проверяет пагинацию – первая страница.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithPagination_ShouldReturnFirstPage()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public void IsExisted_WithInvalidId_ShouldReturnFalse()
         {
-            Page = 1,
-            PageSize = 2
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
 
-        var events = _testEvents; // 3 события
-        var queryable = events.AsQueryable();
+            var result = service.IsExisted(Guid.NewGuid());
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            Assert.False(result);
+        }
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
-
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Items.Count()); // 2 элемента на первой странице
-        Assert.Equal(3, result.TotalCount); // Всего 3 элемента
-        Assert.Equal(1, result.Page);
-        Assert.Equal(2, result.PageSize);
-        Assert.Equal(2, result.TotalPages); // 3 элемента / 2 = 2 страницы
-        Assert.False(result.HasPreviousPage);
-        Assert.True(result.HasNextPage);
-        Assert.Equal("Alpha Event", result.Items.First().Title);
-        Assert.Equal("Beta Event", result.Items.Last().Title);
-    }
-
-    /// <summary>
-    /// Проверяет пагинацию – вторая страница.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithPagination_ShouldReturnSecondPage()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public void IsExistedByTitle_WithValidTitle_ShouldReturnTrue()
         {
-            Page = 2,
-            PageSize = 2
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = _testEvents; // 3 события
-        var queryable = events.AsQueryable();
+            var testEvent = Event.Create(Guid.NewGuid(), "UniqueTitle", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
+            repo.AddAsync(testEvent).Wait();
+            repo.SaveChangesAsync().Wait();
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var result = service.IsExistedByTitle("UniqueTitle");
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            Assert.True(result);
+        }
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items); // 1 элемент на второй странице
-        Assert.Equal(3, result.TotalCount); // Всего 3 элемента
-        Assert.Equal(2, result.Page);
-        Assert.Equal(2, result.PageSize);
-        Assert.Equal(2, result.TotalPages);
-        Assert.True(result.HasPreviousPage);
-        Assert.False(result.HasNextPage);
-        Assert.Equal("Gamma Event", result.Items.First().Title);
-    }
-
-    /// <summary>
-    /// Проверяет пагинацию вместе с сортировкой.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithPaginationAndSorting_ShouldReturnCorrectPage()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public void IsExistedByTitle_WithInvalidTitle_ShouldReturnFalse()
         {
-            SortBy = "Title",
-            SortDesc = true,
-            Page = 2,
-            PageSize = 1
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
 
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
+            var result = service.IsExistedByTitle("NonExistent");
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            Assert.False(result);
+        }
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
-
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal(3, result.TotalCount);
-        Assert.Equal(2, result.Page);
-        Assert.Equal(1, result.PageSize);
-        Assert.Equal(3, result.TotalPages);
-        Assert.Equal("Beta Event", result.Items.First().Title);
-    }
-
-    /// <summary>
-    /// Проверяет пагинацию вместе с фильтрацией.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithPaginationAndFiltering_ShouldReturnCorrectPage()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public async Task GetFilteredAsync_WithTitleFilter_ShouldReturnFilteredEvents()
         {
-            Title = "Event",
-            Page = 2,
-            PageSize = 1
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
+            var events = new[]
+            {
+                Event.Create(Guid.NewGuid(), "Alpha", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5),
+                Event.Create(Guid.NewGuid(), "Beta", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10)
+            };
+            await repo.AddRangeAsync(events);
+            await repo.SaveChangesAsync();
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var filter = new EventFilterDto { Title = "Alpha" };
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            var result = await service.GetFilteredAsync(filter);
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
+            Assert.NotNull(result);
+            Assert.Single(result.Items);
+            Assert.Equal("Alpha", result.Items.First().Title);
+            Assert.Equal(1, result.TotalCount);
+        }
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal(3, result.TotalCount);
-        Assert.Equal(2, result.Page);
-        Assert.Equal(1, result.PageSize);
-        Assert.Equal(3, result.TotalPages);
-        Assert.Equal("Beta Event", result.Items.First().Title);
-    }
-
-    /// <summary>
-    /// Проверяет, что при отсутствии явных параметров пагинации используются значения по умолчанию (Page=1, PageSize=10).
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithDefaultPagination_ShouldUseDefaultValues()
-    {
-        // Arrange
-        var filter = new EventFilterDto(); // Page=1, PageSize=10 по умолчанию
-
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
-
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
-
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
-
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(3, result.Items.Count()); // Все элементы, так как PageSize=10
-        Assert.Equal(3, result.TotalCount);
-        Assert.Equal(1, result.Page);
-        Assert.Equal(10, result.PageSize);
-        Assert.Equal(1, result.TotalPages);
-        Assert.False(result.HasPreviousPage);
-        Assert.False(result.HasNextPage);
-    }
-
-    #endregion
-
-    #region GetFilteredAsync Tests - Combination
-
-    /// <summary>
-    /// Проверяет комбинацию фильтрации, сортировки и пагинации одновременно.
-    /// </summary>
-    [Fact]
-    public async Task GetFilteredAsync_WithFilterSortAndPagination_ShouldReturnCorrectResult()
-    {
-        // Arrange
-        var filter = new EventFilterDto
+        [Fact]
+        public async Task GetFilteredAsync_WithDateFromFilter_ShouldReturnEventsAfterDate()
         {
-            Title = "Event",
-            SortBy = "Title",
-            SortDesc = true,
-            Page = 2,
-            PageSize = 1
-        };
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
-        var events = _testEvents;
-        var queryable = events.AsQueryable();
+            var now = DateTime.UtcNow;
+            var events = new[]
+            {
+                Event.Create(Guid.NewGuid(), "Past", "", now.AddDays(-5), now.AddDays(-4), 5),
+                Event.Create(Guid.NewGuid(), "Future", "", now.AddDays(1), now.AddDays(2), 10)
+            };
+            await repo.AddRangeAsync(events);
+            await repo.SaveChangesAsync();
 
-        _mockRepository.Setup(r => r.GetQueryAsync())
-                      .ReturnsAsync(queryable);
+            var filter = new EventFilterDto { From = now.AddDays(-2) };
 
-        _mockMapper.Setup(m => m.Map<EventInfoDto>(It.IsAny<Event>()))
-                  .Returns((Event e) => new EventInfoDto
-                  {
-                      Id = e.Id,
-                      Title = e.Title,
-                      StartAt = e.StartAt,
-                      EndAt = e.EndAt
-                  });
+            var result = await service.GetFilteredAsync(filter);
 
-        // Act
-        var result = await _service.GetFilteredAsync(filter);
+            Assert.NotNull(result);
+            Assert.Single(result.Items);
+            Assert.Equal("Future", result.Items.First().Title);
+        }
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result.Items);
-        Assert.Equal("Beta Event", result.Items.First().Title);
-        Assert.Equal(3, result.TotalCount);
-        Assert.Equal(2, result.Page);
-        Assert.Equal(1, result.PageSize);
-        Assert.Equal(3, result.TotalPages);
-        Assert.True(result.HasPreviousPage);
-        Assert.True(result.HasNextPage);
+        [Fact]
+        public async Task GetFilteredAsync_WithDateToFilter_ShouldReturnEventsBeforeDate()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
+
+            var now = DateTime.UtcNow;
+            var events = new[]
+            {
+                Event.Create(Guid.NewGuid(), "Past", "", now.AddDays(-5), now.AddDays(-4), 5),
+                Event.Create(Guid.NewGuid(), "Future", "", now.AddDays(1), now.AddDays(2), 10)
+            };
+            await repo.AddRangeAsync(events);
+            await repo.SaveChangesAsync();
+
+            var filter = new EventFilterDto { To = now.AddDays(-3) };
+
+            var result = await service.GetFilteredAsync(filter);
+
+            Assert.NotNull(result);
+            Assert.Single(result.Items);
+            Assert.Equal("Past", result.Items.First().Title);
+        }
+
+        [Fact]
+        public async Task GetFilteredAsync_WithSortByTitleAscending_ShouldReturnSortedEvents()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
+
+            var events = new[]
+            {
+                Event.Create(Guid.NewGuid(), "Gamma", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5),
+                Event.Create(Guid.NewGuid(), "Alpha", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10),
+                Event.Create(Guid.NewGuid(), "Beta", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(3), 15)
+            };
+            await repo.AddRangeAsync(events);
+            await repo.SaveChangesAsync();
+
+            var filter = new EventFilterDto
+            {
+                SortBy = "Title",
+                SortDesc = false,
+                PageSize = 10
+            };
+
+            var result = await service.GetFilteredAsync(filter);
+
+            Assert.NotNull(result);
+            var titles = result.Items.Select(e => e.Title).ToList();
+            Assert.Equal(new[] { "Alpha", "Beta", "Gamma" }, titles);
+        }
+
+        [Fact]
+        public async Task GetFilteredAsync_WithPagination_ShouldReturnSecondPage()
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IEventService>();
+            var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
+
+            var events = Enumerable.Range(1, 5).Select(i =>
+                Event.Create(Guid.NewGuid(), $"Event {i}", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(i), i * 5)
+            ).ToArray();
+            await repo.AddRangeAsync(events);
+            await repo.SaveChangesAsync();
+
+            var filter = new EventFilterDto
+            {
+                Page = 2,
+                PageSize = 2
+            };
+
+            var result = await service.GetFilteredAsync(filter);
+
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Items.Count());
+            Assert.Equal(5, result.TotalCount);
+            Assert.Equal(2, result.Page);
+            Assert.Equal(2, result.PageSize);
+            Assert.Equal(3, result.TotalPages);
+            Assert.Equal("Event 3", result.Items.First().Title);
+        }
+
+        #endregion
     }
-
-    #endregion
 }

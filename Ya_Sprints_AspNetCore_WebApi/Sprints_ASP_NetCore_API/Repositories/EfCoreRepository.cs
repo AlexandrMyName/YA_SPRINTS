@@ -106,7 +106,7 @@ namespace SprintASP_NetCore_API.Repositories
                 return ResultEntity<T>.Fail($"Модель с Id {item.Id} уже существует.");
              
             await _dbSet.AddAsync(item); 
-            return ResultEntity<T>.Ok(item, $"Успешно добавлено {item}");
+            return ResultEntity<T>.Ok(item, $"Успешно добавлено {item.Id}");
         }
 
         public async Task<IResultEntity<T>> DeleteAsync(Guid id)
@@ -116,7 +116,7 @@ namespace SprintASP_NetCore_API.Repositories
                 return ResultEntity<T>.Fail($"Модель с Id {id} не найдена.");
 
             _dbSet.Remove(entity); 
-            return ResultEntity<T>.Ok($"Успешно удалено: {entity}");
+            return ResultEntity<T>.Ok($"Успешно удалено: {entity.Id}");
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
