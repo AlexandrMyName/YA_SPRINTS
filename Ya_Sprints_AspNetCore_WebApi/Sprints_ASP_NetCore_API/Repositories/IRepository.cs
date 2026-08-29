@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
 using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using System.Linq.Expressions;
@@ -22,7 +19,7 @@ public interface IRepository<T> where T : class, IEntity
     Task<IResultEntity<T>> UpdateAsync(T item);
     Task<IResultEntity<T>> UpdateRangeAsync(IEnumerable<T> items);
     Task<IResultEntity<T>> DeleteAsync(Guid id);
-     
+
     bool IsExisted(Guid id);
     bool IsExistedByTitle(string name);
 
@@ -38,7 +35,7 @@ public interface IRepository<T> where T : class, IEntity
     Task<int> UpdateBatchAsync(
         Expression<Func<T, bool>> filter,
         Expression<Func<SetPropertyCalls<T>, SetPropertyCalls<T>>> setPropertyCalls);
-     
+
     Task<IDbContextTransaction> BeginTransactionAsync();
     Task<int> SaveChangesAsync(); // или Task<IResultEntity<int>>, если нужна обёртка
 }
