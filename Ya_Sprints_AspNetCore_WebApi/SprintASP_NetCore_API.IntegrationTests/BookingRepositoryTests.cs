@@ -1,7 +1,8 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
 using SprintASP_NetCore_API.Data.Entities;
-using Microsoft.EntityFrameworkCore;
+using SprintASP_NetCore_API.IntegrationTests.Fixture;
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
+using Sprints_Project_ASP_NetCore_API.Repositories;
 using Xunit;
 
 
@@ -11,12 +12,10 @@ namespace SprintASP_NetCore_API.IntegrationTests;
 /// Тесты для доменной логики
 /// (Booking)
 /// </summary>
+[Collection("DatabaseCollection")]
 public class BookingRepositoryTests : TestBase
 {
-    public BookingRepositoryTests()
-    {
-        // Конструктор пустой – репозитории будем получать внутри тестов
-    }
+    public BookingRepositoryTests(DatabaseFixture fixture) : base(fixture) { }
 
     public override async ValueTask InitializeAsync()
     {

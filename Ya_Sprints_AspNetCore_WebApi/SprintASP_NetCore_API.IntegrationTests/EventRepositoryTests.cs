@@ -1,6 +1,7 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using SprintASP_NetCore_API.IntegrationTests.Fixture;
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace SprintASP_NetCore_API.IntegrationTests;
@@ -9,9 +10,10 @@ namespace SprintASP_NetCore_API.IntegrationTests;
 /// Тесты для доменной логики
 /// (Event)
 /// </summary>
+[Collection("DatabaseCollection")]
 public class EventRepositoryTests : TestBase
 {
-    public EventRepositoryTests() { }
+    public EventRepositoryTests(DatabaseFixture fixture) : base(fixture) { }
 
     public override async ValueTask InitializeAsync()
     {

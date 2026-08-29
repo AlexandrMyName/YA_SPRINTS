@@ -1,4 +1,5 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
+﻿using SprintASP_NetCore_API.IntegrationTests.Fixture;
+using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
 using SprintASP_NetCore_API.Data.Dtos.Filters;
 using SprintASP_NetCore_API.Data.Entities;
@@ -7,14 +8,16 @@ using Xunit;
 
 namespace SprintASP_NetCore_API.IntegrationTests;
 
+
 /// <summary>
 /// Тесты для проверки фильтрации с библиотекой queryBuilder.lib
 /// Проверяют BookingFilterDto
 /// </summary>
+[Collection("DatabaseCollection")]
 public class BookingFilterTests : TestBase
 {
 
-    public BookingFilterTests() { }
+    public BookingFilterTests(DatabaseFixture fixture) : base(fixture) { }
 
     public override async ValueTask InitializeAsync()
     {

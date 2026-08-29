@@ -1,9 +1,8 @@
-﻿using SprintASP_NetCore_API.Data.Dtos.Filters;
-using SprintASP_NetCore_API.Data.Entities;
-using SprintASP_NetCore_API.Repositories;
+﻿using SprintASP_NetCore_API.IntegrationTests.Fixture; 
 using Sprints_Project_ASP_NetCore_API.Data.Entities;
 using Sprints_Project_ASP_NetCore_API.Repositories;
 using Xunit;
+
 
 namespace SprintASP_NetCore_API.IntegrationTests;
 
@@ -11,13 +10,12 @@ namespace SprintASP_NetCore_API.IntegrationTests;
 /// Тесты для проверки фильтрации с библиотекой queryBuilder.lib
 /// Проверяют EventFilterDto
 /// </summary>
+[Collection("DatabaseCollection")]
 public class EventFilterTests : TestBase
 {
 
-    public EventFilterTests()
-    {
-        
-    }
+    public EventFilterTests(DatabaseFixture fixture) : base(fixture) { }
+
 
     public override async ValueTask InitializeAsync()
     {
