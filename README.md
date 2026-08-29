@@ -1,26 +1,81 @@
 # 🚀 YA Sprints – Event Management API
 
-RESTful API для управления событиями. Проект выполнен в рамках учебного спринта.  
-Реализованы базовые CRUD-операции, валидация входных/выходных данных, версионирование, Swagger-документация, in‑memory репозиторий, пагинация, фильтрация, сортировка.
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Swagger](https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black)](https://swagger.io/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## 📦 Технологии
+## 📖 Оглавление
 
-- **.NET 9**
-- **ASP.NET Core Web API**
-- **Entity Framework Core** (PostgreSQL + InMemory для тестов)
-- **Npgsql.EntityFrameworkCore.PostgreSQL** – провайдер для PostgreSQL
-- **Swagger / Swashbuckle** – автоматическая документация
-- **AutoMapper** – маппинг сущностей и DTO
-- **Fluent API** – конфигурация моделей
-- **API Versioning** (v1.0)
-- **CORS** – настроены политики доступа
-- **xUnit + Moq** – юнит-тестирование
-- **SemaphoreSlim** – синхронизация при бронировании
-- **BackgroundService** – фоновая обработка броней
+- [О проекте](#-о-проекте)
+- [Технологии](#-технологии)
+- [Собственные библиотеки](#-собственные-библиотеки)
+- [Быстрый старт](#-быстрый-старт)
+  - [Клонирование и сборка](#-клонирование-и-сборка)
+  - [Запуск базы данных через Docker](#-запуск-базы-данных-через-docker)
+  - [Применение миграций](#-применение-миграций)
+  - [Запуск приложения](#-запуск-приложения)
+- [Миграции EF Core](#-миграции-ef-core)
+  - [Создание миграции](#создание-миграции)
+  - [Применение миграции](#применение-миграции)
+  - [Откат миграции](#откат-миграции)
+  - [Удаление последней миграции](#удаление-последней-миграции-если-не-применена)
+- [Настройка подключения к БД](#настройка-подключения-к-бд)
+- [Документация API](#-api-документация)
+- [Валидация](#-валидация)
+- [Примитивы синхронизации и защита от овербукинга](#-примитивы-синхронизации-и-защита-от-овербукинга)
+- [Пример сценария с овербукингом](#-пример-сценария-с-овербукингом)
+- [Тестирование](#-тестирование)
+- [Архитектура](#-архитектура)
+- [Оптимизация производительности](#-оптимизация-производительности)
+- [Вклад в проект](#-вклад-в-проект)
+- [Лицензия](#-лицензия)
 
-### 📚 Собственные библиотеки
+---
+
+
+
+
+## 📌 О проекте
+
+**Event Management API** – RESTful-сервис для управления событиями и бронированием мест.  
+Проект выполнен в рамках учебного спринта и демонстрирует:
+
+- Использование **Entity Framework Core** с **PostgreSQL**
+- Управление схемой базы данных через **миграции**
+- Оптимистическую блокировку через **xmin**
+- Интеграционные тесты с **Testcontainers**
+- Фоновую обработку броней через **BackgroundService**
+- Валидацию, глобальную обработку ошибок и **Swagger**-документацию
+
+---
+
+
+
+
+## 🛠 Технологии
+
+| Компонент | Технология |
+|-----------|------------|
+| **Язык** | C# 12, .NET 9 |
+| **Фреймворк** | ASP.NET Core Web API |
+| **ORM** | Entity Framework Core 9 |
+| **База данных** | PostgreSQL 15 (через Npgsql) |
+| **Миграции** | EF Core Migrations |
+| **Тестирование** | xUnit, Testcontainers.PostgreSql |
+| **Документация** | Swagger / Swashbuckle |
+| **Маппинг** | AutoMapper |
+| **Контейнеризация** | Docker / Docker Compose |
+| **Логирование** | ILogger (встроенный) |
+| **Валидация** | DataAnnotations + кастомный ActionFilter |
+| **Синхронизация** | SemaphoreSlim (асинхронные семафоры) |
+
+---
+
+## 📚 Собственные библиотеки
 
 - **`queryBuilder_Lib`** – динамическое построение запросов через Expression Trees (фильтрация, сортировка, группировка, проекция)
 - **`reflectionPropertyAccessor_Lib`** – оптимизация работы с рефлексией (кеширование методов получения и установки свойств)
@@ -28,15 +83,12 @@ RESTful API для управления событиями. Проект вып�
 
 ---
 
+
+
+
 ## 🚀 Быстрый старт
 
-### Требования
-
-- [.NET 9 SDK](https://dotnet.microsoft.com/download)
-- [PostgreSQL](https://www.postgresql.org/download/) (локально или удалённо)
-- Любая IDE (Visual Studio, Rider, VS Code)
-
-### 🛠 Клонирование, сборка и запуск
+### Клонирование и сборка
 
 ```bash
 git clone https://github.com/AlexandrMyName/YA_SPRINTS.git
@@ -47,59 +99,157 @@ dotnet run
 ```
 
 После запуска API будет доступно по адресу:
-
 ```
 https://localhost:5001
 ```
 
 Swagger UI:
-
 ```
 https://localhost:5001/swagger
 ```
 
 ---
 
+### 🐳 Запуск базы данных через Docker
 
-## 🗄️ Настройка базы данных
+В корне проекта есть папка Deployment/ с готовым docker-compose.yml.
+
+```bash
+cd Deployment
+docker-compose up -d
+```
+ Содержимое Deployment/docker-compose.yml:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ya_sprints_postgres
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: events_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+```
+⚠️ Важно: POSTGRES_HOST_AUTH_METHOD: trust упрощает аутентификацию для разработки. 
+В продакшене используйте парольную аутентификацию.
+
+
+Проверьте, что контейнер запущен:
+
+```bash
+docker ps
+```
+
+### Применение миграций
+
+После запуска базы данных примените миграции:
+
+```bash
+cd ..  # вернуться в корень решения
+dotnet ef database update --context AppDbContext
+```
+
+Или автоматически при запуске приложения (см. следующий раздел).
+
+---
+
+
+### ▶️ Запуск приложения
+
+```bash
+dotnet run --project SprintASP_NetCore_API
+```
+
+ Приложение будет доступно по адресу:
+ ``` 
+https://localhost:5001
+Swagger: https://localhost:5001/swagger)
+```
+
+ ! При первом запуске миграции применятся автоматически благодаря вызову db.Database.Migrate() в Program.cs.
+
+---
+
+
+
+
+## 📐 Миграции EF Core
+
+
+### Создание миграции
+
+
+```bash
+dotnet ef migrations add <MigrationName> --context AppDbContext
+```
+
+ Пример:
+ 
+```bash
+dotnet ef migrations add InitialCreate --context AppDbContext
+```
+
+
+### Применение миграции
+
+```bash
+dotnet ef database update --context AppDbContext
+```
+
+ 
+### Откат к предыдущей миграции
+
+```bash
+dotnet ef database update <PreviousMigrationName> --context AppDbContext
+```
+
+
+### Удаление последней миграции (если не применена)
+
+```bash
+dotnet ef migrations remove --context AppDbContext
+```
+
+
+
+
+## 🗄️ Настройка подключения к БД
+
 
 ### Строка подключения
 Строка подключения задаётся в appsettings.json (или appsettings.Development.json):
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=events_db;Username=postgres;Password=postgres"
   }
 }
 ```
 Если PostgreSQL установлен с другими параметрами – измените строку.
 
 
-### Автоматическое создание схемы
-При первом запуске приложение автоматически создаёт базу данных и все таблицы с помощью EnsureCreated():
-```csharp
- using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-}
-```
-Никаких ручных миграций не требуется – EF Core создаст структуру на основе моделей и Fluent API.
 
-## Важно
- - EnsureCreated не совместим с миграциями. Если в будущем понадобятся миграции – переключитесь на Migrate().  
-
-
-
-
-
+ 
 ## 📖 Документация API
+
 
 ### Базовый префикс
 
 ```
 /api/v1/events
 ``` 
+
 
 ### Модель события (Event)
 
@@ -116,6 +266,7 @@ https://localhost:5001/swagger
 - Поле availableSeats не передаётся при создании – оно автоматически устанавливается равным totalSeats.
 - При каждом успешном бронировании availableSeats уменьшается на 1.
 
+
 ### Таблица методов Events
 
 | Метод | Эндпоинт | Описание |
@@ -129,6 +280,7 @@ https://localhost:5001/swagger
 | PUT | `/` | Обновить несколько событий (массив) |
 | DELETE | `/{id}` | Удалить событие |
 
+
 ### Фильтрация, сортировка и пагинация (GET /)
 
 | Параметр | Тип | Описание |
@@ -141,13 +293,15 @@ https://localhost:5001/swagger
 | `Page` | int | Номер страницы (по умолчанию: 1) |
 | `PageSize` | int | Размер страницы (по умолчанию: 10, максимум: 100) |
 
-#### Пример запроса с фильтрацией
+
+### Пример запроса с фильтрацией
 
 ```http
 GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=StartAt&SortDesc=false&Page=2&PageSize=5
 ```
 
-#### Пример ответа (PaginatedResult)
+
+### Пример ответа (PaginatedResult)
 
 ```json
 {
@@ -169,6 +323,7 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
 }
 ```
 
+
 ### Пример тела запроса (CreateEventDto)
 
 ```json
@@ -181,10 +336,12 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
 }
 ```
 
+
 ### Создание бронирования
 ```
 POST /api/v1/events/{id}/book
 ```
+
 
 ### Успешный ответ
 
@@ -196,6 +353,7 @@ json
   "status": 0
 }
 ```
+
 
 ### Ошибка при отсутствии мест (409 Conflict)
 
@@ -210,17 +368,20 @@ json
 }
 ```
 
+
 ### Базовый префикс
 
 ```
 /api/v1/bookings
 ```
 
+
 ### Таблица методов Bookings
 
 | Метод | Эндпоинт | Описание |
 |-------|----------|----------|
 | GET | `/{id}` | Получить информацию о бронировании по её идентификатору. | 
+
 
 ### Пример тела ответа (BookingInfoDto)
 
@@ -236,7 +397,11 @@ json
 
 ---
 
+
+
+
 ## 🛡️ Валидация
+
 
 ### Входная валидация
 
@@ -246,9 +411,11 @@ json
   - Уникальность названий при массовом добавлении/обновлении
   - Валидация `EventFilterDto` (диапазон дат, параметры пагинации)
 
+
 ### Выходная валидация
 
 - Рекурсивная проверка DTO перед отправкой ответа (также через `ValidateInputModelAttribute` после выполнения действия)
+
 
 ### Глобальная обработка ошибок
 
@@ -258,12 +425,15 @@ json
 
  
 
+
 ## 🔒 Примитивы синхронизации и защита от овербукинга
+
 
 ### Зачем нужна синхронизация?
 - При одновременных запросах на бронирование одного события может возникнуть ситуация гонки (race condition).
 - Например, если два пользователя одновременно пытаются занять последнее свободное место, оба могут прочитать значение AvailableSeats = 1, уменьшить его до 0 и записать обратно.
 - В результате будет создано 2 брони, хотя место было только одно.
+
   
 ### Используемый примитив: SemaphoreSlim
 - В сервисе BookingService используется SemaphoreSlim с ёмкостью 1:
@@ -274,16 +444,19 @@ json
 ``` 
 - Это позволяет сериализовать операции создания бронирования – только один поток может выполнять критическую секцию одновременно.
 - Другие потоки ожидают освобождения семафора.
+
  
 ### Почему SemaphoreSlim, а не lock?
 - SemaphoreSlim поддерживает асинхронное ожидание (await WaitAsync()), что критично для async/await операций с БД или репозиторием.
 - lock не работает с await и может привести к взаимоблокировкам.
+
  
 ### Критическая секция включает:
 - 1. Проверку AvailableSeats > 0
 - 2. Уменьшение AvailableSeats на 1
 - 3. Сохранение обновлённого события в репозитории
 - 4. Создание бронирования
+
  
 ### Освобождение семафора гарантируется блоком finally, даже если произошло исключение:
 ```csharp
@@ -299,6 +472,7 @@ finally
 }
 }
 ```
+
 
 ### Откат изменений при ошибке
  
@@ -316,7 +490,11 @@ catch
 - Это гарантирует, что данные останутся консистентными даже при сбоях.
 ```
 
+
+
+
 ## 📉 Пример сценария с овербукингом
+
 
 ### Сценарий: 5 запросов на 3 места
 
@@ -337,8 +515,9 @@ catch
 - 5. Четвёртый поток проверяет availableSeats = 0 – выбрасывает NoAvailableSeatsException.
 - 6. Пятый поток – аналогично, исключение.
  
-### Как это достигается:
-- благодаря синхронизации, даже если все 5 запросов придут одновременно, овербукинг не произойдёт.
+
+благодаря синхронизации, даже если все 5 запросов придут одновременно, овербукинг не произойдёт.
+
 
 ## Юнит-тест для сценария
 ``` 
@@ -378,7 +557,11 @@ public async Task ConcurrentBookings_20Requests_5Seats_Exactly5Success_15Excepti
 ```
 ---
 
+
+
+
 ## 🧪 Тестирование
+
 
 ### Запуск тестов
 
@@ -386,8 +569,23 @@ public async Task ConcurrentBookings_20Requests_5Seats_Exactly5Success_15Excepti
 dotnet test
 ```
 
+
+### Интеграционные тесты с Testcontainers
+
+Тесты используют Testcontainers.PostgreSql, который автоматически поднимает изолированный контейнер PostgreSQL для каждого тестового запуска.
+
+Требования:
+- Docker должен быть запущен.
+- Установлен пакет Testcontainers.PostgreSql (уже добавлен в проект интеграционных тестов).
+
+Особенности:
+- Каждый тестовый класс создаёт свой контейнер.
+- Схема создаётся через EnsureCreatedAsync() (не через миграции) для скорости.
+- После каждого теста база очищается через TRUNCATE
+
+
 ### InMemory-провайдер EF Core
-В тестах используется Microsoft.EntityFrameworkCore.InMemory – каждый тестовый класс получает уникальную базу данных, что гарантирует изоляцию тестов.
+В юнит тестах используется Microsoft.EntityFrameworkCore.InMemory – каждый тестовый класс получает уникальную базу данных, что гарантирует изоляцию тестов.
 
 Пример настройки DI для тестов:
 
@@ -413,6 +611,9 @@ var provider = services.BuildServiceProvider();
 
 ---
 
+
+
+
 ## 🧩 Архитектура (слои)
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -435,6 +636,9 @@ var provider = services.BuildServiceProvider();
 - Presentation – обрабатывает HTTP, валидирует входные/выходные данные.
 - Business – содержит бизнес-логику (создание брони, проверка мест, синхронизация).
 - Data – взаимодействие с БД через EF Core, конфигурация моделей.
+
+
+
 
 ## 📁 Структура проекта
 
@@ -482,10 +686,18 @@ Ya_Sprints_AspNetCore_WebApi/
 │   ├── Program.cs
 │   ├── appsettings.json
 │   └── ...
-├── Tests/                                 # Тестовый проект
+├── UnitTests/                                 # Тестовый проект
 │   ├── Tests_EventsService_Integration.cs
 │   ├── Tests_BookingService.cs
 │   └── ...
+├── SprintASP_NetCore_API.IntegrationTests/                                 # Тестовый проект
+│   ├── BookingFilterTests.cs
+│   ├── BookingRepositoryTests.cs
+│   ├── EventFilterTests.cs
+│   ├── EventRepositoryTests.cs
+│   ├── TestBase.cs
+│   └── ...
+
 └── README.md
 ```
 ---
@@ -555,6 +767,9 @@ Ya_Sprints_AspNetCore_WebApi/
 ```
 ---
 
+
+
+
 ### 🔄 Поток данных (создание бронирования)
 ```
 1. HTTP POST /api/v1/events/{id}/book
@@ -595,17 +810,22 @@ Ya_Sprints_AspNetCore_WebApi/
 
 ---
 
+
+
+
 ## ⚡ Оптимизация производительности
 
 - **ActionFilter** – кеширование Getter и Setter выражений через `reflectionPropertyAccessor_Lib`
 - **DynamicQueryBuilder** – кеширование PropertyInfo и лямбда-выражений для фильтрации/сортировки
-- **In‑memory репозиторий** – потокобезопасный `ConcurrentDictionary` для конкурентного доступа
 - **PaginatedResult** – эффективный подсчет общего количества без загрузки всех данных
 - **Асинхронные операции** – все обращения к БД асинхронны.
 - **Оптимистическая блокировка** – через xmin для предотвращения конкурентных изменений.
 - **Батчинг** – EF Core группирует несколько SaveChanges в один раунд-трип.
 - **Кеширование** –  отсутствует (для простоты), но может быть добавлено при необходимости.
 ---
+
+
+
 
 ## 🤝 Вклад в проект
 
