@@ -1,4 +1,5 @@
 ﻿using dataBase_autoMigration_Lib;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts.Extetions;
@@ -18,8 +19,7 @@ public static class AppDbContextInitializerExtention
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();  //  создаёт схему и структуру Базы (если она не существует)
-            db.CreateOrUpdateMigration(); //  метод пытается добавить колонки , если есть в Entity , но в базе нет
+            db.Database.Migrate();  //  создаёт схему и структуру Базы (миграции) 
         }
 
         return app;

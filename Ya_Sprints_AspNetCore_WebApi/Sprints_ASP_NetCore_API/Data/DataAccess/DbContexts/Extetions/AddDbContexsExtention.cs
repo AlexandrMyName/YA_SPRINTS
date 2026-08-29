@@ -18,8 +18,14 @@ public static class AddDbContexsExtention
         if (useInMemoryEF)
         {
             services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TestDb"));
-        } else
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        }
+        else
+        {
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        }
+            
         return services;
     }
 }

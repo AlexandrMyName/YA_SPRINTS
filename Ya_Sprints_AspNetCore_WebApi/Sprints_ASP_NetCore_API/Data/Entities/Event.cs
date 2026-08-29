@@ -34,8 +34,7 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
 
         public int TotalSeats { get; set; } = default!;
         public int AvailableSeats { get; set; } = default!;
-
-        public uint Version { get; set; } // xmin в Postgres 
+         
 
         // Навигационное свойство (один ко многим)
         public ICollection<Booking> Bookings { get; private set; } = new List<Booking>();
