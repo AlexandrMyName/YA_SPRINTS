@@ -20,10 +20,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         //// Настройка свойства Version для использования xmin
         //builder.Property(e => e.Version).IsRowVersion();
         builder.Property<uint>("xmin").IsRowVersion();
-
-
-        builder.Property(b => b.CreatedAt)
-          .IsRequired();
+         
+        builder.Property(b => b.CreatedAt) .IsRequired();
 
         builder.Property(b => b.ProcessedAt);
          
@@ -32,8 +30,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .IsRequired()
             .HasConversion<string>();
 
-       // настройка связей
-        builder.HasOne(b => b.Event)                 // У Booking есть один Event
+        // настройка связей
+        builder.HasOne(b => b.Event)                // У Booking есть один Event
             .WithMany(e => e.Bookings)              // У Event есть много Booking
             .HasForeignKey(b => b.EventId)           
             .OnDelete(DeleteBehavior.Cascade);     

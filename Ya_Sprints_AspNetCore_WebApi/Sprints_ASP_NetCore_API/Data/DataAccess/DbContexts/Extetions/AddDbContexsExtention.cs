@@ -2,10 +2,13 @@
 
 using Microsoft.EntityFrameworkCore;
 
+
 namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts.Extetions;
+
 
 public static class AddDbContexsExtention
 {
+
     /// <summary>
     /// Добавляет контексты Баз Данных
     /// </summary>

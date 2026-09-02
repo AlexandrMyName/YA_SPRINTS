@@ -1,23 +1,17 @@
-﻿using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
-using SprintASP_NetCore_API.IntegrationTests.Fixture;
-using Sprints_Project_ASP_NetCore_API.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
+using SprintASP_NetCore_API.IntegrationTests.Fixture;
 using SprintASP_NetCore_API.Repositories;
-using Microsoft.EntityFrameworkCore;
+using Sprints_Project_ASP_NetCore_API.Repositories;
 using Xunit;
-
-
-namespace SprintASP_NetCore_API.IntegrationTests;
-
 
 public abstract class TestBase : IAsyncLifetime
 {
-
     protected AppDbContext DbContext { get; private set; }
     protected IServiceProvider ServiceProvider { get; private set; }
     private readonly DatabaseFixture _fixture;
 
- 
     protected TestBase(DatabaseFixture fixture)
     {
         _fixture = fixture;
@@ -25,21 +19,19 @@ public abstract class TestBase : IAsyncLifetime
 
     public virtual async ValueTask InitializeAsync()
     {
-        // контейнер из фикстуры
-        var connectionString = _fixture.Container.GetConnectionString();
 
+        var connectionString = _fixture.Container.GetConnectionString();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(connectionString)
             .Options;
 
+        // Создаём контекст для миграций (он же будет использоваться в тестах)
         DbContext = new AppDbContext(options);
+        await DbContext.Database.MigrateAsync();
 
-        // Создаём схему через EnsureCreated (или миграции, если нужно)
-        await DbContext.Database.EnsureCreatedAsync();
-
-        // Настраиваем DI
+        // Настраиваем DI с фабрикой, которая создаёт новый контекст для каждого scope
         var services = new ServiceCollection();
-        services.AddScoped<AppDbContext>(_ => DbContext);
+        services.AddScoped<AppDbContext>(_ => new AppDbContext(options));
         services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
         ServiceProvider = services.BuildServiceProvider();
 
@@ -49,7 +41,7 @@ public abstract class TestBase : IAsyncLifetime
 
     public virtual async ValueTask DisposeAsync()
     {
-        await DbContext.DisposeAsync(); 
+        await DbContext.DisposeAsync();
     }
 
     protected T GetService<T>() => ServiceProvider.GetRequiredService<T>();
