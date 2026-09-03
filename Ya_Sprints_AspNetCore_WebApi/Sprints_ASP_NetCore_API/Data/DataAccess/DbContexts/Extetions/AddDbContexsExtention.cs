@@ -2,10 +2,13 @@
 
 using Microsoft.EntityFrameworkCore;
 
+
 namespace SprintASP_NetCore_API.Data.DataAccess.DbContexts.Extetions;
+
 
 public static class AddDbContexsExtention
 {
+
     /// <summary>
     /// Добавляет контексты Баз Данных
     /// </summary>
@@ -18,8 +21,14 @@ public static class AddDbContexsExtention
         if (useInMemoryEF)
         {
             services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase("TestDb"));
-        } else
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        }
+        else
+        {
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        }
+            
         return services;
     }
 }

@@ -16,10 +16,10 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
-
+       
         // Настройка свойства Version для использования xmin
-        builder.Property(e => e.Version).IsRowVersion();
-
+        // builder.Property(e => e.Version).IsRowVersion();
+        builder.Property<uint>("xmin") .IsRowVersion();
 
         builder.Property(e => e.Title)
             .IsRequired()

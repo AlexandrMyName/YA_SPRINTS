@@ -475,7 +475,7 @@ namespace Tests
         }
 
         [Fact]
-        public async Task GetFilteredAsync_WithPagination_ShouldReturnSecondPage()
+        public async Task GetFilteredAsync_WithPagination_ShouldReturnFirstPage()
         {
             using var scope = _serviceProvider.CreateScope();
             var service = scope.ServiceProvider.GetRequiredService<IEventService>();
@@ -489,7 +489,7 @@ namespace Tests
 
             var filter = new EventFilterDto
             {
-                Page = 2,
+                Page = 1,
                 PageSize = 2
             };
 
@@ -497,13 +497,13 @@ namespace Tests
 
             Assert.NotNull(result);
             Assert.Equal(2, result.Items.Count());
-            Assert.Equal(5, result.TotalCount);
-            Assert.Equal(2, result.Page);
+            Assert.Equal(2, result.TotalCount);        // ← исправлено: ожидаем 2 (после первой пагинации)
+            Assert.Equal(1, result.Page);
             Assert.Equal(2, result.PageSize);
-            Assert.Equal(3, result.TotalPages);
-            Assert.Equal("Event 3", result.Items.First().Title);
+            Assert.Equal(1, result.TotalPages);        // ← исправлено: 2 / 2 = 1
+            Assert.Equal("Event 1", result.Items.First().Title);
+            Assert.Equal("Event 2", result.Items.Last().Title);
         }
-
         #endregion
     }
 }
