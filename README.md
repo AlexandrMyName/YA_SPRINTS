@@ -103,7 +103,7 @@ git clone https://github.com/AlexandrMyName/YA_SPRINTS.git
 cd YA_SPRINTS/Ya_Sprints_AspNetCore_WebApi
 dotnet restore
 dotnet build
-dotnet run
+dotnet run --project Sprints_ASP_NetCore_API
 ```
 
 После запуска API будет доступно по адресу:
@@ -158,11 +158,9 @@ volumes:
 ```bash
 docker ps
 ```
+ 
 
 ### Применение миграций
-
-После запуска базы данных примените миграции:
-
 ```bash
 cd ..  # вернуться в корень решения
 dotnet ef database update --context AppDbContext
@@ -197,36 +195,40 @@ Swagger: https://localhost:5001/swagger)
 
 ### Создание миграции
 
-
 ```bash
-dotnet ef migrations add <MigrationName> --context AppDbContext
+dotnet ef database update \
+  --project SprintsASP_NetCore_API.Infrastructure \
+  --startup-project Sprints_ASP_NetCore_API \
+  --context AppDbContext
 ```
-
- Пример:
- 
-```bash
-dotnet ef migrations add InitialCreate --context AppDbContext
-```
-
 
 ### Применение миграции
 
 ```bash
-dotnet ef database update --context AppDbContext
+dotnet ef database update \
+  --project SprintsASP_NetCore_API.Infrastructure \
+  --startup-project Sprints_ASP_NetCore_API \
+  --context AppDbContext
 ```
 
  
 ### Откат к предыдущей миграции
 
 ```bash
-dotnet ef database update <PreviousMigrationName> --context AppDbContext
+dotnet ef database update <PreviousMigrationName> \
+  --project SprintsASP_NetCore_API.Infrastructure \
+  --startup-project Sprints_ASP_NetCore_API \
+  --context AppDbContext
 ```
 
 
 ### Удаление последней миграции (если не применена)
 
 ```bash
-dotnet ef migrations remove --context AppDbContext
+dotnet ef migrations remove \
+  --project SprintsASP_NetCore_API.Infrastructure \
+  --startup-project Sprints_ASP_NetCore_API \
+  --context AppDbContext
 ```
 
 
@@ -625,155 +627,164 @@ var provider = services.BuildServiceProvider();
 ## 🧩 Архитектура (слои)
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Presentation Layer                     │
-│  Controllers, ActionFilters, Middleware                     │
+│                    PRESENTATION LAYER                       │
+│  Sprints_ASP_NetCore_API                                    │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Controllers/       — REST API endpoints                ││
+│  │  Middlewares/       — GlobalExceptionMiddleware         ││
+│  │  Actions/Filters/   — ActionFilters (валидация, логи)   ││
+│  │  Extensions/        — DI, CORS, Swagger, Versioning     ││
+│  │  Program.cs         — Composition Root                  ││
+│  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                       Business Layer                        │
-│  Services (Events, Bookings, Background)                    │
+│                    APPLICATION LAYER                        │
+│  SprintsASP_NetCore_API.Application                         │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  UseCases/DataServices/  — BookingService, EventsService││
+│  │  Dtos/                   — DTO + Filters                ││
+│  │  Mapping/                — AutoMapper-профили           ││
+│  │  Abstractions/           — порты: IRepository,          ││
+│  │                            ITransaction, IEntityFilter, ││
+│  │                            IInterceptLockings           ││
+│  │  Internal/               — Result<T>, PaginatedResult   ││
+│  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                      Data Access Layer                      │
-│  Repositories, DbContext, Configurations, Entities          │
+│                       DOMAIN LAYER                          │
+│  SprintsASP_NetCore_API.Domain                              │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  Entities/       — Event, Booking, BookingStatus        ││
+│  │  Abstractions/   — IEntity                              ││
+│  └─────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────┘
+                              ▲
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                    INFRASTRUCTURE LAYER                     │
+│  SprintsASP_NetCore_API.Infrastructure                      │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │  DataAccess/DbContexts/       — AppDbContext            ││
+│  │  DataAccess/Configurations/   — IEntityTypeConfiguration││
+│  │  DataAccess/Interceptors/     — SaveChangesInterceptor  ││
+│  │  DataAccess/Migrations/       — EF Core migrations      ││
+│  │  Repositories/                — EfCoreRepository<T>     ││
+│  │  Concurrency/                 — InterceptLockings       ││
+│  │  System/                      — RefDataService          ││
+│  │  BackgroundServices/          — BookingBackgroundService││
+│  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
 ```
-- Presentation – обрабатывает HTTP, валидирует входные/выходные данные.
-- Business – содержит бизнес-логику (создание брони, проверка мест, синхронизация).
-- Data – взаимодействие с БД через EF Core, конфигурация моделей.
-
-
+## Направление зависимостей:
+```
+ Presentation → Application → Domain
+              ↑
+       Infrastructure
+```
+- Domain — не зависит ни от чего.
+- Application — зависит только от Domain.
+- Infrastructure — зависит от Application и Domain.
+- Presentation — зависит от Application и Infrastructure (для Composition Root).
 
 
 ## 📁 Структура проекта
 
 ```
 Ya_Sprints_AspNetCore_WebApi/
-├── SprintASP_NetCore_API/                 # Основной проект
-│   ├── Actions/
-│   │   └── ActionFilters/
-│   │       └── ValidateInputModelAttribute.cs
+├── SprintsASP_NetCore_API.Domain/               # Доменный слой
+│   ├── Entities/
+│   │   ├── Event.cs
+│   │   ├── Booking.cs
+│   │   └── BookingStatus.cs
+│   └── Abstractions/
+│       └── IEntity.cs
+│
+├── SprintsASP_NetCore_API.Application/          # Прикладной слой
+│   ├── UseCases/DataServices/
+│   │   ├── BaseDataService.cs
+│   │   ├── BookingService.cs
+│   │   ├── EventsService.cs
+│   │   └── Contracts/
+│   │       ├── IBookingService.cs
+│   │       └── IEventService.cs
+│   ├── Dtos/
+│   │   ├── EntitiesDtos/
+│   │   ├── Filters/
+│   │   └── Internal/
+│   ├── Mapping/
+│   │   ├── MappingDtoProfile.cs
+│   │   └── MappingEntityProfile.cs
+│   ├── Abstractions/
+│   │   ├── IRepository.cs
+│   │   ├── ITransaction.cs
+│   │   ├── IEntityFilter.cs
+│   │   ├── IInterceptLockings.cs
+│   │   ├── IDataStorageService.cs
+│   │   └── IReferenciesData.cs
+│   └── DependencyInjection.cs
+│
+├── SprintsASP_NetCore_API.Infrastructure/       # Инфраструктурный слой
+│   ├── DataAccess/
+│   │   ├── DbContexts/
+│   │   ├── Configurations/
+│   │   ├── Interceptors/
+│   │   └── Migrations/
+│   ├── Repositories/
+│   │   ├── EfCoreRepository.cs
+│   │   └── BaseInMemoryRepository.cs
+│   ├── Concurrency/
+│   │   └── InterceptLockings.cs
+│   ├── System/
+│   │   └── RefDataService.cs
+│   ├── BackgroundServices/
+│   │   └── BookingBackgroundService.cs
+│   └── DependencyInjection.cs
+│
+├── Sprints_ASP_NetCore_API/                     # Presentation (Web API)
 │   ├── Controllers/
 │   │   ├── EventsController.cs
 │   │   └── BookingsController.cs
-│   ├── Data/
-│   │   ├── DataAccess/
-│   │   │   ├── Configurations/            # Fluent API конфигурации
-│   │   │   │   ├── EventConfiguration.cs
-│   │   │   │   └── BookingConfiguration.cs
-│   │   │   └── DbContexts/
-│   │   │       ├── AppDbContext.cs
-│   │   │       └── BaseDbContext.cs
-│   │   ├── Dtos/
-│   │   │   ├── EntitiesDtos/
-│   │   │   ├── Filters/
-│   │   │   └── Internal/
-│   │   └── Entities/
-│   │       ├── Booking.cs
-│   │       ├── Event.cs
-│   │       └── ...
+│   ├── Actions/
+│   │   ├── ActionFilters/
+│   │   └── Helpers/
 │   ├── Middlewares/
-│   │   └── GlobalExceptionMiddleware.cs
-│   ├── Migrations/                        # (будущие миграции)
-│   ├── ProfilesAndConfigs/
-│   │   └── MappingProfile.cs
-│   ├── Repositories/
-│   │   ├── EfCoreRepository.cs
-│   │   └── IRepository.cs
-│   ├── Services/
-│   │   ├── Background/
-│   │   │   └── BookingBackgroundService.cs
-│   │   ├── DataServices/
-│   │   │   ├── EventsService.cs
-│   │   │   └── BookingService.cs
-│   │   └── Intercepts/
-│   │       └── InterceptLockings.cs
+│   │   ├── GlobalExceptionMiddleware.cs
+│   │   └── Extentions/
+│   ├── Extentions/
+│   │   └── DatabaseInitExtensions.cs
 │   ├── Program.cs
-│   ├── appsettings.json
-│   └── ...
-├── UnitTests/                                 # Тестовый проект
-│   ├── Tests_EventsService_Integration.cs
-│   ├── Tests_BookingService.cs
-│   └── ...
-├── SprintASP_NetCore_API.IntegrationTests/                                 # Тестовый проект
+│   └── appsettings.json
+│
+├── SprintASP_NetCore_API.IntegrationTests/     # Интеграционные тесты
+│   ├── Fixture/
+│   │   └── DatabaseFixture.cs
 │   ├── BookingFilterTests.cs
 │   ├── BookingRepositoryTests.cs
 │   ├── EventFilterTests.cs
 │   ├── EventRepositoryTests.cs
-│   ├── TestBase.cs
+│   └── TestBase.cs
+│
+├── Tests/                                       # Юнит-тесты
+│   ├── Tests_EventsService.cs
+│   ├── Tests_BookingService.cs
 │   └── ...
-
+│
+├── queryBuilder_Lib/                            # Собственные библиотеки
+├── reflectionPropertyAccessor_Lib/
+├── dataBase_autoMigration_Lib/
+├── Concurrency_Lib/
+├── RefactoringNetCompile_Lib/
+├── Deployment/
+│   └── docker-compose.yml
 └── README.md
 ```
 ---
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     PRESENTATION LAYER                       │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Controllers/                                          ││
-│  │  ├── EventsController.cs                               ││
-│  │  └── BookingsController.cs                             ││
-│  │  - REST API endpoints                                   ││
-│  │  - Обработка HTTP запросов                             ││
-│  └─────────────────────────────────────────────────────────┘│
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Actions/ActionFilters/                                 ││
-│  │  - ValidateInputModelAttribute (валидация)             ││
-│  │  - LogFilterAttribute (логирование)                    ││
-│  └─────────────────────────────────────────────────────────┘│
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Middlewares/                                           ││
-│  │  - GlobalExceptionMiddleware (глобальная обработка)    ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      BUSINESS LAYER                         │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Services/                                              ││
-│  │  ├── EventsService.cs                                   ││
-│  │  ├── BookingService.cs                                 ││
-│  │  └── IDataStorageService<T> (интерфейс)               ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     DATA LAYER                              │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Repositories/                                          ││
-│  │  - BaseInMemoryRepository<T> (in-memory хранилище)     ││
-│  │  - IRepository<T> (интерфейс)                          ││
-│  └─────────────────────────────────────────────────────────┘│
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Data/Entities/                                         ││
-│  │  - Event.cs, IEvent.cs, Booking.cs, IBooking.cs        ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       DTO LAYER                             │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Data/Dtos/                                             ││
-│  │  - EntitiesDtos/ (EventInfoDto, CreateEventDto,        ││
-│  │                    BookingInfoDto, IEntityDto)          ││
-│  │  - Filters/ (EventFilterDto, IFilter<T>)               ││
-│  │  - Internal/ (ApiBaseResult, PaginatedResult)          ││
-│  └─────────────────────────────────────────────────────────┘│
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  ProfilesAndConfigs/                                    ││
-│  │  - MappingDtoProfile.cs (AutoMapper)                   ││
-│  │  - MappingEntityProfile.cs (AutoMapper)                ││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-```
----
+  
 
 
 
