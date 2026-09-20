@@ -1,10 +1,9 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos;
-using Sprints_Project_ASP_NetCore_API.Services;
-using SprintASP_NetCore_API.Controllers;
-using SprintASP_NetCore_API.Data.Dtos;
-using SprintASP_NetCore_API.Services;
+﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts; 
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events; 
+using SprintASP_NetCore_API.Application.Filters;
+using SprintASP_NetCore_API.Application.Dtos;
+using SprintASP_NetCore_API.Controllers; 
 using Microsoft.AspNetCore.Mvc;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
 using AutoMapper;
 
 
@@ -17,7 +16,16 @@ namespace Sprints_Project_ASP_NetCore_API.Controllers;
 public class EventsController : ControllerBase
 {
 
-    public EventsController(IEventService eventsService, IBookingService bookingService, IWebHostEnvironment environment, IMapper mapper)
+    private readonly IEventService _eventsService;
+    private readonly IBookingService _bookingsService;
+    private readonly IWebHostEnvironment _environment;
+    private readonly IMapper _mapper;
+
+    public EventsController(
+        IEventService eventsService,
+        IBookingService bookingService,
+        IWebHostEnvironment environment,
+        IMapper mapper)
     {
         _eventsService = eventsService;
         _bookingsService = bookingService;
@@ -25,20 +33,11 @@ public class EventsController : ControllerBase
         _mapper = mapper;
     }
 
-    private readonly IEventService _eventsService;
-    private readonly IBookingService _bookingsService;
-    private readonly IWebHostEnvironment _environment;
-    private readonly IMapper _mapper;
-
-    #region Ручки 
+    #region Ручки
 
     /// <summary>
     /// Создаёт бронирование для указанного события.
     /// </summary>
-    /// <param name="id">Идентификатор события</param>
-    /// <response code="202">Бронирование создано, возвращена информация о нём</response>
-    /// <response code="404">Событие с указанным идентификатором не найдено</response> 
-    /// <response code="409">Свободных мест для бронирования нет</response>
     [HttpPost("{id}/book")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -46,19 +45,10 @@ public class EventsController : ControllerBase
     [Produces("application/json")]
     public async Task<IActionResult> BookEvent([FromRoute] Guid id)
     {
-
         var bookingResult = await _bookingsService.CreateBookingAsync(id);
 
         var booking = bookingResult.Data;
-
         if (booking == null) throw new NullReferenceException(nameof(booking));
-
-        var response = new
-        {
-            booking.Id,
-            EventId = booking.EventId,
-            booking.Status
-        };
 
         var location = Url.Action(
             action: nameof(BookingsController.GetBooking),
@@ -69,172 +59,139 @@ public class EventsController : ControllerBase
         return Accepted(location, booking);
     }
 
-
     /// <summary>
     /// Метод возвращает событие по идентификатору
     /// </summary>
-    /// <param name="index">Параметр индекса, для получения события</param>
-    /// <response code="200">Возвращается JSON-структура с деталями ответа
-    /// и HTTP статус-кодом 200 Ok в случае успеха</response>
     [ProducesResponseType(typeof(ApiResult<EventInfoDto>), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpGet("{index:guid}")]
     public async Task<IActionResult> Get([FromRoute] Guid index)
     {
-
         var eventDto = await _eventsService.GetByIdAsync(index);
         return eventDto.IsSuccesfuly ? Ok(eventDto.Data) : NotFound(eventDto.Reason);
     }
 
+    /// <summary>
     /// Метод возвращает список событий с пагинацией и фильтрацией
-    /// </summary>  
-    /// <response code="200">Возвращает пагинированный список событий</response>
-    /// <response code="400">Ошибка валидации фильтра</response>
-    /// <response code="500">Внутренняя ошибка сервера</response>
+    /// </summary>
     [ProducesResponseType(typeof(PaginatedResult<EventInfoDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [Produces("application/json")]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] EventFilterDto? filter = null)
     {
-        // Вся валидация и обработка ошибок делегирована ActionFilter и Middleware (GlobalExceptionMiddleware)
-        filter ??= new EventFilterDto
-        {
-            Page = 1,
-            PageSize = 10
-        };
-        // Убрал Try catch. Облегчение endpoint 
+        filter ??= new EventFilterDto { Page = 1, PageSize = 10 };
+
         var paginatedResult = await _eventsService.GetFilteredAsync(filter);
         return Ok(paginatedResult);
     }
 
     /// <summary>
     /// Метод добавляет событие
-    /// </summary>  
-    /// <response code="200">Возвращается JSON-структура ApiResult
-    /// и HTTP статус-кодом 200 Created в случае успеха</response>
+    /// </summary>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status201Created)]
     [Produces("application/json")]
-    [HttpPost()]
+    [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateEventDto createDto)
     {
-
         if (createDto.Id == Guid.Empty || createDto.Id == default)
-        {
-            Guid index = Guid.NewGuid();
-            createDto.Id = index;
-        }
+            createDto.Id = Guid.NewGuid();
 
         if (_eventsService.IsExisted(createDto.Id) || _eventsService.IsExistedByTitle(createDto.Title))
-        {
             return Conflict("Уже существует сущность c таким идентификатором или названием");
-        }
 
         var result = await _eventsService.CreateEventAsync(createDto);
-        if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+        if (!result.IsSuccesfuly)
+            return BadRequest(result.Reason ?? "Не удалось обновить");
 
         return StatusCode(201, result?.Message ?? "");
     }
 
     /// <summary>
-    /// Метод добавляет - коллекцию событий
-    /// </summary>  
-    /// <response code="201">Возвращается JSON-структура ApiResult
-    /// и HTTP статус-кодом 201 Created в случае успеха</response>
+    /// Метод добавляет коллекцию событий
+    /// </summary>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status201Created)]
     [Produces("application/json")]
     [HttpPost("range")]
     public async Task<IActionResult> CreateRange([FromBody] IEnumerable<CreateEventDto> dtos)
     {
         var collectionDto = new List<EventInfoDto>();
+
         foreach (var d in dtos)
         {
             d.Id = Guid.NewGuid();
             while (_eventsService.IsExisted(d.Id)) d.Id = Guid.NewGuid();
 
-            if (_eventsService.IsExistedByTitle(d.Title)) return Conflict("Уже существует событие с таким названием: " + d.Title);
+            if (_eventsService.IsExistedByTitle(d.Title))
+                return Conflict("Уже существует событие с таким названием: " + d.Title);
+
             collectionDto.Add(_mapper.Map<EventInfoDto>(d));
         }
 
         var result = await _eventsService.AddRangeAsync(collectionDto);
-        if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+        if (!result.IsSuccesfuly)
+            return BadRequest(result.Reason ?? "Не удалось обновить");
+
         return StatusCode(201, result?.Message ?? "");
     }
 
-
     /// <summary>
-    /// Метод обновляет список - коллекция событий
-    /// </summary>  
-    /// <response code="200">Возвращается JSON-структура ApiResult
-    /// и HTTP статус-кодом 200 Created в случае успеха</response>
+    /// Метод обновляет коллекцию событий
+    /// </summary>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpPut]
     public async Task<IActionResult> UpdateRange([FromBody] IEnumerable<EventInfoDto> dtos)
     {
-
-        List<string> notExistedEvents = new(0);
+        var notExistedEvents = new List<string>();
 
         foreach (var d in dtos)
-        {
             if (!_eventsService.IsExisted(d.Id))
-            {
                 notExistedEvents.Add($"{d.Id}:{d.Title}");
-            }
-        }
 
-        // В будущем добавить проверку на уникальность названия. Если необходимо его заменить
         if (notExistedEvents.Count > 0)
-        {
             return NotFound("Не существуют указанные сущности: " + string.Join(", ", notExistedEvents));
-        }
 
         var result = await _eventsService.UpdateRangeAsync(dtos);
-        if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+        if (!result.IsSuccesfuly)
+            return BadRequest(result.Reason ?? "Не удалось обновить");
 
         return Ok(result?.Message ?? "");
-
     }
 
     /// <summary>
     /// Метод обновляет событие
-    /// </summary>  
-    /// <response code="200">Возвращается JSON-структура ApiResult
-    /// и HTTP статус-кодом 200 Created в случае успеха</response>
+    /// </summary>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpPut("{index:guid}")]
     public async Task<IActionResult> Update([FromRoute] Guid index, [FromBody] EventInfoDto dto)
     {
-
         dto.Id = index;
         if (!_eventsService.IsExisted(index))
-        {
             return NotFound("Не существует указанная сущность");
-        }
-
-        // В будущем добавить проверку на уникальность названия. Если необходимо его заменить
 
         var result = await _eventsService.UpdateAsync(dto);
-        if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось обновить");
+        if (!result.IsSuccesfuly)
+            return BadRequest(result.Reason ?? "Не удалось обновить");
 
         return Ok(result?.Message ?? "");
     }
 
     /// <summary>
     /// Метод удаляет событие
-    /// </summary>  
-    /// <response code="200">Возвращается JSON-структура ApiResult
-    /// и HTTP статус-кодом 200 Created в случае успеха</response>
+    /// </summary>
     [ProducesResponseType(typeof(ApiResult), StatusCodes.Status200OK)]
     [Produces("application/json")]
     [HttpDelete("{index:guid}")]
     public async Task<IActionResult> Delete([FromRoute] Guid index)
     {
-        if (!_eventsService.IsExisted(index)) return NotFound("Не существует указанная сущность");
+        if (!_eventsService.IsExisted(index))
+            return NotFound("Не существует указанная сущность");
 
         var result = await _eventsService.DeleteAsync(index);
-        if (!result.IsSuccesfuly) return BadRequest(result.Reason ?? "Не удалось удалить");
+        if (!result.IsSuccesfuly)
+            return BadRequest(result.Reason ?? "Не удалось удалить");
 
         return Ok(result?.Message ?? "");
     }

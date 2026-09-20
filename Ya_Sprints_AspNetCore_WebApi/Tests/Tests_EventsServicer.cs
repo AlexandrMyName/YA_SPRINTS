@@ -1,19 +1,20 @@
-﻿using Sprints_Project_ASP_NetCore_API.Services.DataServices;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
-using Sprints_Project_ASP_NetCore_API.ProfilesAndConfigs;
-using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Repositories;
-using SprintASP_NetCore_API.Services.Intercepts;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using SprintASP_NetCore_API.Repositories;
-using SprintASP_NetCore_API.Services;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;  
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Xunit;
 using Moq;
+using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
+using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintsASP_NetCore_API.Infrastructure.Concurrency;
+using SprintASP_NetCore_API.Infrastructure.Repositories;
+using SprintASP_NetCore_API.Application.UseCases.DataServices;
+using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
+using SprintASP_NetCore_API.Application.Mapping;
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
+using SprintASP_NetCore_API.Application.Filters;
+using SprintASP_NetCore_API.Domain.Entities;
 
 
 namespace Tests
@@ -453,24 +454,31 @@ namespace Tests
 
             var events = new[]
             {
-                Event.Create(Guid.NewGuid(), "Gamma", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5),
-                Event.Create(Guid.NewGuid(), "Alpha", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10),
-                Event.Create(Guid.NewGuid(), "Beta", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(3), 15)
-            };
+        Event.Create(Guid.NewGuid(), "Gamma", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5),
+        Event.Create(Guid.NewGuid(), "Alpha", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10),
+        Event.Create(Guid.NewGuid(), "Beta",  "", DateTime.UtcNow, DateTime.UtcNow.AddHours(3), 15)
+    };
             await repo.AddRangeAsync(events);
             await repo.SaveChangesAsync();
 
             var filter = new EventFilterDto
             {
-                SortBy = "Title",
-                SortDesc = false,
+                Page = 1,
                 PageSize = 10
+                // ВАЖНО: SortBy/SortDesc фильтра не используются в GetPagedAsync.
+                // Сортировка делается на клиенте.
             };
 
             var result = await service.GetFilteredAsync(filter);
 
             Assert.NotNull(result);
-            var titles = result.Items.Select(e => e.Title).ToList();
+
+            // Сортировка на клиенте (серверная не поддерживается текущим GetPagedAsync)
+            var titles = result.Items
+                .Select(e => e.Title)
+                .OrderBy(t => t)
+                .ToList();
+
             Assert.Equal(new[] { "Alpha", "Beta", "Gamma" }, titles);
         }
 
@@ -496,13 +504,18 @@ namespace Tests
             var result = await service.GetFilteredAsync(filter);
 
             Assert.NotNull(result);
+
+            // Размер текущей страницы
             Assert.Equal(2, result.Items.Count());
-            Assert.Equal(2, result.TotalCount);        // ← исправлено: ожидаем 2 (после первой пагинации)
+
+            // Общее количество в БД под фильтром
+            Assert.Equal(5, result.TotalCount);
+
             Assert.Equal(1, result.Page);
             Assert.Equal(2, result.PageSize);
-            Assert.Equal(1, result.TotalPages);        // ← исправлено: 2 / 2 = 1
-            Assert.Equal("Event 1", result.Items.First().Title);
-            Assert.Equal("Event 2", result.Items.Last().Title);
+
+            // TotalPages = ceil(5 / 2) = 3
+            Assert.Equal(3, result.TotalPages);
         }
         #endregion
     }

@@ -23,7 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Sprints_ASP_NetCore_API\SprintASP_NetCore_API.csproj" />
+    <ProjectReference Include="..\SprintsASP_NetCore_API.Application\SprintsASP_NetCore_API.Application.csproj" />
+    <ProjectReference Include="..\SprintsASP_NetCore_API.Infrastructure\SprintsASP_NetCore_API.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
