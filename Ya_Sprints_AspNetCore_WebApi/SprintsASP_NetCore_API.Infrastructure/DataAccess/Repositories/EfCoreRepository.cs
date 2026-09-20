@@ -1,16 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
- 
-using SprintASP_NetCore_API.Data.Dtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities; 
+﻿using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
 using SprintsASP_NetCore_API.Application.Abstractions;
-using SprintsASP_NetCore_API.Infrastructure.DataAccess;
-using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
+using SprintsASP_NetCore_API.Infrastructure.DataAccess; 
+using SprintASP_NetCore_API.Application.Internal;
+using SprintASP_NetCore_API.Application.Dtos;
+using SprintASP_NetCore_API.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+  
 
-
-namespace SprintASP_NetCore_API.Repositories;
+namespace SprintASP_NetCore_API.Infrastructure.Repositories;
 
 
 public class EfCoreRepository<T> : IRepository<T> where T : class, IEntity

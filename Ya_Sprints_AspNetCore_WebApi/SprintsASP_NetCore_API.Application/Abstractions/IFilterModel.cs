@@ -1,16 +1,15 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
+﻿using SprintASP_NetCore_API.Domain.Entities; 
 
 
-namespace SprintsASP_NetCore_API.Application.Abstractions
+namespace SprintsASP_NetCore_API.Application.Abstractions;
+
+
+public interface IFilterModel<T> where T : class, IEntity
 {
 
-    public interface IFilterModel<T> where T : class, IEntity
+    public void Search(Func<T, object> filter)
     {
 
-        public void Search(Func<T, object> filter)
-        {
 
-
-        }
     }
 }

@@ -1,11 +1,9 @@
-﻿ 
-using SprintASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using SprintsASP_NetCore_API.Application.Abstractions;
+﻿using SprintsASP_NetCore_API.Application.Abstractions;
+using SprintASP_NetCore_API.Domain.Entities;
 using System.Linq.Expressions;
 
 
-namespace SprintASP_NetCore_API.Data.Dtos.Filters;
+namespace SprintASP_NetCore_API.Application.Filters;
 
 
 public class BookingFilterDto : IEntityFilter<Booking>

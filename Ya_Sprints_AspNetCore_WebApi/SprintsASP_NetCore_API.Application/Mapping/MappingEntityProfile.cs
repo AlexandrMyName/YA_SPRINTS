@@ -1,11 +1,11 @@
-﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using SprintASP_NetCore_API.Data.Entities;
+﻿using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
+using SprintASP_NetCore_API.Domain.Entities;
 using AutoMapper;
+ 
 
 
-namespace Sprints_Project_ASP_NetCore_API.ProfilesAndConfigs;
+namespace SprintASP_NetCore_API.Application.Mapping;
 
 
 public class MappingEntityProfile : Profile

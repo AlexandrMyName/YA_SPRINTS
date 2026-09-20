@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Http;
+﻿using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
 using SprintASP_NetCore_API.Filters.ActionFilters;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using SprintASP_NetCore_API.Application.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc;
 using Tests.Helpers;
 using Xunit;
+
 
 namespace Tests
 {

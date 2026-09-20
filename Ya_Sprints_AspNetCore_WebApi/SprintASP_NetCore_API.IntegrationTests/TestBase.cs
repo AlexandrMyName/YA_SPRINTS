@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
+using SprintASP_NetCore_API.Infrastructure.Repositories;
 using SprintASP_NetCore_API.IntegrationTests.Fixture;
-using SprintASP_NetCore_API.Repositories;
-using Sprints_Project_ASP_NetCore_API.Repositories;
+using SprintsASP_NetCore_API.Application.Abstractions;
+using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
 using Xunit;
 
 public abstract class TestBase : IAsyncLifetime

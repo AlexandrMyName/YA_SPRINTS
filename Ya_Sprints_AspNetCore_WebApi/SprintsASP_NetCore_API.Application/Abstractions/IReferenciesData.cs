@@ -1,4 +1,4 @@
-﻿  
+﻿
 
 namespace SprintsASP_NetCore_API.Application.Abstractions;
 

@@ -1,15 +1,10 @@
-﻿using SprintASP_NetCore_API.Data.Dtos;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using SprintASP_NetCore_API.Data.Entities;
-using SprintASP_NetCore_API.Services.DataServices;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Services;
+﻿
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
+using SprintASP_NetCore_API.Application.Internal; 
+using SprintASP_NetCore_API.Domain.Entities;
 
 
-namespace SprintASP_NetCore_API.Services;
+namespace SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 
 
 /// <summary>

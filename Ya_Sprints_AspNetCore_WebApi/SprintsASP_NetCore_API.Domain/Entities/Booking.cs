@@ -1,8 +1,8 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Entities;
+﻿ 
 using System.ComponentModel;
 
 
-namespace SprintASP_NetCore_API.Data.Entities;
+namespace SprintASP_NetCore_API.Domain.Entities;
 
 
 public interface IBooking : IEntity

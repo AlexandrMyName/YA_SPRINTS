@@ -1,4 +1,4 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Entities; 
+﻿using SprintASP_NetCore_API.Domain.Entities; 
 using System.Linq.Expressions; 
 
 

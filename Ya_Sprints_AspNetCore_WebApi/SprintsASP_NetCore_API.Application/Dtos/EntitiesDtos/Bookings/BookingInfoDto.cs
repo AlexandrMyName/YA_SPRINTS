@@ -1,7 +1,9 @@
-﻿using SprintASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+﻿using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos;
+using SprintASP_NetCore_API.Domain.Entities;
 
-namespace SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;
+
+namespace SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
+
 
 public class BookingInfoDto : IBookingInfoDto
 {

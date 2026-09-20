@@ -1,11 +1,11 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using SprintASP_NetCore_API.Data.Dtos; 
-using SprintsASP_NetCore_API.Application.Abstractions;
+﻿using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos;
+using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintASP_NetCore_API.Application.Internal;
+using SprintASP_NetCore_API.Application.Dtos;
+using SprintASP_NetCore_API.Domain.Entities;
 
 
-namespace Sprints_Project_ASP_NetCore_API.Services;
+namespace SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 
 /// <summary>
 /// Интерфейс для сервиса взаимодействия с данными 

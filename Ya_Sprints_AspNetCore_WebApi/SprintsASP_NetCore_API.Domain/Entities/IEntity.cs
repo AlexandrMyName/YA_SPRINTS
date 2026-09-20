@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sprints_Project_ASP_NetCore_API.Data.Entities
+
+namespace SprintASP_NetCore_API.Domain.Entities;
+
+
+public interface IEntity
 {
-    public interface IEntity
-    {
 
-        [Key]
+    [Key]
 
-        Guid Id { get; set; } 
-    }
+    Guid Id { get; set; } 
 }

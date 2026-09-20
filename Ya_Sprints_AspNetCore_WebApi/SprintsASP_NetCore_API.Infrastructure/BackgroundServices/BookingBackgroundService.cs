@@ -1,12 +1,13 @@
-﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings;   
-using SprintASP_NetCore_API.Data.Entities;
+﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
+using SprintsASP_NetCore_API.Application.Abstractions;
+using Microsoft.Extensions.DependencyInjection; 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using SprintsASP_NetCore_API.Application.Abstractions;
+using SprintASP_NetCore_API.Domain.Entities;
 
 
-namespace SprintASP_NetCore_API.Services.Background;
+namespace SprintASP_NetCore_API.Infrastructure.BackgroundServices;
 
 
 public class BookingBackgroundService : BackgroundService
@@ -99,7 +100,7 @@ public class BookingBackgroundService : BackgroundService
                 if (!eventResult.IsSuccesfuly || eventResult.Data == null)
                 {
                     // Событие не найдено - отклоняем бронь
-                    booking.Status = Data.Entities.BookingStatus.Rejected;
+                    booking.Status =  BookingStatus.Rejected;
                     booking.ProcessedAt = DateTime.UtcNow;
                     await bookingService.UpdateBookingAsync(booking);
                     _logger.LogWarning($"Бронирование {booking.Id} отклонено: событие {booking.EventId} не найдено");
@@ -109,7 +110,7 @@ public class BookingBackgroundService : BackgroundService
                 var eventEntity = eventResult.Data;
 
                 // 4. Подтверждаем бронь
-                booking.Status = Data.Entities.BookingStatus.Confirmed;
+                booking.Status =  BookingStatus.Confirmed;
                 booking.ProcessedAt = DateTime.UtcNow;
                 await bookingService.UpdateBookingAsync(booking);
             }
@@ -118,7 +119,7 @@ public class BookingBackgroundService : BackgroundService
                 // 5. Неожиданное исключение: отклоняем бронь, возвращаем место, обновляем хранилища 
                 await eventService.ReleaseSeatsAndUpdateAsync(booking.EventId, count: 1);
 
-                booking.Status = Data.Entities.BookingStatus.Rejected;
+                booking.Status = BookingStatus.Rejected;
                 booking.ProcessedAt = DateTime.UtcNow;
                 await bookingService.UpdateBookingAsync(booking);
                 _logger.LogError(ex, $"Ошибка при обработке брони {booking.Id}, бронь отклонена, места возвращены");

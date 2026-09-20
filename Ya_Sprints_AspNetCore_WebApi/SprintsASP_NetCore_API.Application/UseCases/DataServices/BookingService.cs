@@ -1,24 +1,28 @@
-﻿using AutoMapper;
+﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings; 
+using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintASP_NetCore_API.Application.Internal;
+using SprintASP_NetCore_API.Application.Filters;
+using SprintASP_NetCore_API.Domain.Entities;
 using Microsoft.Extensions.Logging;
-using MyApp.Application.UseCases;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings; 
-using SprintASP_NetCore_API.Data.Dtos.Filters;
-using SprintASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities; 
-using SprintsASP_NetCore_API.Application.Abstractions;
+using AutoMapper;
+using SprintsASP_NetCore_API.Application.Exceptions;
 
 
-namespace SprintASP_NetCore_API.Services.DataServices;
+
+namespace SprintASP_NetCore_API.Application.UseCases.DataServices;
+
 
 public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookingService
 {
+
     private const int MaxPendingBookingsPerPage = 1000;
 
     private readonly IRepository<Event> _eventRepository;
     private readonly ILogger<BookingService> _logger;
     private readonly IMapper _mapper;
     private readonly IInterceptLockings _interceptLockings;
+
 
     public BookingService(
         IRepository<Booking> repository,
@@ -33,6 +37,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
         _interceptLockings = interceptLockings;
     }
 
+
     public async Task<IEnumerable<IBookingInfoDto>> GetPendingBookingsAsync(
         int maxCountRange = MaxPendingBookingsPerPage)
     {
@@ -46,6 +51,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
 
         return pendingBookings.Items.ToList();
     }
+
 
     public async Task<IResultDto<IBookingInfoDto>> CreateBookingAsync(Guid eventId)
     {
@@ -108,6 +114,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
         }
     }
 
+
     public async Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(Guid bookingId)
     {
         var bookingDto = await GetByIdAsync(bookingId);
@@ -117,6 +124,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
 
         return bookingDto;
     }
+
 
     public async Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item)
     {

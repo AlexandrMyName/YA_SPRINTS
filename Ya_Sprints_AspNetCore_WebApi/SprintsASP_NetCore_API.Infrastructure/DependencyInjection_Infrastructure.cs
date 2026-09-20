@@ -1,19 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using SprintASP_NetCore_API.Repositories;
-using SprintASP_NetCore_API.Services.Background;
-using SprintASP_NetCore_API.Services.Referencies;
-using SprintsASP_NetCore_API.Application.Abstractions;
-using SprintsASP_NetCore_API.Infrastructure.Concurrency;
+﻿using SprintsASP_NetCore_API.Infrastructure.DataAccess.Interceptors;
 using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
-using SprintsASP_NetCore_API.Infrastructure.DataAccess.Interceptors; 
+using SprintASP_NetCore_API.Infrastructure.BackgroundServices;
+using SprintsASP_NetCore_API.Infrastructure.Concurrency; 
+using SprintASP_NetCore_API.Infrastructure.Repositories;
+using SprintsASP_NetCore_API.Application.Abstractions;
+using SprintASP_NetCore_API.Services.Referencies;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 
-namespace SprintsASP_NetCore_API.Infrastructure;
+
+namespace SprintsASP_NetCore_API.Infrastructure.DI;
 
 
-public static class DependencyInjection
+public static class DependencyInjection_Infrastructure
 {
 
     /// <summary>
@@ -25,7 +26,7 @@ public static class DependencyInjection
     {
         // Персистентность  
         services.AddDbContext<AppDbContext>(o =>
-            o.UseNpgsql(config.GetConnectionString("Default")));
+            o.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
         services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
         services.AddScoped<AuditInterceptor>();
@@ -41,4 +42,8 @@ public static class DependencyInjection
 
         return services;
     }
+
+
+
+  
 }

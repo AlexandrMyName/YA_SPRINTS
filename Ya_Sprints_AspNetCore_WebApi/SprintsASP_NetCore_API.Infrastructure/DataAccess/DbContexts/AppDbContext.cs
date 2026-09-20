@@ -1,7 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SprintASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Data.Entities; 
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion; 
+using SprintASP_NetCore_API.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;

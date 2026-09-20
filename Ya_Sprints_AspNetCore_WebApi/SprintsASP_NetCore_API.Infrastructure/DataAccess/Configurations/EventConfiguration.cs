@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;  
+using SprintASP_NetCore_API.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 

@@ -1,4 +1,6 @@
-﻿namespace SprintsASP_NetCore_API.Application.Abstractions;
+﻿
+
+namespace SprintsASP_NetCore_API.Application.Abstractions;
 
 
 public interface IFilter<T>

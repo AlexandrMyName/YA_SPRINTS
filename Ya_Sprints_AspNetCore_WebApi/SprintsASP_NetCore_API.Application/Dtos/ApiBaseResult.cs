@@ -1,8 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Net;
+﻿using System.Net;
 
 
-namespace Sprints_Project_ASP_NetCore_API.Data.Dtos;
+namespace SprintASP_NetCore_API.Application.Dtos;
 
 /// <summary>
 /// Базовый интерфейс для работы с ApiResult

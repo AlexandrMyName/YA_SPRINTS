@@ -1,104 +1,91 @@
-﻿using SprintASP_NetCore_API.Data.Entities;
-using System.ComponentModel.DataAnnotations;
-using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿ 
+using System.ComponentModel.DataAnnotations; 
 
 
-namespace Sprints_Project_ASP_NetCore_API.Data.Entities
+
+namespace SprintASP_NetCore_API.Domain.Entities;
+
+
+public interface IEvent : IEntity
+{
+    string Title { get; }
+    string Description { get; }
+    DateTime StartAt { get; }
+    DateTime EndAt { get; }
+
+    int TotalSeats { get; set; }
+    int AvailableSeats { get; set; }
+
+    bool TryReserveSeats(int count = 1);
+    void ReleaseSeats(int count = 1);
+}
+
+
+
+public class Event : IEvent
 {
 
-    public interface IEvent : IEntity
+    [Key]
+    public Guid Id { get; set; }
+    public required string Title { get; set; } = null!;
+    public string? Description { get; set; }
+    public required DateTime StartAt { get; set; } 
+    public required DateTime EndAt { get; set; }  
+
+    public int TotalSeats { get; set; } = default!;
+    public int AvailableSeats { get; set; } = default!;
+     
+
+    // Навигационное свойство (один ко многим)
+    public ICollection<Booking> Bookings { get; private set; } = new List<Booking>();
+
+
+    private Event() { }
+
+    public Event(Guid id, string title, string description, DateTime startAt, DateTime endAt, int totalSeats)
     {
-        string Title { get; }
-        string Description { get; }
-        DateTime StartAt { get; }
-        DateTime EndAt { get; }
+        Id = id;
+        Title = title;
+        Description = description;
+        StartAt = startAt;
+        EndAt = endAt;
+        TotalSeats = totalSeats;
+        AvailableSeats = totalSeats; 
+    }
+      
 
-        int TotalSeats { get; set; }
-        int AvailableSeats { get; set; }
+    public static Event Create(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
+    {
 
-        bool TryReserveSeats(int count = 1);
-        void ReleaseSeats(int count = 1);
+        if (totalSeats <= 0) throw new ValidationException("Общее количество мест должно быть больше 0");
+        if (startAt >= endAt) throw new ValidationException("Дата начала не может быть позже или равна дате окончания");
+
+        return new Event
+        {
+            Id = id == default ? Guid.NewGuid() : id,
+            Title = title,
+            Description = description,
+            StartAt = startAt,
+            EndAt = endAt,
+            TotalSeats = totalSeats,
+            AvailableSeats = totalSeats
+        };
     }
 
 
-    public class Event : IEvent
+    public void ReleaseSeats(int count = 1)
     {
 
-        [Key]
-        public Guid Id { get; set; }
-        public required string Title { get; set; } = null!;
-        public string? Description { get; set; }
-        public required DateTime StartAt { get; set; } 
-        public required DateTime EndAt { get; set; }  
-
-        public int TotalSeats { get; set; } = default!;
-        public int AvailableSeats { get; set; } = default!;
-         
-
-        // Навигационное свойство (один ко многим)
-        public ICollection<Booking> Bookings { get; private set; } = new List<Booking>();
-
-
-        private Event() { }
-
-        public Event(Guid id, string title, string description, DateTime startAt, DateTime endAt, int totalSeats)
-        {
-            Id = id;
-            Title = title;
-            Description = description;
-            StartAt = startAt;
-            EndAt = endAt;
-            TotalSeats = totalSeats;
-            AvailableSeats = totalSeats; 
-        }
-          
-
-        public static Event Create(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
-        {
-
-            if (totalSeats <= 0) throw new ValidationException("Общее количество мест должно быть больше 0");
-            if (startAt >= endAt) throw new ValidationException("Дата начала не может быть позже или равна дате окончания");
-
-            return new Event
-            {
-                Id = id == default ? Guid.NewGuid() : id,
-                Title = title,
-                Description = description,
-                StartAt = startAt,
-                EndAt = endAt,
-                TotalSeats = totalSeats,
-                AvailableSeats = totalSeats
-            };
-        }
-
-
-        public void ReleaseSeats(int count = 1)
-        {
-
-            if ((AvailableSeats + count) > TotalSeats) throw new InvalidOperationException("Значение превышает количество мест");
-            AvailableSeats += count;
-        }
-
-
-        public bool TryReserveSeats(int count = 1)
-        {
-
-            if (AvailableSeats >= count) { AvailableSeats -= count; return true; }
-            else return false;
-        }
-
+        if ((AvailableSeats + count) > TotalSeats) throw new InvalidOperationException("Значение превышает количество мест");
+        AvailableSeats += count;
     }
 
 
-    /// <summary>
-    /// Исключение о нехватки доступных мест 
-    /// </summary>
-    public class NoAvailableSeatsException : Exception
+    public bool TryReserveSeats(int count = 1)
     {
-        public NoAvailableSeatsException(string errorMessage) : base(errorMessage)
-        {
 
-        }
+        if (AvailableSeats >= count) { AvailableSeats -= count; return true; }
+        else return false;
     }
-}
+
+} 

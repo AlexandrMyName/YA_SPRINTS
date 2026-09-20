@@ -1,21 +1,25 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Logging; 
-using SprintASP_NetCore_API.Data.Dtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
-using Sprints_Project_ASP_NetCore_API.Data.Dtos.Internal;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Services;
-using SprintsASP_NetCore_API.Application.Abstractions;
+﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
+using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos; 
+using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintASP_NetCore_API.Application.Internal;
+using SprintASP_NetCore_API.Application.Dtos; 
+using SprintASP_NetCore_API.Domain.Entities;
+using Microsoft.Extensions.Logging;
+using AutoMapper;
 
-namespace MyApp.Application.UseCases;
+
+namespace SprintASP_NetCore_API.Application.UseCases.DataServices;
+
 
 public class BaseDataService<TDto, TEntity> : IDataStorageService<TDto, TEntity>
     where TDto : class, IEntityDto
     where TEntity : class, IEntity
 {
+
     protected readonly IRepository<TEntity> Repository;
     private readonly ILogger<BaseDataService<TDto, TEntity>> _logger;
     private readonly IMapper _mapper;
+
 
     public BaseDataService(
         IRepository<TEntity> repository,

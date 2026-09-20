@@ -1,7 +1,10 @@
-﻿using Sprints_Project_ASP_NetCore_API.Data.Dtos.EntitiesDtos;
+﻿
+using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos;
 using System.ComponentModel.DataAnnotations;
 
-namespace SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
+
+namespace SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
+
 
 /// <summary>
 /// Модель для Entity (DTO) -> EventDto
