@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36717.8
+# Visual Studio Version 18
+VisualStudioVersion = 18.7.11919.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API", "Sprints_ASP_NetCore_API\SprintASP_NetCore_API.csproj", "{DB076136-062B-4E3C-893A-156820016ACA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{4283838A-3679-47D5-8B02-158C9553E52F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "Tests\UnitTests.csproj", "{4283838A-3679-47D5-8B02-158C9553E52F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DynamicLibs", "DynamicLibs", "{36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}"
 EndProject
@@ -14,6 +14,15 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "queryBuilder_Lib", "queryBuilder_Lib\queryBuilder_Lib.csproj", "{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dataBase_autoMigration_Lib", "dataBase_autoMigration_Lib\dataBase_autoMigration_Lib.csproj", "{88791357-E078-418F-92EF-0FE0B2B45A13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API.IntegrationTests", "SprintASP_NetCore_API.IntegrationTests\SprintASP_NetCore_API.IntegrationTests.csproj", "{9BFA7BB9-108B-4775-ABF5-98740D4CA247}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{519939AB-0598-4D3E-9286-CEA7CB766262}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefactoringNetCompile_Lib", "RefactoringNetCompile_Lib\RefactoringNetCompile_Lib.csproj", "{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +50,14 @@ Global
 		{88791357-E078-418F-92EF-0FE0B2B45A13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88791357-E078-418F-92EF-0FE0B2B45A13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88791357-E078-418F-92EF-0FE0B2B45A13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BFA7BB9-108B-4775-ABF5-98740D4CA247}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BFA7BB9-108B-4775-ABF5-98740D4CA247}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BFA7BB9-108B-4775-ABF5-98740D4CA247}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BFA7BB9-108B-4775-ABF5-98740D4CA247}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +66,7 @@ Global
 		{C6E4DE67-5FED-4970-AAD6-6391158FB182} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
 		{18C8B39D-ACAA-4D4C-B3FF-B43E7BB3E220} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
 		{88791357-E078-418F-92EF-0FE0B2B45A13} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
+		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AEEC30C4-F1E7-4B71-BE22-D28291FC6191}

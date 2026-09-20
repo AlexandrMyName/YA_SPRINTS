@@ -22,6 +22,7 @@ public class ConnectionInterceptor : DbConnectionInterceptor
     
     public override Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {
+
         using var command = connection.CreateCommand();
         // Устанавливаем часовой пояс для текущей сессии
         command.CommandText = "SET TIME ZONE 'UTC';";

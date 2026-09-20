@@ -59,8 +59,7 @@ public class Booking : IBooking
     /// Дата и время обработки
     /// </summary>
     public DateTime? ProcessedAt { get; set; }  
-     
-    public uint Version { get; set; } // xmin
+      
 
 
     private Booking( )

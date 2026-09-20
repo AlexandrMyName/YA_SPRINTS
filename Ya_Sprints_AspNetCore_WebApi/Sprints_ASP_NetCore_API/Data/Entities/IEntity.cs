@@ -7,8 +7,6 @@ namespace Sprints_Project_ASP_NetCore_API.Data.Entities
 
         [Key]
 
-        Guid Id { get; set; }
-         
-        public uint Version { get; set; }
+        Guid Id { get; set; } 
     }
 }

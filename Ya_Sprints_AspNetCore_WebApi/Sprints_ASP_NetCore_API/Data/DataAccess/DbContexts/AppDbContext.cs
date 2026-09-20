@@ -16,6 +16,8 @@ public class AppDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+         
+
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
 
         // Конвертер для DateTime

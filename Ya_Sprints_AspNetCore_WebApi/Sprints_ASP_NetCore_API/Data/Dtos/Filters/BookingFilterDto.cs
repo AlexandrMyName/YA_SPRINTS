@@ -8,72 +8,51 @@ namespace SprintASP_NetCore_API.Data.Dtos.Filters;
 public class BookingFilterDto : IEntityFilter<IEntity>
 {
 
-    /// <summary>
-    /// ID
-    /// </summary>
+    [BindProperty(Name = "id")]
     public Guid? Id { get; set; }
 
-    /// <summary>
-    /// ID события
-    /// </summary>
+    [BindProperty(Name = "eventId")]
     public Guid? EventId { get; set; }
 
-    /// <summary>
-    /// Статус обработки
-    /// </summary>
+    [BindProperty(Name = "status")]
     public BookingStatus? Status { get; set; }
 
-    /// <summary>
-    /// Поле для сортировки (Title, StartAt, EndAt, Priority)
-    /// </summary>
-    /// <example>StartAt</example>
     [BindProperty(Name = "sortBy")]
     public string? SortBy { get; set; }
 
-    /// <summary>
-    /// Направление сортировки: true — по убыванию, false — по возрастанию
-    /// </summary>
-    /// <example>false</example>
     [BindProperty(Name = "sortDesc")]
     public bool SortDesc { get; set; } = false;
 
-    /// <summary>
-    /// Номер страницы для пагинации (начиная с 1)
-    /// </summary>
-    /// <example>1</example>
     [BindProperty(Name = "page")]
     public int? Page { get; set; } = 1;
 
-    /// <summary>
-    /// Количество элементов на странице (максимум 100)
-    /// </summary>
-    /// <example>10</example>
     [BindProperty(Name = "pageSize")]
     public int? PageSize { get; set; } = 10;
 
-
     public IQueryable<IEntity> Apply(IQueryable<IEntity> query)
     {
-        var queryBookings = query as IQueryable<IBooking>;
+        var queryBookings = query as IQueryable<Booking>;   // используем конкретный тип
+        if (queryBookings == null)
+            throw new NullReferenceException("Query is not of type IQueryable<Booking>");
 
-        if (queryBookings != null)
-        {
-            if (Id.HasValue)
-                queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.Id), "==", Id);
+        // Фильтрация
+        if (Id.HasValue)
+            queryBookings = DynamicQueryBuilder<Booking>.ApplyFilter(queryBookings, nameof(Booking.Id), "==", Id);
 
-            if (EventId.HasValue)
-                queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.EventId), "==", EventId);
+        if (EventId.HasValue)
+            queryBookings = DynamicQueryBuilder<Booking>.ApplyFilter(queryBookings, nameof(Booking.EventId), "==", EventId);
 
-            if (Status.HasValue)
-                queryBookings = DynamicQueryBuilder<IBooking>.ApplyFilter(queryBookings, nameof(Booking.Status), "==", Status);
+        if (Status.HasValue)
+            queryBookings = DynamicQueryBuilder<Booking>.ApplyFilter(queryBookings, nameof(Booking.Status), "==", Status);
 
-            // 2. Применяем сортировку
-            if (!string.IsNullOrEmpty(SortBy))
-                queryBookings = DynamicQueryBuilder<IBooking>.ApplySort(queryBookings, SortBy, !SortDesc);
+        // Сортировка
+        if (!string.IsNullOrEmpty(SortBy))
+            queryBookings = DynamicQueryBuilder<Booking>.ApplySort(queryBookings, SortBy, !SortDesc);
 
-            return queryBookings;
-        }
+        // Пагинация
+        if (Page.HasValue && PageSize.HasValue)
+            queryBookings = queryBookings.Skip((Page.Value - 1) * PageSize.Value).Take(PageSize.Value);
 
-        throw new NullReferenceException("Query is not of type IQueryable<IEvent>");
+        return queryBookings;
     }
 }
