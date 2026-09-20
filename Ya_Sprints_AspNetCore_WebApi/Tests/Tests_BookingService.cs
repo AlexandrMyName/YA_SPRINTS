@@ -1,11 +1,8 @@
 ﻿using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Bookings; 
 using Sprints_Project_ASP_NetCore_API.Services.DataServices;
-using Sprints_Project_ASP_NetCore_API.ProfilesAndConfigs;
-using SprintASP_NetCore_API.Data.DataAccess.DbContexts;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Repositories;
-using SprintASP_NetCore_API.Services.DataServices;
-using SprintASP_NetCore_API.Services.Intercepts;
+using Sprints_Project_ASP_NetCore_API.ProfilesAndConfigs; 
+using Sprints_Project_ASP_NetCore_API.Data.Entities; 
+using SprintASP_NetCore_API.Services.DataServices; 
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using SprintASP_NetCore_API.Data.Entities;
@@ -17,6 +14,9 @@ using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Xunit;
 using Moq;
+using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
+using SprintsASP_NetCore_API.Application.Abstractions;
+using SprintsASP_NetCore_API.Infrastructure.Concurrency;
 
 
 namespace Tests
