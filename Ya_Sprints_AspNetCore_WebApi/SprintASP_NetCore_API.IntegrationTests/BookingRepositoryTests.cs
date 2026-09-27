@@ -1,40 +1,33 @@
-﻿using SprintASP_NetCore_API.IntegrationTests.Fixture;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Sprints_Project_ASP_NetCore_API.Repositories;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using SprintASP_NetCore_API.Data.Entities;
-using Microsoft.EntityFrameworkCore;
+using SprintASP_NetCore_API.Domain.Entities;
+using SprintASP_NetCore_API.IntegrationTests.Fixture;
+using SprintsASP_NetCore_API.Application.Abstractions;
 using Xunit;
-
 
 namespace SprintASP_NetCore_API.IntegrationTests;
 
 /// <summary>
-/// Тесты для доменной логики
-/// (Booking)
+/// Тесты для репозитория Booking.
 /// </summary>
 [Collection("DatabaseCollection")]
 public class BookingRepositoryTests : TestBase
 {
-
     public BookingRepositoryTests(DatabaseFixture fixture) : base(fixture) { }
 
-    
     private async Task<Event> CreateTestEventAsync()
     {
         var eventRepo = GetService<IRepository<Event>>();
         var ev = Event.Create(
-            Guid.NewGuid(),
-            "Test Event",
-            "Description",
-            DateTime.UtcNow,
-            DateTime.UtcNow.AddHours(2),
-            10
-        );
+            Guid.NewGuid(), "Test Event", "Description",
+            DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
+
         await eventRepo.AddAsync(ev);
         await eventRepo.SaveChangesAsync();
         return ev;
     }
+
+    #region CRUD
 
     [Fact]
     public async Task AddAsync_ShouldAddBooking()
@@ -42,12 +35,9 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
 
         // Act
         var result = await bookingRepo.AddAsync(booking);
@@ -55,9 +45,10 @@ public class BookingRepositoryTests : TestBase
 
         // Assert
         Assert.True(result.IsSuccesfuly);
+
         var saved = await bookingRepo.GetByIdAsync(booking.Id);
         Assert.NotNull(saved.Data);
-        Assert.Equal(BookingStatus.Pending, saved.Data.Status);
+        Assert.Equal(BookingStatus.Pending, saved.Data!.Status);
     }
 
     [Fact]
@@ -66,25 +57,25 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
+
         await bookingRepo.AddAsync(booking);
         await bookingRepo.SaveChangesAsync();
 
         // Act
         booking.Confirm();
         booking.ProcessedAt = DateTime.UtcNow;
+
         var result = await bookingRepo.UpdateAsync(booking);
         await bookingRepo.SaveChangesAsync();
 
         // Assert
         Assert.True(result.IsSuccesfuly);
+
         var updated = await bookingRepo.GetByIdAsync(booking.Id);
-        Assert.Equal(BookingStatus.Confirmed, updated.Data.Status);
+        Assert.Equal(BookingStatus.Confirmed, updated.Data!.Status);
         Assert.NotNull(updated.Data.ProcessedAt);
     }
 
@@ -94,8 +85,10 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var b1 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
         var b2 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Confirmed, DateTime.UtcNow);
+
         await bookingRepo.AddRangeAsync(new[] { b1, b2 });
         await bookingRepo.SaveChangesAsync();
 
@@ -106,25 +99,40 @@ public class BookingRepositoryTests : TestBase
         Assert.Equal(2, all.Count());
     }
 
+    #endregion
+
+    #region Фильтрация
+
     [Fact]
-    public async Task GetQueryable_ShouldFilterByStatus()
+    public async Task GetPagedAsync_ShouldFilterByStatus()
     {
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var b1 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
         var b2 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Confirmed, DateTime.UtcNow);
+
         await bookingRepo.AddRangeAsync(new[] { b1, b2 });
         await bookingRepo.SaveChangesAsync();
 
         // Act
-        var query = await bookingRepo.GetQueryAsync();
-        var pending = query.Where(b => b.Status == BookingStatus.Pending).ToList();
+        var paged = await bookingRepo.GetPagedAsync(
+            predicate: b => b.Status == BookingStatus.Pending,
+            page: 1,
+            pageSize: 10);
 
-        // Assert
-        Assert.Single(pending);
-        Assert.Equal(BookingStatus.Pending, pending.First().Status);
+        // Assert — Items это IEnumerable, приводим к списку перед индексацией
+        Assert.Equal(1, paged.TotalCount);
+
+        var items = paged.Items.ToList();
+        Assert.Single(items);
+        Assert.Equal(BookingStatus.Pending, items[0].Status);
     }
+
+    #endregion
+
+    #region Оптимистичная блокировка
 
     [Fact]
     public async Task UpdateAsync_ShouldFailOnVersionConflict()
@@ -132,36 +140,34 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
+
         await bookingRepo.AddAsync(booking);
         await bookingRepo.SaveChangesAsync();
 
-        // Получаем объект для обновления (отслеживается)
         var saved = await bookingRepo.GetByIdAsync(booking.Id);
+        Assert.NotNull(saved.Data);
 
-        // Симулируем изменение строки другим пользователем (прямой SQL) 
+        // Симулируем изменение строки другим пользователем (прямой SQL)
         await DbContext.Database.ExecuteSqlRawAsync(
             "UPDATE bookings SET \"Status\" = 'Confirmed' WHERE \"Id\" = {0}", booking.Id);
 
-        // Теперь пытаемся обновить с использованием нашего объекта (xmin уже изменён)
-        saved.Data.Confirm();
+        saved.Data!.Confirm();
         saved.Data.ProcessedAt = DateTime.UtcNow;
 
-        // При сохранении должно выброситься DbUpdateConcurrencyException
+        // Assert
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(async () =>
         {
-            var result = await bookingRepo.UpdateAsync(saved.Data);
+            await bookingRepo.UpdateAsync(saved.Data);
             await bookingRepo.SaveChangesAsync();
         });
     }
 
+    #endregion
 
-    // ____ 
+    #region Проверки существования
 
     [Fact]
     public async Task DeleteAsync_ShouldRemoveBooking()
@@ -169,12 +175,10 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
+
         await bookingRepo.AddAsync(booking);
         await bookingRepo.SaveChangesAsync();
 
@@ -184,6 +188,7 @@ public class BookingRepositoryTests : TestBase
 
         // Assert
         Assert.True(deleteResult.IsSuccesfuly);
+
         var deleted = await bookingRepo.GetByIdAsync(booking.Id);
         Assert.Null(deleted.Data);
     }
@@ -200,25 +205,21 @@ public class BookingRepositoryTests : TestBase
 
         // Assert
         Assert.False(deleteResult.IsSuccesfuly);
-        // Проверяем, что запись действительно не существовала
-        var exists = bookingRepo.IsExisted(nonExistentId);
-        Assert.False(exists);
+        Assert.False(bookingRepo.IsExisted(nonExistentId));
     }
 
     [Fact]
-    public void IsExisted_ShouldReturnTrueForExisting()
+    public async Task IsExisted_ShouldReturnTrueForExisting()
     {
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
-        var ev = CreateTestEventAsync().Result;  
+        var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
-        bookingRepo.AddAsync(booking).Wait();
-        bookingRepo.SaveChangesAsync().Wait();
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
+
+        await bookingRepo.AddAsync(booking);
+        await bookingRepo.SaveChangesAsync();
 
         // Act
         var exists = bookingRepo.IsExisted(booking.Id);
@@ -240,15 +241,21 @@ public class BookingRepositoryTests : TestBase
         // Assert
         Assert.False(exists);
     }
-    
+
+    #endregion
+
+    #region Массовые операции
+
     [Fact]
     public async Task UpdateRangeAsync_ShouldUpdateMultipleBookings()
     {
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var b1 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
         var b2 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
+
         await bookingRepo.AddRangeAsync(new[] { b1, b2 });
         await bookingRepo.SaveChangesAsync();
 
@@ -257,41 +264,20 @@ public class BookingRepositoryTests : TestBase
         b1.ProcessedAt = DateTime.UtcNow;
         b2.Confirm();
         b2.ProcessedAt = DateTime.UtcNow;
+
         var updateResult = await bookingRepo.UpdateRangeAsync(new[] { b1, b2 });
         await bookingRepo.SaveChangesAsync();
 
         // Assert
         Assert.True(updateResult.IsSuccesfuly);
+
         var all = await bookingRepo.GetAllAsync();
         Assert.All(all, b => Assert.Equal(BookingStatus.Confirmed, b.Status));
     }
 
-    [Fact]
-    public async Task UpdateBatchAsync_ShouldUpdateMultipleBookingsWithoutLoading()
-    {
-        // Arrange
-        var bookingRepo = GetService<IRepository<Booking>>();
-        var ev = await CreateTestEventAsync();
-        var b1 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
-        var b2 = Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
-        await bookingRepo.AddRangeAsync(new[] { b1, b2 });
-        await bookingRepo.SaveChangesAsync();
+    #endregion
 
-        // Act
-        var updatedCount = await bookingRepo.UpdateBatchAsync(
-            b => b.EventId == ev.Id,
-            setter => setter.SetProperty(b => b.Status,  BookingStatus.Confirmed)  
-        );
-
-        // Assert
-        Assert.Equal(2, updatedCount);
-
-        // Проверяем через свежий scope
-        using var scope = ServiceProvider.CreateScope();
-        var freshRepo = scope.ServiceProvider.GetRequiredService<IRepository<Booking>>();
-        var all = await freshRepo.GetAllAsync();
-        Assert.All(all, b => Assert.Equal(BookingStatus.Confirmed, b.Status));
-    }
+    #region Транзакции
 
     [Fact]
     public async Task BeginTransactionAsync_ShouldCommitSuccessfully()
@@ -299,12 +285,9 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
 
         // Act
         await using var transaction = await bookingRepo.BeginTransactionAsync();
@@ -323,25 +306,25 @@ public class BookingRepositoryTests : TestBase
         // Arrange
         var bookingRepo = GetService<IRepository<Booking>>();
         var ev = await CreateTestEventAsync();
+
         var booking = Booking.Create(
-            Guid.NewGuid(),
-            ev.Id,
-            BookingStatus.Pending,
-            DateTime.UtcNow
-        );
+            Guid.NewGuid(), ev.Id, BookingStatus.Pending, DateTime.UtcNow);
 
         // Act
         await using var transaction = await bookingRepo.BeginTransactionAsync();
         await bookingRepo.AddAsync(booking);
         await bookingRepo.SaveChangesAsync();
         await transaction.RollbackAsync();
-         
+
         DbContext.ChangeTracker.Clear();
 
-        // Создаём новый scope, чтобы получить свежий репозиторий с новым контекстом
+        // Свежий scope без кэша
         using var scope = ServiceProvider.CreateScope();
         var freshRepo = scope.ServiceProvider.GetRequiredService<IRepository<Booking>>();
         var saved = await freshRepo.GetByIdAsync(booking.Id);
+
         Assert.Null(saved.Data);
     }
+
+    #endregion
 }

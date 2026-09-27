@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\reflectionPropertyAccessor_Lib\reflectionPropertyAccessor_Lib.csproj" />
-    <ProjectReference Include="..\Sprints_ASP_NetCore_API\SprintASP_NetCore_API.csproj" />
+    <ProjectReference Include="..\Sprints_ASP_NetCore_API\SprintASP_NetCore_API.Presentation.csproj" />
   </ItemGroup>
 
 </Project>
