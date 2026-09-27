@@ -659,7 +659,8 @@ var provider = services.BuildServiceProvider();
 │  SprintsASP_NetCore_API.Domain                              │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │  Entities/       — Event, Booking, BookingStatus        ││
-│  │  Abstractions/   — IEntity                              ││
+│  │  Abstractions/   — IEntity                              ||
+|  |  Exceptions/   — *                                      ││
 │  └─────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────┘
                               ▲
@@ -702,6 +703,9 @@ Ya_Sprints_AspNetCore_WebApi/
 │   │   └── BookingStatus.cs
 │   └── Abstractions/
 │       └── IEntity.cs
+│   └── Exceptions/
+│       └── DuplicateEventException.cs
+│       └── NoAvailableSeatsException.cs
 │
 ├── SprintsASP_NetCore_API.Application/          # Прикладной слой
 │   ├── UseCases/DataServices/
