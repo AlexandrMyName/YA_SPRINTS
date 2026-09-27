@@ -10,6 +10,7 @@ namespace SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 public interface IEventService : IDataStorageService<IEventInfoDto, Event>
 {
     Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto);
+    Task<IResultDto<IEventInfoDto>> CreateEventsRangeAsync(IEnumerable<ICreateEventDto> dtos);
     Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item);
     Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count);
 }

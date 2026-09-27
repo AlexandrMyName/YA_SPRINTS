@@ -2,6 +2,7 @@
 using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
 using SprintsASP_NetCore_API.Application.Abstractions;
 using SprintASP_NetCore_API.Application.Internal;
+using SprintsASP_NetCore_API.Domain.Exceptions;
 using SprintASP_NetCore_API.Application.Dtos;
 using SprintASP_NetCore_API.Domain.Entities;
 using Microsoft.Extensions.Logging;
@@ -31,8 +32,7 @@ public class EventsService : IEventService
         _logger = logger;
         _mapper = mapper;
     }
-
-    // Комплексная логика  
+     
 
     public async Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count)
     {
@@ -61,11 +61,19 @@ public class EventsService : IEventService
             semaphore.Release();
         }
     }
-
-    // Одиночные операции  
+     
 
     public async Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto)
     {
+        // Бизнес-правило: гарантируем Id  
+        if (dto.Id == Guid.Empty || dto.Id == default)
+            dto.Id = Guid.NewGuid();
+
+        // Бизнес-правило: уникальность Id и Title  
+        if (IsExisted(dto.Id) || IsExistedByTitle(dto.Title))
+            throw new DuplicateEventException(
+                $"Событие с Id={dto.Id} или Title='{dto.Title}' уже существует");
+
         var semaphore = _interceptLockings.GetOrAddByEventId(dto.Id);
         await semaphore.WaitAsync();
 
@@ -84,7 +92,7 @@ public class EventsService : IEventService
             await _repository.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            _logger.LogInformation($"Добавлена модель: {eventEntity?.Id}");
+            _logger.LogInformation($"Добавлена модель: {eventEntity.Id}");
             return ResultDto<IEventInfoDto>.Ok(
                 _mapper.Map<EventInfoDto>(eventEntity), result?.Message ?? "");
         }
@@ -99,6 +107,37 @@ public class EventsService : IEventService
         }
     }
 
+    /// <summary>
+    /// Массовое создание событий: генерация Id, проверка уникальности, маппинг.
+    /// </summary>
+    public async Task<IResultDto<IEventInfoDto>> CreateEventsRangeAsync(IEnumerable<ICreateEventDto> dtos)
+    {
+        var dtoList = dtos.ToList();
+        if (!dtoList.Any())
+            return ResultDto<IEventInfoDto>.Fail("Список пуст");
+
+        // Бизнес-правило: заполнить Id и проверить уникальность  
+        var prepared = new List<EventInfoDto>(dtoList.Count);
+
+        foreach (var d in dtoList)
+        {
+            if (d.Id == Guid.Empty || d.Id == default)
+                d.Id = Guid.NewGuid();
+
+            // Дополнительно: не сталкиваться с уже сгенерированными в этом же запросе
+            while (IsExisted(d.Id) || prepared.Any(p => p.Id == d.Id))
+                d.Id = Guid.NewGuid();
+
+            if (IsExistedByTitle(d.Title))
+                throw new DuplicateEventException(
+                    $"Событие с названием '{d.Title}' уже существует");
+
+            prepared.Add(_mapper.Map<EventInfoDto>(d));
+        }
+         
+        return await AddRangeAsync(prepared);
+    }
+
     public async Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item)
     {
         var result = await UpdateAsync(item);
@@ -110,7 +149,7 @@ public class EventsService : IEventService
         return ResultDto<IEventInfoDto>.Fail(result.Reason ?? "");
     }
 
-    // CRUD (реализация IDataStorageService)  
+     
 
     public async Task<IResultDto<IEventInfoDto>> AddAsync(IEventInfoDto item)
     {
@@ -205,7 +244,7 @@ public class EventsService : IEventService
         }
     }
 
-    // Массовые операции  
+   
 
     public async Task<IResultDto<IEventInfoDto>> AddRangeAsync(IEnumerable<IEventInfoDto> items)
     {
@@ -254,6 +293,12 @@ public class EventsService : IEventService
         if (!itemList.Any())
             return ResultDto<IEventInfoDto>.Fail("Список пуст");
 
+        // Бизнес-правило: все сущности должны существовать  
+        var missing = itemList.Where(i => !IsExisted(i.Id)).Select(i => $"{i.Id}:{i.Title}").ToList();
+        if (missing.Count > 0)
+            return ResultDto<IEventInfoDto>.Fail(
+                "Не существуют указанные сущности: " + string.Join(", ", missing));
+
         var ids = itemList.Select(i => i.Id).OrderBy(id => id).ToList();
         var semaphores = ids.Select(id => _interceptLockings.GetOrAddByEventId(id)).ToList();
 
@@ -288,8 +333,7 @@ public class EventsService : IEventService
                 sem.Release();
         }
     }
-
-    // Чтение  
+ 
 
     public async Task<IEnumerable<IEventInfoDto>> GetAllAsync()
     {
@@ -298,6 +342,7 @@ public class EventsService : IEventService
         _logger.LogInformation($"Количество: {events.Count()} данных");
         return events.Select(e => _mapper.Map<IEventInfoDto>(e)).ToList();
     }
+
 
     public async Task<PaginatedResult<IEventInfoDto>> GetFilteredAsync(IEntityFilter<Event> filter)
     {
@@ -315,6 +360,7 @@ public class EventsService : IEventService
         return PaginatedResult<IEventInfoDto>.Create(dtos, paged.TotalCount, paged.Page, paged.PageSize);
     }
 
+
     public async Task<IResultDto<IEventInfoDto>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation("Запрос события с ID: " + id);
@@ -329,6 +375,9 @@ public class EventsService : IEventService
         return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
     }
 
+
     public bool IsExisted(Guid id) => _repository.IsExisted(id);
+
+
     public bool IsExistedByTitle(string name) => _repository.IsExistedByTitle(name);
 }

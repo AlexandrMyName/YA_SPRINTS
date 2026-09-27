@@ -6,7 +6,7 @@ using SprintASP_NetCore_API.Application.Filters;
 using SprintASP_NetCore_API.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
-using SprintsASP_NetCore_API.Application.Exceptions;
+using SprintsASP_NetCore_API.Domain.Exceptions;
 
 
 

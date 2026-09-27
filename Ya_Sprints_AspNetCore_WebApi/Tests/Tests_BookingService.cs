@@ -14,9 +14,9 @@ using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 using SprintASP_NetCore_API.Application.UseCases.DataServices;
 using SprintASP_NetCore_API.Infrastructure.Repositories;
 using SprintASP_NetCore_API.Application.Mapping;
-using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
-using SprintsASP_NetCore_API.Application.Exceptions;
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings; 
 using SprintASP_NetCore_API.Domain.Entities;
+using SprintsASP_NetCore_API.Domain.Exceptions;
 
 
 namespace Tests;
