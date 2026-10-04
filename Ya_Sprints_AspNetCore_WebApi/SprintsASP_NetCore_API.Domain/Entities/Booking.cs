@@ -75,10 +75,11 @@ public class Booking : IBooking
     private Booking() { }
 
 
-    public static Booking Create(Guid bookingId, Guid eventId, BookingStatus status, DateTime createdAt, DateTime? processedAt = default)
+    public static Booking Create(Guid bookingId, Guid eventId, Guid userId, BookingStatus status, DateTime createdAt, DateTime? processedAt = default)
     {
         return new Booking()
         {
+            UserId = userId,
             CreatedAt = createdAt,
             ProcessedAt = processedAt,
             EventId = eventId,
