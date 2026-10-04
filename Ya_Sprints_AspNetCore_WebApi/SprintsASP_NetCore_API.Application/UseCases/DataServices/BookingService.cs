@@ -34,7 +34,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
         _interceptLockings = interceptLockings;
     }
 
-    // ===================== Чтение =====================
+    #region Чтение
 
     public async Task<IEnumerable<IBookingInfoDto>> GetPendingBookingsAsync(
         int maxCountRange = MaxPendingBookingsPerPage)
@@ -49,17 +49,25 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
         return pendingBookings.Items.ToList();
     }
 
-    public async Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(Guid bookingId)
+    public async Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(
+        Guid bookingId, Guid userId, bool isAdmin)
     {
         var bookingDto = await GetByIdAsync(bookingId);
 
-        if (!bookingDto.IsSuccesfuly)
-            throw new KeyNotFoundException("Booking not found");
+        if (!bookingDto.IsSuccesfuly || bookingDto.Data == null)
+            throw new KeyNotFoundException($"Бронь {bookingId} не найдена");
+
+        // Проверка прав: пользователь — только свою, Admin — любую
+        if (!isAdmin && bookingDto.Data.UserId != userId)
+            throw new NoRightsException(
+                $"Пользователь {userId} не может просматривать чужую бронь {bookingId}");
 
         return bookingDto;
     }
 
-    #region Создание  
+    #endregion
+
+    #region Создание
 
     public async Task<IResultDto<IBookingInfoDto>> CreateBookingAsync(Guid eventId, Guid userId)
     {
@@ -83,7 +91,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
             if (eventEntity == null)
                 throw new NullReferenceException("Data was null");
 
-            // 2. Событие ещё не началось
+            // 2. Событие уже началось
             if (eventEntity.StartAt <= DateTime.UtcNow)
                 throw new EventAlreadyStartedException(eventEntity.Id, eventEntity.StartAt);
 
@@ -106,7 +114,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
             {
                 Id = Guid.NewGuid(),
                 EventId = eventId,
-                UserId = userId,                        
+                UserId = userId,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = null
@@ -155,9 +163,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
 
     #endregion
 
-
-
-    #region Отмена  
+    #region Отмена
 
     public async Task<IResultDto<IBookingInfoDto>> CancelBookingAsync(
         Guid bookingId, Guid userId, bool isAdmin)
@@ -187,11 +193,16 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
             if (!update.IsSuccesfuly)
                 throw new Exception("Не удалось отменить бронь: " + update.Reason);
 
+            // 3. Возвращаем место на событие — ВНУТРИ той же транзакции
+            var eventResult = await _eventRepository.GetByIdAsync(booking.EventId);
+            if (eventResult.IsSuccesfuly && eventResult.Data != null)
+            {
+                eventResult.Data.ReleaseSeats(1);
+                await _eventRepository.UpdateAsync(eventResult.Data);
+            }
+
             await Repository.SaveChangesAsync();
             await transaction.CommitAsync();
-
-            // Возвращаем место обратно на событие
-            await ReleaseSeatForEventAsync(booking.EventId);
 
             _logger.LogInformation(
                 "Бронь {BookingId} отменена пользователем {UserId} (isAdmin={IsAdmin})",
@@ -211,43 +222,9 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
         }
     }
 
-    /// <summary>
-    /// Возвращает одно место на событие после отмены брони.
-    /// </summary>
-    private async Task ReleaseSeatForEventAsync(Guid eventId)
-    {
-        var sem = _interceptLockings.GetOrAddByEventId(eventId);
-        await sem.WaitAsync();
-        try
-        {
-            await using var tx = await _eventRepository.BeginTransactionAsync();
-            try
-            {
-                var eventResult = await _eventRepository.GetByIdAsync(eventId);
-                if (!eventResult.IsSuccesfuly || eventResult.Data == null)
-                    return;
-
-                eventResult.Data.ReleaseSeats(1);
-                await _eventRepository.UpdateAsync(eventResult.Data);
-                await _eventRepository.SaveChangesAsync();
-                await tx.CommitAsync();
-            }
-            catch
-            {
-                await tx.RollbackAsync();
-                throw;
-            }
-        }
-        finally
-        {
-            sem.Release();
-        }
-    }
-
     #endregion
 
-
-    #region  Обновление
+    #region Обновление
 
     public async Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item)
     {

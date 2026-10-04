@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;  
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;  
 using SprintASP_NetCore_API.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+using SprintsASP_NetCore_API.Domain.Entities;
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.DataAccess.Configurations;
@@ -31,10 +32,15 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
             .HasConversion<string>();
 
         // настройка связей
-        builder.HasOne(b => b.Event)                // У Booking есть один Event
-            .WithMany(e => e.Bookings)              // У Event есть много Booking
+        builder.HasOne(b => b.Event)                
+            .WithMany(e => e.Bookings)             
             .HasForeignKey(b => b.EventId)           
-            .OnDelete(DeleteBehavior.Cascade);     
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<User>()
+           .WithMany()
+           .HasForeignKey(b => b.UserId)
+           .OnDelete(DeleteBehavior.Restrict);
 
     }
 }

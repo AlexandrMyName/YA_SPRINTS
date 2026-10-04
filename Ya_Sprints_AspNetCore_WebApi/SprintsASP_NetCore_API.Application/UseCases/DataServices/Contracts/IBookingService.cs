@@ -7,20 +7,20 @@ namespace SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 
 
 /// <summary>
-/// Абстракция сервиса хранилища (IBookingService) - Сервис-хранилище бронирования
-/// </summary> 
+/// Абстракция сервиса хранилища (IBookingService) - Сервис-хранилище бронирования.
+/// </summary>
 public interface IBookingService : IDataStorageService<IBookingInfoDto, Booking>
 {
+    /// <summary>
+    /// Получить бронь по Id. Проверяет права: пользователь — только свою, Admin — любую.
+    /// </summary>
+    Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(Guid bookingId, Guid userId, bool isAdmin);
+
     /// <summary>
     /// Создать бронь от имени пользователя. Проверки: событие существует, не началось,
     /// лимит активных броней пользователя, есть свободные места.
     /// </summary>
     Task<IResultDto<IBookingInfoDto>> CreateBookingAsync(Guid eventId, Guid userId);
-
-    /// <summary>
-    /// Получить бронь по Id. Бросает KeyNotFoundException, если нет.
-    /// </summary>
-    Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(Guid bookingId);
 
     /// <summary>
     /// Отменить бронь. isAdmin = true разрешает отмену чужой брони.
