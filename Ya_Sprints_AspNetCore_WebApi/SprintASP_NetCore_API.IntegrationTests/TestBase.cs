@@ -47,8 +47,14 @@ public abstract class TestBase : IAsyncLifetime
     protected T GetService<T>() => ServiceProvider.GetRequiredService<T>();
 
     protected async Task ClearDatabaseAsync()
-    {
-        await DbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"events\" RESTART IDENTITY CASCADE;");
-        await DbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"bookings\" RESTART IDENTITY CASCADE;");
+    { 
+
+        await DbContext.Database.ExecuteSqlRawAsync(@"
+            TRUNCATE TABLE
+                refresh_tokens,
+                bookings,
+                events,
+                users
+            RESTART IDENTITY CASCADE");
     }
 }

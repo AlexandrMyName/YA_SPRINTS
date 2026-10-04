@@ -44,15 +44,28 @@ public class GlobalExceptionMiddleware
     {
         // Определяем статус-код
         var statusCode = exception switch
-        {
-            ArgumentException => (int)HttpStatusCode.BadRequest,
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
-            InvalidOperationException => (int)HttpStatusCode.BadRequest,
-            KeyNotFoundException => (int)HttpStatusCode.NotFound,
-            NotImplementedException => (int)HttpStatusCode.NotImplemented,
-            NoAvailableSeatsException => (int)HttpStatusCode.Conflict,
-            DuplicateEventException   => (int)HttpStatusCode.Conflict,
+        {   
+            InvalidCredentialsException  => (int)HttpStatusCode.Unauthorized,
+            InvalidRefreshTokenException => (int)HttpStatusCode.Unauthorized,
+            UserAlreadyExistsException   => (int)HttpStatusCode.Conflict,  
+            UnauthorizedAccessException  => (int)HttpStatusCode.Unauthorized,
+
+            ArgumentException            => (int)HttpStatusCode.BadRequest,
+            InvalidOperationException    => (int)HttpStatusCode.BadRequest,
+            KeyNotFoundException         => (int)HttpStatusCode.NotFound,
+            NotImplementedException      => (int)HttpStatusCode.NotImplemented,
+            NoAvailableSeatsException    => (int)HttpStatusCode.Conflict,
+            DuplicateEventException      => (int)HttpStatusCode.Conflict,
             DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict,
+
+            ActiveBookingsLimitExceededException  => (int)HttpStatusCode.Conflict,   
+            BookingAlreadyCancelledException      => (int)HttpStatusCode.Conflict,    
+            CannotCancelConfirmedBookingException => (int)HttpStatusCode.Conflict,
+            EventAlreadyStartedException          => (int)HttpStatusCode.BadRequest,
+
+            NoRightsException => (int)HttpStatusCode.Forbidden,
+             
+             
             _ => (int)HttpStatusCode.InternalServerError
         };
 

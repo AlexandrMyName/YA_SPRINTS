@@ -1,18 +1,28 @@
-﻿using System.ComponentModel.DataAnnotations;
-using reflectionPropertyAccessor_Lib;
+﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-using System.Collections;
+using reflectionPropertyAccessor_Lib;
 
+namespace SprintASP_NetCore_API.Filters.ActionFilters;
+
+/// <summary>
+/// Рекурсивный валидатор DTO: стандартные DataAnnotations + доменные проверки,
+/// не требующие обращения к БД (даты, диапазоны, Guid.Empty, роли, дубликаты в коллекции).
+/// </summary>
 public static class ValidatorHelper
 {
+    private const string ACCESSOR_NAME = "VALIDATION_ACCESSOR_TABLE";
+    private const int MaxTotalSeats = 1_000_000;
+
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _propertiesCache = new();
     private static readonly ConcurrentDictionary<(Type Type, string PropertyName), ValidationAttribute[]> _attributesCache = new();
-    private const string ACCESSOR_NAME = "VALIDATION_ACCESSOR_TABLE";
-
     private static readonly ConcurrentDictionary<Type, SpecialProperties> _specialPropertiesCache = new();
-    private static SpecialProperties GetSpecialProperties(Type type) => _specialPropertiesCache.GetOrAdd(type, t => new SpecialProperties(t));
 
+    private static SpecialProperties GetSpecialProperties(Type type)
+        => _specialPropertiesCache.GetOrAdd(type, t => new SpecialProperties(t));
+
+    
     public static void ValidateObjectRecursive(object obj, List<ValidationResult> errors, string propertyPath = "")
     {
         if (obj == null) return;
@@ -21,159 +31,206 @@ public static class ValidatorHelper
         var properties = _propertiesCache.GetOrAdd(type, t =>
             t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
              .Where(p => p.CanRead && p.GetMethod != null && p.GetIndexParameters().Length == 0)
-             .ToArray()
-        );
+             .ToArray());
 
         var special = GetSpecialProperties(type);
-        var pageProperty = special.Page;
-        var pageSizeProperty = special.PageSize;
-        var fromProperty = special.From;
-        var toProperty = special.To;
-        var startAtProperty = special.StartAt;
-        var endAtProperty = special.EndAt;
-        var totalSeatsProperty = special.TotalSeats;
 
-        // Проверка TotalSeats
-        if (totalSeatsProperty != default)
+        #region  Guid-поля: Id, EventId, UserId не должны быть Guid.Empty  
+        ValidateNonEmptyGuid(obj, type, special.Id, "Id", errors);
+        ValidateNonEmptyGuid(obj, type, special.EventId, "EventId", errors);
+        ValidateNonEmptyGuid(obj, type, special.UserId, "UserId", errors);
+        #endregion
+
+        #region Role: только "User" или "Admin"  
+        if (special.Role != default && special.Role.PropertyType == typeof(string))
         {
-            var getter = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, totalSeatsProperty.Name);
+            var getter = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.Role.Name);
+            var role = getter(obj) as string;
+            if (!string.IsNullOrEmpty(role) && role != "User" && role != "Admin")
+            {
+                errors.Add(new ValidationResult(
+                    "Роль должна быть 'User' или 'Admin'",
+                    new[] { special.Role.Name }));
+            }
+        }
+        #endregion
+
+        #region TotalSeats: 1 .. MaxTotalSeats  
+        if (special.TotalSeats != default)
+        {
+            var getter = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.TotalSeats.Name);
             var value = getter(obj);
-            if (value is int intValue && intValue <= 0)
+            if (value is int intValue)
             {
-                errors.Add(new ValidationResult("Общее количество мест должно быть больше 0", new[] { totalSeatsProperty.Name }));
-                return;
-            }
-        }
-
-        // Проверка StartAt/EndAt (только если оба не default)
-        if (startAtProperty != default && endAtProperty != default)
-        {
-            var getterFrom = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, startAtProperty.Name);
-            var getterTo = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, endAtProperty.Name);
-            var from = getterFrom(obj);
-            var to = getterTo(obj);
-
-            if (from is DateTime fromDate && to is DateTime toDate && fromDate != default && toDate != default)
-            {
-                if (fromDate >= toDate)
+                if (intValue <= 0)
                 {
                     errors.Add(new ValidationResult(
-                        "Дата начала не может быть позже или равна дате окончания",
-                        new[] { startAtProperty.Name, endAtProperty.Name }));
-                    return;
+                        "Общее количество мест должно быть больше 0",
+                        new[] { special.TotalSeats.Name }));
                 }
-            }
-        }
-
-        // Проверка From/To (только если оба не default)
-        if (fromProperty != default && toProperty != default)
-        {
-            var getterFrom = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, fromProperty.Name);
-            var getterTo = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, toProperty.Name);
-            var from = getterFrom(obj);
-            var to = getterTo(obj);
-
-            if (from is DateTime fromDate && to is DateTime toDate && fromDate != default && toDate != default)
-            {
-                if (fromDate >= toDate)
+                else if (intValue > MaxTotalSeats)
                 {
                     errors.Add(new ValidationResult(
-                        "Дата начала не может быть позже или равна дате окончания",
-                        new[] { fromProperty.Name, toProperty.Name }));
-                    return;
+                        $"Общее количество мест не должно превышать {MaxTotalSeats}",
+                        new[] { special.TotalSeats.Name }));
                 }
             }
         }
+        #endregion
 
-        // Проверка Page/PageSize
-        if (pageProperty != default && pageSizeProperty != default)
+        #region StartAt < EndAt  
+        if (special.StartAt != default && special.EndAt != default)
         {
-            var getterPage = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, pageProperty.Name);
-            var getterPageSize = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, pageSizeProperty.Name);
-            var page = getterPage(obj);
-            var pageSize = getterPageSize(obj);
+            var from = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.StartAt.Name)(obj);
+            var to = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.EndAt.Name)(obj);
 
-            if (page is int pageInt && pageSize is int pageSizeInt)
+            if (from is DateTime fromDate && to is DateTime toDate
+                && fromDate != default && toDate != default
+                && fromDate >= toDate)
             {
-                if (pageInt < 1)
-                {
-                    errors.Add(new ValidationResult("Номер страницы должен быть больше 0", new[] { pageProperty.Name }));
-                }
-                if (pageSizeInt > 100 || pageSizeInt < 1)
-                {
-                    errors.Add(new ValidationResult("Размер страницы должен быть от 1 до 100", new[] { pageSizeProperty.Name }));
-                }
-                // Не используем return, чтобы собрать все ошибки
+                errors.Add(new ValidationResult(
+                    "Дата начала не может быть позже или равна дате окончания",
+                    new[] { special.StartAt.Name, special.EndAt.Name }));
             }
         }
+        #endregion
 
-        // Стандартные DataAnnotations
+        #region From < To  
+        if (special.From != default && special.To != default)
+        {
+            var from = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.From.Name)(obj);
+            var to = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.To.Name)(obj);
+
+            if (from is DateTime fromDate && to is DateTime toDate
+                && fromDate != default && toDate != default
+                && fromDate >= toDate)
+            {
+                errors.Add(new ValidationResult(
+                    "Дата начала не может быть позже или равна дате окончания",
+                    new[] { special.From.Name, special.To.Name }));
+            }
+        }
+        #endregion
+
+        #region Page >= 1, PageSize in [1..100]  
+        if (special.Page != default && special.PageSize != default)
+        {
+            var page = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.Page.Name)(obj);
+            var pageSize = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, special.PageSize.Name)(obj);
+
+            if (page is int pageInt && pageInt < 1)
+            {
+                errors.Add(new ValidationResult(
+                    "Номер страницы должен быть больше 0",
+                    new[] { special.Page.Name }));
+            }
+            if (pageSize is int pageSizeInt && (pageSizeInt < 1 || pageSizeInt > 100))
+            {
+                errors.Add(new ValidationResult(
+                    "Размер страницы должен быть от 1 до 100",
+                    new[] { special.PageSize.Name }));
+            }
+        }
+        #endregion
+
+
+        #region  Стандартные DataAnnotations + рекурсия  
         foreach (var prop in properties)
         {
             var getter = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, prop.Name);
             var value = getter(obj);
+
             var attrs = _attributesCache.GetOrAdd((type, prop.Name), _ =>
-                prop.GetCustomAttributes<ValidationAttribute>(true).ToArray()
-            );
+                prop.GetCustomAttributes<ValidationAttribute>(true).ToArray());
 
             if (attrs.Length > 0)
             {
-                var context = new ValidationContext(obj) { MemberName = prop.Name };
+                var ctx = new ValidationContext(obj) { MemberName = prop.Name };
                 foreach (var attr in attrs)
                 {
-                    var result = attr.GetValidationResult(value, context);
-                    if (result != ValidationResult.Success)
+                    var result = attr.GetValidationResult(value, ctx);
+                    if (result != ValidationResult.Success && result != null)
                         errors.Add(result);
                 }
             }
 
             if (value != null && ShouldRecurse(prop.PropertyType))
-            {
                 ValidateObjectRecursive(value, errors, $"{propertyPath}{prop.Name}.");
-            }
         }
+        #endregion
     }
 
     /// <summary>
-    /// Проверяет коллекцию на дубликаты названий (свойство Title)
+    /// Проверка коллекции: дубликаты по Title и Login + рекурсивная валидация каждого элемента.
     /// </summary>
     public static void ValidateCollection(IEnumerable collection, List<ValidationResult> errors)
     {
         if (collection == null) return;
-        var titles = new HashSet<string>();
+
+        ValidateNoDuplicates(collection, "Title", "название", errors);
+        ValidateNoDuplicates(collection, "Login", "логин", errors);
+
         foreach (var item in collection)
         {
             if (item == null) continue;
-            var titleProp = item.GetType().GetProperty("Title");
-            if (titleProp != null)
-            {
-                var title = titleProp.GetValue(item) as string;
-                if (!string.IsNullOrEmpty(title) && !titles.Add(title))
-                {
-                    errors.Add(new ValidationResult(
-                        $"В передаваемых событиях название не должно повторяться: {title}",
-                        new[] { "Title" }));
-                }
-            }
-            // Рекурсивно проверяем каждый элемент
             ValidateObjectRecursive(item, errors);
         }
     }
 
-    private static bool ShouldRecurse(Type type)
+    #region  Хелперы  
+
+    private static void ValidateNonEmptyGuid(
+        object obj, Type type, PropertyInfo? prop, string name, List<ValidationResult> errors)
     {
-        return !type.IsPrimitive &&
-               type != typeof(string) &&
-               !type.IsEnum &&
-               type != typeof(decimal) &&
-               type != typeof(DateTime) &&
-               type != typeof(DateTimeOffset) &&
-               type != typeof(TimeSpan) &&
-               type != typeof(Guid) &&
-               type != typeof(byte[]) &&
-               type != typeof(IntPtr) &&
-               type != typeof(UIntPtr);
+        return;
+
+        if (prop == default || prop.PropertyType != typeof(Guid)) return;
+
+        var getter = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, prop.Name);
+        var value = getter(obj);
+        if (value is Guid g && g == Guid.Empty)
+        {
+            errors.Add(new ValidationResult(
+                $"Поле '{name}' не должно быть пустым Guid",
+                new[] { prop.Name }));
+        }
     }
+
+    private static void ValidateNoDuplicates(
+        IEnumerable collection, string propertyName, string humanName, List<ValidationResult> errors)
+    {
+        var seen = new HashSet<string>();
+        foreach (var item in collection)
+        {
+            if (item == null) continue;
+
+            var prop = item.GetType().GetProperty(propertyName);
+            if (prop == null) return;   // если такого поля нет ни у кого — нечего проверять
+
+            var value = prop.GetValue(item) as string;
+            if (!string.IsNullOrEmpty(value) && !seen.Add(value))
+            {
+                errors.Add(new ValidationResult(
+                    $"В передаваемых данных {humanName} не должно повторяться: {value}",
+                    new[] { propertyName }));
+            }
+        }
+    }
+
+    private static bool ShouldRecurse(Type type)
+        => !type.IsPrimitive
+        && type != typeof(string)
+        && !type.IsEnum
+        && type != typeof(decimal)
+        && type != typeof(DateTime)
+        && type != typeof(DateTimeOffset)
+        && type != typeof(TimeSpan)
+        && type != typeof(Guid)
+        && type != typeof(byte[])
+        && type != typeof(IntPtr)
+        && type != typeof(UIntPtr);
+
+    #endregion
 
     private class SpecialProperties
     {
@@ -184,6 +241,10 @@ public static class ValidatorHelper
         public PropertyInfo? StartAt { get; }
         public PropertyInfo? EndAt { get; }
         public PropertyInfo? TotalSeats { get; }
+        public PropertyInfo? Role { get; }
+        public PropertyInfo? Id { get; }
+        public PropertyInfo? EventId { get; }
+        public PropertyInfo? UserId { get; }
 
         public SpecialProperties(Type type)
         {
@@ -194,6 +255,10 @@ public static class ValidatorHelper
             StartAt = type.GetProperty("StartAt");
             EndAt = type.GetProperty("EndAt");
             TotalSeats = type.GetProperty("TotalSeats");
+            Role = type.GetProperty("Role");
+            Id = type.GetProperty("Id");
+            EventId = type.GetProperty("EventId");
+            UserId = type.GetProperty("UserId");
         }
     }
 }
