@@ -1,10 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
+﻿using SprintsASP_NetCore_API.Domain.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Net;
-using Sprints_Project_ASP_NetCore_API.Data.Entities;
-using Microsoft.EntityFrameworkCore;
-
+  
 
 namespace Sprints_Project_ASP_NetCore_API.Middlewares;
 
@@ -53,6 +51,7 @@ public class GlobalExceptionMiddleware
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
             NotImplementedException => (int)HttpStatusCode.NotImplemented,
             NoAvailableSeatsException => (int)HttpStatusCode.Conflict,
+            DuplicateEventException   => (int)HttpStatusCode.Conflict,
             DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict,
             _ => (int)HttpStatusCode.InternalServerError
         };

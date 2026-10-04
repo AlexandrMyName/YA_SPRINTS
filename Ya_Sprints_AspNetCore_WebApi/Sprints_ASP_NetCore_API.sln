@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.7.11919.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API", "Sprints_ASP_NetCore_API\SprintASP_NetCore_API.csproj", "{DB076136-062B-4E3C-893A-156820016ACA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API.Presentation", "Sprints_ASP_NetCore_API\SprintASP_NetCore_API.Presentation.csproj", "{DB076136-062B-4E3C-893A-156820016ACA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "Tests\UnitTests.csproj", "{4283838A-3679-47D5-8B02-158C9553E52F}"
 EndProject
@@ -23,6 +23,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefactoringNetCompile_Lib", "RefactoringNetCompile_Lib\RefactoringNetCompile_Lib.csproj", "{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintsASP_NetCore_API.Domain", "SprintsASP_NetCore_API.Domain\SprintsASP_NetCore_API.Domain.csproj", "{38E072DF-124E-4D33-A59F-23DA35384A1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintsASP_NetCore_API.Application", "SprintsASP_NetCore_API.Application\SprintsASP_NetCore_API.Application.csproj", "{3E607539-ED20-4C8D-A7FE-D8D90AE5E36E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintsASP_NetCore_API.Infrastructure", "SprintsASP_NetCore_API.Infrastructure\SprintsASP_NetCore_API.Infrastructure.csproj", "{82194BAB-4579-4A55-AAA1-2962F9A3F768}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +64,18 @@ Global
 		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38E072DF-124E-4D33-A59F-23DA35384A1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38E072DF-124E-4D33-A59F-23DA35384A1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38E072DF-124E-4D33-A59F-23DA35384A1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38E072DF-124E-4D33-A59F-23DA35384A1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E607539-ED20-4C8D-A7FE-D8D90AE5E36E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E607539-ED20-4C8D-A7FE-D8D90AE5E36E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E607539-ED20-4C8D-A7FE-D8D90AE5E36E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E607539-ED20-4C8D-A7FE-D8D90AE5E36E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82194BAB-4579-4A55-AAA1-2962F9A3F768}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82194BAB-4579-4A55-AAA1-2962F9A3F768}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82194BAB-4579-4A55-AAA1-2962F9A3F768}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82194BAB-4579-4A55-AAA1-2962F9A3F768}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,6 @@
-﻿using SprintASP_NetCore_API.Data.Dtos.Filters;
-using SprintASP_NetCore_API.Data.Dtos.EntitiesDtos.Events;
+﻿ 
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
+using SprintASP_NetCore_API.Application.Filters;
 
 
 namespace Tests.Factories

@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections;
-using System.ComponentModel.DataAnnotations;
+
 
 namespace SprintASP_NetCore_API.Filters.ActionFilters;
 
+
 public class ValidateInputModelAttribute : ActionFilterAttribute
 {
+
     public override void OnActionExecuting(ActionExecutingContext context)
     {
 
