@@ -9,12 +9,18 @@ public class BookingInfoDto : IBookingInfoDto
 {
 
     /// <summary>
-    /// ID
+    /// Идентификатор бронирования
     /// </summary>
     public Guid Id { get; set; }
+     
+    /// <summary>
+    /// Идентификатор пользователя 
+    /// (осуществивший бронирование)
+    /// </summary>
+    public Guid UserId { get; set; }
 
     /// <summary>
-    /// ID события
+    /// Идентификатор события
     /// </summary>
     public Guid EventId { get; set; }
 
@@ -32,32 +38,36 @@ public class BookingInfoDto : IBookingInfoDto
     /// Дата и время обработки
     /// </summary>
     public DateTime? ProcessedAt { get; set; }
+
+   
 }
 
 public interface IBookingInfoDto : IEntityDto
 {
+   
     /// <summary>
-    /// ID
+    /// Идентификатор пользователя 
+    /// (осуществивший бронирование)
     /// </summary>
-    public Guid Id { get; set; }
+    Guid UserId { get; set; }
 
     /// <summary>
     /// ID события
     /// </summary>
-    public Guid EventId { get; set; }
+    Guid EventId { get; set; }
 
     /// <summary>
     /// Статус обработки
     /// </summary>
-    public BookingStatus Status { get; set; }
+    BookingStatus Status { get; set; }
 
     /// <summary>
     /// Дата и время создания
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Дата и время обработки
     /// </summary>
-    public DateTime? ProcessedAt { get; set; }
+    DateTime? ProcessedAt { get; set; }
 }

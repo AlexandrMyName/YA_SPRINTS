@@ -1,4 +1,5 @@
-﻿ 
+﻿
+using SprintsASP_NetCore_API.Domain.Exceptions;
 using System.ComponentModel;
 
 
@@ -11,22 +12,25 @@ public interface IBooking : IEntity
     /// <summary>
     /// ID события
     /// </summary>
-    public Guid EventId { get; set; }
+    Guid EventId { get; set; }
+
+
+    Guid UserId { get; }
 
     /// <summary>
     /// Статус обработки
     /// </summary>
-    public BookingStatus Status { get; set; }
+    BookingStatus Status { get; set; }
 
     /// <summary>
     /// Дата и время создания
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// Дата и время обработки
     /// </summary>
-    public DateTime? ProcessedAt { get; set; }
+    DateTime? ProcessedAt { get; set; }
 }
 
 /// <summary>
@@ -36,10 +40,16 @@ public class Booking : IBooking
 {
 
     /// <summary>
-    /// ID
+    /// Идентификатор бронирования
     /// </summary>
     public Guid Id { get; set; }
-
+     
+    /// <summary>
+    /// Идентификатор пользователя
+    /// (Осуществивший бронирование)
+    /// </summary>
+    public Guid UserId { get; private set; }
+     
     /// <summary>
     /// ID события
     /// </summary>
@@ -62,10 +72,7 @@ public class Booking : IBooking
       
 
 
-    private Booking( )
-    {
-       
-    }
+    private Booking() { }
 
 
     public static Booking Create(Guid bookingId, Guid eventId, BookingStatus status, DateTime createdAt, DateTime? processedAt = default)
@@ -83,8 +90,38 @@ public class Booking : IBooking
     // Навигационное свойство (многие к одному)
     public Event Event { get; private set; } = null!;
 
-    public void Confirm() => Status = BookingStatus.Confirmed;
-    public void Cancel() => Status = BookingStatus.Canceled;
+    public void Confirm()
+    {
+        if (Status == BookingStatus.Cancelled)
+            throw new BookingAlreadyCancelledException(Id);
+
+        Status = BookingStatus.Confirmed;
+        ProcessedAt = DateTime.UtcNow;
+    }
+
+    public void Reject()
+    {
+        if (Status == BookingStatus.Cancelled)
+            throw new BookingAlreadyCancelledException(Id);
+
+        Status = BookingStatus.Rejected;
+        ProcessedAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Отмена брони. Защита от повторной отмены.
+    /// </summary>
+    public void Cancel()
+    {
+        if (Status == BookingStatus.Cancelled)
+            throw new BookingAlreadyCancelledException(Id);
+
+        if (Status == BookingStatus.Confirmed)
+            throw new CannotCancelConfirmedBookingException(Id);
+
+        Status = BookingStatus.Cancelled;
+        ProcessedAt = DateTime.UtcNow;
+    }
 
 }
 
@@ -110,5 +147,5 @@ public enum BookingStatus
     /// бронь отменена
     /// </summary>
     [Description("Бронь отменена")]
-    Canceled,
+    Cancelled,
 }
