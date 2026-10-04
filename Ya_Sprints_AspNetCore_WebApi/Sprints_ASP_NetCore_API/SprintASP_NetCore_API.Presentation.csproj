@@ -11,12 +11,19 @@
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
 	  <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
+
+	<ItemGroup>
+		<None Update="keys\private.pem" CopyToOutputDirectory="PreserveNewest" />
+		<None Update="keys\public.pem"  CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+	
 	
   <ItemGroup>
 	  <Content Update="appsettings.Production.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <PackageReference Include="AutoMapper" Version="15.1.3" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />

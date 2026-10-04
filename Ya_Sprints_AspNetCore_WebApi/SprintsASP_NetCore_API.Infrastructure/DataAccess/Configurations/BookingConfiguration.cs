@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;  
-using SprintASP_NetCore_API.Domain.Entities;
-using SprintsASP_NetCore_API.Domain.Entities;
+using SprintASP_NetCore_API.Domain.Entities; 
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.DataAccess.Configurations;

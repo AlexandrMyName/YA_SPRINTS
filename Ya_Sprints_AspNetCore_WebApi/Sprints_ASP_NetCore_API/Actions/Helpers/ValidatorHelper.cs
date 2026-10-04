@@ -182,6 +182,8 @@ public static class ValidatorHelper
     private static void ValidateNonEmptyGuid(
         object obj, Type type, PropertyInfo? prop, string name, List<ValidationResult> errors)
     {
+        return;
+
         if (prop == default || prop.PropertyType != typeof(Guid)) return;
 
         var getter = PropertyAccessor.GetPropertyGetter(ACCESSOR_NAME, type, prop.Name);

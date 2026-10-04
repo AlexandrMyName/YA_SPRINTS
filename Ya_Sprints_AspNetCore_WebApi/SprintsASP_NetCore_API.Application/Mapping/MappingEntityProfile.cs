@@ -1,8 +1,10 @@
-﻿using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
+﻿using AutoMapper;
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
 using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
-using SprintASP_NetCore_API.Domain.Entities;
-using AutoMapper;
  
+using SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users; 
+using SprintASP_NetCore_API.Domain.Entities;
+
 
 
 namespace SprintASP_NetCore_API.Application.Mapping;
@@ -21,6 +23,14 @@ public class MappingEntityProfile : Profile
         CreateMap<BookingInfoDto, Booking>();
         CreateMap<IBookingInfoDto, Booking>();
         CreateMap<IBookingInfoDto, IBooking>().As<Booking>();
+
+        CreateMap<UserInfoDto, User>()
+            .ForMember(d => d.PasswordHash, o => o.Ignore())
+            .ForMember(d => d.Role, o => o.Ignore());
+
+        CreateMap<IUserInfoDto, User>()
+            .ForMember(d => d.PasswordHash, o => o.Ignore())
+            .ForMember(d => d.Role, o => o.Ignore());
 
     }
 }

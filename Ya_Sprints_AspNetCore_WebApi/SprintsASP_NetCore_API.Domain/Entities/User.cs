@@ -1,29 +1,30 @@
-﻿using SprintASP_NetCore_API.Domain.Entities; 
+﻿ 
 
-
-namespace SprintsASP_NetCore_API.Domain.Entities;
+namespace SprintASP_NetCore_API.Domain.Entities;
 
 
 public interface IUser : IEntity
 {
      
-    public string Login { get;   } 
-    public string PasswordHash { get; } 
-    public UserRole Role { get; }
+    string Login { get;  } 
+    string PasswordHash { get;   } 
+    UserRole Role { get;   }
+    DateTime CreatedAt { get; }
+    void PromoteToAdmin();
+    void DemoteToUser();
+    void ChangeLogin(string newLogin);
 }
 
 
 public class User : IUser
 {
-
     public Guid Id { get; set; }
     public string Login { get; private set; } = null!;
     public string PasswordHash { get; private set; } = null!;
     public UserRole Role { get; private set; }
-
+    public DateTime CreatedAt { get; private set; }
 
     private User() { }
-
 
     public static User Create(Guid id, string login, string passwordHash, UserRole role)
     {
@@ -35,11 +36,22 @@ public class User : IUser
         return new User
         {
             Id = id,
-            Login = login,
+            Login = login.Trim(),
             PasswordHash = passwordHash,
-            Role = role
+            Role = role,
+            CreatedAt = DateTime.UtcNow
         };
     }
+
+    public void ChangeLogin(string newLogin)
+    {
+        if (string.IsNullOrWhiteSpace(newLogin))
+            throw new ArgumentException("Login is empty", nameof(newLogin));
+        Login = newLogin.Trim();
+    }
+
+    public void PromoteToAdmin() => Role = UserRole.Admin;
+    public void DemoteToUser() => Role = UserRole.User;
 }
 
 
