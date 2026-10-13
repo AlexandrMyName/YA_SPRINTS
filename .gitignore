@@ -480,3 +480,158 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+
+# ----------------------------------------------------------------------------
+# Secrets & keys — НИКОГДА не коммитить
+# ----------------------------------------------------------------------------
+# RSA-ключи для RS256 (JWT)
+keys/private.pem
+keys/*.pem
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Но публичный ключ можно (раскомментируйте, если хотите коммитить)
+!keys/public.pem
+
+# Оставляем папку keys в git, даже если пустая
+!keys/.gitkeep
+
+# ----------------------------------------------------------------------------
+# appsettings — секреты и переопределения окружений
+# ----------------------------------------------------------------------------
+# Локальные секреты разработчика
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Продакшн-конфиги (обычно содержат строки подключения, ключи)
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.Production.json
+
+# Development оставляем — там dev-ключи, но всё равно проверяйте
+# appsettings.Development.json
+
+# User secrets
+secrets.json
+*.secrets.json
+
+# ----------------------------------------------------------------------------
+# Docker
+# ----------------------------------------------------------------------------
+# Локальные overrides, которые не должны уезжать в репо
+docker-compose.override.yml
+docker-compose.*.local.yml
+.env.local
+.env.*.local
+
+# Данные контейнеров (если маунтятся локально)
+pgdata/
+postgres_data/
+mssql_data/
+
+# ----------------------------------------------------------------------------
+# EF Core
+# ----------------------------------------------------------------------------
+# Скрипты, сгенерированные вручную
+*.sql~
+migrations_*.sql
+
+# Локальные дампы БД
+*.dump
+*.backup
+*.bak
+pg_dump*.sql
+
+# ----------------------------------------------------------------------------
+# Логи и тестовые артефакты
+# ----------------------------------------------------------------------------
+*.log.txt
+logs/
+test-output/
+TestResults/
+[Tt]est[Rr]esults/
+
+# ----------------------------------------------------------------------------
+# IDE / редакторы
+# ----------------------------------------------------------------------------
+# JetBrains Rider
+*.sln.DotSettings.user
+.idea/**/workspace.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf/
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/gradle.xml
+.idea/**/libraries/
+
+# Visual Studio Code (расширенное)
+.vscode/launch.json
+.vscode/settings.json
+
+# Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+launchSettings.json
+
+# ----------------------------------------------------------------------------
+# OS / мусор
+# ----------------------------------------------------------------------------
+# macOS
+.DS_Store
+._.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Linux
+*~
+.directory
+
+# ----------------------------------------------------------------------------
+# Build / кеш
+# ----------------------------------------------------------------------------
+# .NET publish outputs
+publish/
+Publish/
+
+# NuGet fallback
+.nuget/
+*.nupkg
+*.snupkg
+
+# Node (если фронт рядом)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Temp files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ----------------------------------------------------------------------------
+# Тесты — покрытие и результаты
+# ----------------------------------------------------------------------------
+coverage/
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+coverage.opencover.xml
+*.trx
+TestResults/
+ 

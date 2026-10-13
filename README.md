@@ -16,19 +16,24 @@
 - [Собственные библиотеки](#-собственные-библиотеки)
 - [Быстрый старт](#-быстрый-старт)
   - [Клонирование и сборка](#-клонирование-и-сборка)
+  - [Генерация RSA-ключей](#-генерация-rsa-ключей)
   - [Запуск базы данных через Docker](#-запуск-базы-данных-через-docker)
   - [Применение миграций](#-применение-миграций)
   - [Запуск приложения](#-запуск-приложения)
+- [Аутентификация и авторизация](#-аутентификация-и-авторизация)
+  - [Схемы JWT (RS256 и HS256)](#-схемы-jwt-rs256-и-hs256)
+  - [Политики авторизации](#-политики-авторизации)
+  - [Источники токена](#-источники-токена)
+  - [Access и Refresh токены](#-access-и-refresh-токены)
+- [Работа с пользователями](#-работа-с-пользователями)
+  - [Регистрация](#-регистрация)
+  - [Первый администратор](#-первый-администратор)
+  - [Повышение и понижение роли](#-повышение-и-понижение-роли)
 - [Миграции EF Core](#-миграции-ef-core)
-  - [Создание миграции](#создание-миграции)
-  - [Применение миграции](#применение-миграции)
-  - [Откат миграции](#откат-миграции)
-  - [Удаление последней миграции](#удаление-последней-миграции-если-не-применена)
-- [Настройка подключения к БД](#настройка-подключения-к-бд)
-- [Документация API](#-api-документация)
+- [Настройка подключения к БД](#-настройка-подключения-к-бд)
+- [Документация API](#-документация-api)
 - [Валидация](#-валидация)
 - [Примитивы синхронизации и защита от овербукинга](#-примитивы-синхронизации-и-защита-от-овербукинга)
-- [Пример сценария с овербукингом](#-пример-сценария-с-овербукингом)
 - [Тестирование](#-тестирование)
 - [Архитектура](#-архитектура)
 - [Оптимизация производительности](#-оптимизация-производительности)
@@ -43,16 +48,19 @@
 
 <br>
 
-**Event Management API** – RESTful-сервис для управления событиями и бронированием мест.  
+**Event Management API** – RESTful-сервис для управления событиями и бронированием мест.
 Проект выполнен в рамках учебного спринта и демонстрирует:
 
 - Использование **Entity Framework Core** с **PostgreSQL**
 - Управление схемой базы данных через **миграции**
+- **JWT-аутентификацию** с двумя схемами (RS256 и HS256)
+- **Refresh-токены** с ротацией
+- **Ролевую авторизацию** (`User` / `Admin`) через политики
 - Оптимистическую блокировку через **xmin**
 - Интеграционные тесты с **Testcontainers**
 - Фоновую обработку броней через **BackgroundService**
 - Валидацию, глобальную обработку ошибок и **Swagger**-документацию
-
+- Разделение на слои по принципам **Clean Architecture**
 <br>
 
 ---
@@ -69,6 +77,7 @@
 | **ORM** | Entity Framework Core 9 |
 | **База данных** | PostgreSQL 15 (через Npgsql) |
 | **Миграции** | EF Core Migrations |
+| **Аутентификация** | JWT (RS256 + HS256), Refresh-токены |
 | **Тестирование** | xUnit, Testcontainers.PostgreSql |
 | **Документация** | Swagger / Swashbuckle |
 | **Маппинг** | AutoMapper |
@@ -76,6 +85,7 @@
 | **Логирование** | ILogger (встроенный) |
 | **Валидация** | DataAnnotations + кастомный ActionFilter |
 | **Синхронизация** | SemaphoreSlim (асинхронные семафоры) |
+
 
 ---
 
@@ -115,6 +125,56 @@ Swagger UI:
 ```
 https://localhost:5001/swagger
 ```
+
+---
+
+### 🔑 Генерация RSA-ключей
+
+Перед первым запуском нужно сгенерировать пару RSA-ключей для RS256-схемы аутентификации.
+```bash
+mkdir -p keys
+openssl genrsa -out keys/private.pem 2048
+openssl rsa -in keys/private.pem -pubout -out keys/public.pem
+```
+
+Что делают эти команды:
+ 	 
+mkdir -p keys:
+- Создаёт папку keys/. Флаг -p — не ругаться, если папка уже есть
+openssl genrsa -out keys/private.pem 2048:
+-	Генерирует приватный RSA-ключ длиной 2048 бит и сохраняет в keys/private.pem. genrsa — генератор RSA-ключей
+openssl rsa -in keys/private.pem -pubout -out keys/public.pem:
+   Извлекает публичный ключ из приватного. -pubout — «выдать публичную часть», writing RSA key в консоли — подтверждение
+
+Зачем это нужно:
+
+- private.pem — используется для подписи JWT-токенов (RS256). Держится в секрете. Кто владеет приватным ключом — тот может выпускать валидные токены.
+- public.pem — используется для проверки подписи. Можно распространять. Даже если утечёт — подделать токен нельзя.
+
+⚠️ Важно:
+- private.pem — никогда не коммитить. Он уже добавлен в .gitignore.
+- Если ключ утёк — считайте, что все токены скомпрометированы. Генерируйте заново и инвалидируйте старые.
+- Минимальный размер ключа для RS256 — 2048 бит. Меньше — Microsoft.IdentityModel.Tokens откажется работать.
+
+Если OpenSSL нет (Windows):
+```powershell
+# Через winget
+winget install ShiningLight.OpenSSL
+
+# Или через Git Bash (уже включён в Git for Windows)
+# Откройте Git Bash и выполните те же команды
+```
+
+Файлы должны попасть в output при сборке. В Sprints_ASP_NetCore_API.csproj:
+
+```xml
+<ItemGroup>
+  <None Update="keys\private.pem" CopyToOutputDirectory="PreserveNewest" />
+  <None Update="keys\public.pem"  CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>
+```
+Без этого dotnet ef migrations add и запуск приложения упадут с Could not find a part of the path 'keys/public.pem'.
+
 
 ---
 
@@ -161,9 +221,13 @@ docker ps
  
 
 ### Применение миграций
+
 ```bash
 cd ..  # вернуться в корень решения
-dotnet ef database update --context AppDbContext
+dotnet ef database update \
+  --project SprintsASP_NetCore_API.Infrastructure \
+  --startup-project Sprints_ASP_NetCore_API \
+  --context AppDbContext
 ```
 
 Или автоматически при запуске приложения (см. следующий раздел).
@@ -187,6 +251,258 @@ Swagger: https://localhost:5001/swagger)
 
 ---
 
+## 🔐 Аутентификация и авторизация
+
+🔀 Схемы JWT (RS256 и HS256)
+
+Проект поддерживает две схемы аутентификации одновременно. Это сделано для удобства разработки:
+
+- Схема: Bearer	 
+- Алгоритм: RS256 (асимметричный)	
+- Ключ подписи: private.pem
+- Ключ валидации: public.pem
+- Когда использовать: Продакшн 
+
+- Схема: BearerDev	 
+- Алгоритм: HS256 (симметричный)
+- Ключ подписи: 	Jwt:HsKey
+- Ключ валидации: тот же Jwt:HsKey
+- Когда использовать: Только локальная отладка
+ 
+
+Почему RS256 — основная:
+
+- Приватный ключ есть только у issuer'а (сервиса, выдающего токены).
+- Даже если сервис-потребитель скомпрометирован, подделать токен нельзя — у него только публичный ключ.
+- Публичный ключ можно свободно распространять между микросервисами.
+- Соответствует стандарту OpenID Connect.
+
+Почему HS256 — для отладки:
+
+- Один секрет в appsettings.Development.json — не нужно возиться с PEM-файлами при каждом запуске.
+- Удобно, когда хочется быстро проверить логику без настройки RSA.
+
+Как переключать:
+В appsettings.json (продакшн):
+
+ ```json
+{
+  "Jwt": {
+    "Mode": "RS256",
+    "PrivateKeyPath": "keys/private.pem",
+    "PublicKeyPath": "keys/public.pem"
+  }
+}
+```
+
+В appsettings.Development.json:
+
+ ```json
+{
+  "Jwt": {
+    "Mode": "HS256",
+    "HsKey": "DEV_ONLY_SECRET_KEY_32_CHARS_MIN_LONG_1234567890"
+  }
+}
+```
+
+Jwt:Mode определяет, каким ключом подписываются новые токены. 
+- Валидация при этом идёт по обеим схемам — то есть старые токены продолжают работать после переключения.
+
+## 🛡 Политики авторизации
+
+Все проверки доступа идут через политики (не через роли напрямую):
+
+- Политика:      DefaultPolicy
+Что проверяет: Аутентификация любой из схем (RS256 или HS256)
+Где применена: [Authorize] без параметров
+
+- Политика:      AnyAuthenticated
+- Что проверяет: То же, но явная политика
+- Где применена: EventsController, BookingsController (класс)
+
+- Политика:      Admin
+- Что проверяет: Роль Admin, любая схема
+- Где применена: Опционально, для универсальных мест
+
+- Политика:      AdminRs256Only
+- Что проверяет: Роль Admin, только RS256
+- Где применена: Все админские действия: создание/обновление/удаление событий, управление пользователями
+
+Почему AdminRs256Only для админских действий:
+- в dev-окружении HS256 использует общий секрет из конфига — если он утечёт, злоумышленник может подписать токен с ролью Admin и получить доступ ко всему.
+- Поэтому админские действия жёстко ограничены RS256-схемой.
+
+Как использовать в контроллере:
+
+ ```csharp
+[Authorize(Policy = AuthPolicies.AdminRs256Only)]
+public async Task<IActionResult> Create(...) { ... }
+
+[Authorize(Policy = AuthPolicies.AnyAuthenticated)]
+public async Task<IActionResult> GetBooking(...) { ... }
+```
+
+## 🔍 Источники токена
+
+Middleware проверяет токен в трёх местах в порядке приоритета:
+
+1. Authorization: Bearer <token> — стандартный HTTP-заголовок
+2. X-Access-Token: <token> — кастомный заголовок (для клиентов, которые не могут использовать Authorization)
+3. Cookie jwt — HttpOnly-кука, ставится при логине
+
+Если клиент прислал и заголовок, и куку — побеждает заголовок. 
+- ! Это защищает от CSRF-атак через куки: явный заголовок имеет приоритет.
+--- 
+
+## 🔄 Access и Refresh токены
+
+ACCESS:
+- Формат: JWT (подписанный)
+- Время жизни:	15 минут (Jwt:AccessTokenMinutes)
+- Где хранится на сервере:	Не хранится (stateless)
+- Где у клиента: Память JS / cookie jwt
+- Что даёт: Доступ к API
+- Ротация: -
+
+  REFRESH:
+- Формат: Случайная строка (base64 от 64 байт)
+- Время жизни:	7 дней (Jwt:RefreshTokenDays)
+- Где хранится на сервере:	В БД (refresh_tokens), в виде SHA-256-хеша
+- Где у клиента: HttpOnly cookie refreshToken / secure storage
+- Что даёт: Получить новый access
+- Ротация: При использовании выдаётся новый, старый отзывается
+  
+Как это работает:
+1. POST /api/v1/auth/login → сервер выдаёт access + refresh.
+2. Клиент шлёт access в каждом запросе.
+3. Когда access протух (получил 401) → POST /api/v1/auth/refresh с refresh.
+4. Сервер проверяет refresh в БД, отзывает старый, выдаёт новый access + новый refresh.
+5. POST /api/v1/auth/logout → refresh отзывается, куки очищаются.
+
+ Зачем ротация: 
+ - если refresh-токен утечёт, злоумышленник сможет использовать его только до момента следующего refresh. После — старый токен невалиден.  
+
+---
+
+## 👥 Работа с пользователями
+Регистрация:
+
+ ```bash
+curl -X POST https://localhost:5001/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "login": "admin",
+    "password": "adm123"
+  }'
+```
+Что происходит:
+1. Создаётся пользователь с ролью User (не Admin).
+2. Пароль хешируется через SHA-256 и сохраняется в users.PasswordHash.
+3. Сервер возвращает access + refresh и ставит обе куки.
+4. Поле Role в запросе отсутствует — намеренно. Это защита от privilege escalation.
+
+Ответ (200 OK): 
+
+ ```json
+{
+  "id": "1b503a21-2f4f-4b11-bf00-02e29e8da137",
+  "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "dIRUDq3y1096lzuThH9CKgSGCQX81yY+...",
+  "tokenType": "Bearer",
+  "expiresIn": 899,
+  "expiresAtUtc": "2026-10-04T18:54:21.5742401Z"
+}
+```
+
+
+Проверка payload access-токена (на https://jwt.io): 
+
+ ```json
+{
+  "sub": "1b503a21-...",
+  "userId": "1b503a21-...",
+  "unique_name": "admin",
+  "role": "User",           
+  "jti": "14a79226-...",
+  "exp": 1791140061,
+  "iss": "SprintASP_NetCore_API",
+  "aud": "SprintASP_NetCore_API_Clients"
+}
+```
+
+--- 
+
+## 🥇 Первый администратор
+
+Роль Admin нельзя получить через /register. 
+- Первый админ создаётся вручную через SQL — это классический bootstrap-паттерн (чтобы создать админа, нужен админ — замкнутый круг).
+
+После регистрации пользователя admin:
+
+ ```bash
+psql -h localhost -U postgres -d events_db \
+  -c "UPDATE users SET \"Role\" = 'Admin' WHERE \"Login\" = 'admin';"
+```
+
+Или из Docker:
+
+ ```bash
+docker exec -it ya_sprints_postgres \
+  psql -U postgres -d events_db \
+  -c "UPDATE users SET \"Role\" = 'Admin' WHERE \"Login\" = 'admin';"
+```
+
+Проверка:
+
+ ```bash
+psql -h localhost -U postgres -d events_db \
+  -c "SELECT \"Login\", \"Role\" FROM users;"
+```
+
+Должно быть:
+
+ ```text
+ Login | Role
+-------+-------
+ admin | Admin
+```
+- ⚠️ Важно: старый access-токен (полученный при регистрации) всё ещё содержит "role": "User".
+- Нужно залогиниться заново — JWT это снимок claims на момент выдачи.
+
+ ```bash
+curl -X POST https://localhost:5001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"login": "admin", "password": "adm123"}'
+```
+В новом токене будет "role": "Admin".
+--- 
+
+## ⬆️ Повышение и понижение роли
+После bootstrap'а первого админа остальных можно повышать через API:
+
+Повышение до Admin (требует RS256 + роль Admin):
+
+ ```bash
+curl -X POST https://localhost:5001/api/v1/users/ivan/promote \
+  -H "Authorization: Bearer <ADMIN_ACCESS_TOKEN>"
+```
+
+
+Понижение до User:
+
+ ```bash
+curl -X POST https://localhost:5001/api/v1/users/ivan/demote \
+  -H "Authorization: Bearer <ADMIN_ACCESS_TOKEN>"
+```
+
+Оба эндпоинта защищены политикой AdminRs256Only.
+
+- ⚠️ После смены роли пользователь должен залогиниться заново.
+- или дождаться окончания access-токена и вызвать /auth/refresh, чтобы получить токен с актуальной ролью.
+
+
+---
 
 
 
@@ -196,11 +512,28 @@ Swagger: https://localhost:5001/swagger)
 ### Создание миграции
 
 ```bash
-dotnet ef database update \
+dotnet ef migrations add <MigrationName> \
   --project SprintsASP_NetCore_API.Infrastructure \
   --startup-project Sprints_ASP_NetCore_API \
-  --context AppDbContext
+  --context AppDbContext \
+  --output-dir DataAccess/Migrations
 ```
+
+Пример: 
+```bash
+dotnet ef migrations add AddUsersAndRefreshTokens \
+  --project SprintsASP_NetCore_API.Infrastructure \
+  --startup-project Sprints_ASP_NetCore_API \
+  --context AppDbContext \
+  --output-dir DataAccess/Migrations
+```
+Почему нужен --startup-project: 
+- EF-инструменты запускают Program.cs startup-проекта, чтобы построить DI-контейнер и получить DbContextOptions (включая строку подключения).
+- Без этого EF не сможет создать AppDbContext.
+ 
+
+
+
 
 ### Применение миграции
 
@@ -253,56 +586,73 @@ dotnet ef migrations remove \
  
 ## 📖 Документация API
 
+ 
+### 🔐 Аутентификация
+Базовый префикс: /api/v1/auth
+POST	/register	Регистрация (всегда роль User)	Анонимно
+POST	/login	Вход, возвращает access + refresh	Анонимно
+POST	/refresh	Обновление access по refresh (ротация)	Анонимно
+POST	/logout	Отзыв refresh, очистка кук	Анонимно
 
-### Базовый префикс
+### 👤 Пользователи
+- Базовый префикс: /api/v1/users
 
-```
-/api/v1/events
-``` 
+- GET	/{id}	Получить пользователя по Id	Admin (RS256)
+- GET	/by-login/{login}	Получить пользователя по логину	Admin (RS256)
+- GET	/	Список пользователей с фильтром	Admin (RS256)
+- PUT	/{id}	Обновить логин	Admin (RS256)
+- DELETE	/{id}	Удалить пользователя	Admin (RS256)
+- POST	/{login}/promote	Повысить до Admin	Admin (RS256)
+- POST	/{login}/demote	Понизить до User	Admin (RS256)
 
+### 📅 События
+- Базовый префикс: /api/v1/events
+
+- GET	/{id}	Получить событие	Публично
+- GET	/	Список событий (фильтр, сортировка, пагинация)	Публично
+- POST	/{id}/book	Создать бронирование	Аутентификация
+- POST	/	Создать событие	Admin (RS256)
+- POST	/range	Создать коллекцию событий	Admin (RS256)
+- PUT	/{id}	Обновить событие	Admin (RS256)
+- PUT	/	Обновить коллекцию	Admin (RS256)
+- DELETE	/{id}	Удалить событие	Admin (RS256)
+
+### 📋 Бронирования
+- Базовый префикс: /api/v1/bookings
+ 
+- GET	/{id}	Получить бронь (свою или любую — если Admin)	Аутентификация
+- DELETE	/{id}	Отменить бронь (свою или любую — если Admin)	Аутентификация
+- Модель события (Event)
+- Поле	Тип	Описание
+- id	Guid	Уникальный идентификатор
+- title	string	Название
+- description	string	Описание
+- startAt	datetime	Начало
+- endAt	datetime	Окончание
+- totalSeats	int	Общее количество мест
+- availableSeats	int	Свободных мест (вычисляется)
+
+ 
 
 ### Модель события (Event)
-
-| Поле | Тип | Описание |
-|------|-----|----------|
-| `id` | `Guid` | Уникальный идентификатор события |
-| `title` | `string` | Название события |
-| `description` | `string` | Описание события |
-| `startAt` | `datetime` | Дата и время начала события |
-| `endAt` | `datetime` | Дата и время окончания события |
-| `totalSeats` | `int` | **Общее количество мест** на событии (указывается при создании) |
-| `availableSeats` | `int` | **Количество свободных мест** на текущий момент (вычисляется автоматически) |
  
-- Поле availableSeats не передаётся при создании – оно автоматически устанавливается равным totalSeats.
-- При каждом успешном бронировании availableSeats уменьшается на 1.
+- id	(Guid)	Уникальный идентификатор
+- title	(string)	Название
+- description	(string)	Описание
+- startAt	(datetime)	Начало
+- endAt	(datetime)	Окончание
+- totalSeats	(int)	Общее количество мест
+- availableSeats	(int)	Свободных мест (вычисляется)
 
-
-### Таблица методов Events
-
-| Метод | Эндпоинт | Описание |
-|-------|----------|----------|
-| GET | `/{id}` | Получить событие по GUID |
-| GET | `/` | Получить список событий с фильтрацией, сортировкой и пагинацией |
-| POST | `/` | Создать одно событие |
-| POST | `/range` | Создать несколько событий (массив) |
-| PUT | `/{id}` | Обновить существующее событие |
-| PUT | `/{id}/book` | Создать бронирование для события |
-| PUT | `/` | Обновить несколько событий (массив) |
-| DELETE | `/{id}` | Удалить событие |
-
-
-### Фильтрация, сортировка и пагинация (GET /)
-
-| Параметр | Тип | Описание |
-|----------|-----|----------|
-| `Title` | string | Фильтр по названию (contains) |
-| `From` | datetime | Фильтр по дате начала (>=) |
-| `To` | datetime | Фильтр по дате окончания (<=) |
-| `SortBy` | string | Поле для сортировки (Title, StartAt, EndAt, Priority) |
-| `SortDesc` | bool | Сортировка по убыванию (true) или возрастанию (false) |
-| `Page` | int | Номер страницы (по умолчанию: 1) |
-| `PageSize` | int | Размер страницы (по умолчанию: 10, максимум: 100) |
-
+### Фильтрация событий (GET /events)
+ 
+- Title	(string)	Фильтр по названию (contains)
+- From	(datetime)	Начало >=
+- To	(datetime)	Окончание <=
+- SortBy	(string)	Поле сортировки
+- SortDesc	(bool)	По убыванию
+- Page	(int)	Номер страницы (default: 1)
+- PageSize	(int)	Размер страницы (default: 10, max: 100)
 
 ### Пример запроса с фильтрацией
 
@@ -350,17 +700,20 @@ GET /api/v1/events?Title=встреча&From=2026-03-01&To=2026-03-31&SortBy=Sta
 ### Создание бронирования
 ```
 POST /api/v1/events/{id}/book
+Authorization: Bearer <access_token>
 ```
 
 
 ### Успешный ответ
 
 ```json
-json
 {
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "eventId": "3fa85f64-5717-4562-a3fc-2c963f66afbc",
-  "status": 0
+  "id": "3fa85f64-...",
+  "eventId": "3fa85f64-...",
+  "userId": "1b503a21-...",
+  "status": 0,
+  "createdAt": "2026-03-20T10:00:00",
+  "processedAt": null
 }
 ```
 
@@ -378,37 +731,14 @@ json
 }
 ```
 
+### Ошибки:
+- 400	- Событие в прошлом, невалидные данные
+- 401	- Нет токена / невалидный токен / неверный пароль
+- 403	- Нет прав (чужая бронь, не Admin)
+- 404	- Событие/бронь/пользователь не найдены
+- 409	- Нет мест, лимит броней, дубликат логина, повторная отмена
 
-### Базовый префикс
-
-```
-/api/v1/bookings
-```
-
-
-### Таблица методов Bookings
-
-| Метод | Эндпоинт | Описание |
-|-------|----------|----------|
-| GET | `/{id}` | Получить информацию о бронировании по её идентификатору. | 
-
-
-### Пример тела ответа (BookingInfoDto)
-
-```json
-{
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "eventId": "3fa85f64-5717-4562-a3fc-2c963f66afbc",
-  "status": 0,
-  "createdAt": "2026-03-20T10:00:00",
-  "processedAt": null
-}
-```
-
----
-
-
-
+ 
 
 ## 🛡️ Валидация
 
@@ -629,55 +959,55 @@ var provider = services.BuildServiceProvider();
 ┌─────────────────────────────────────────────────────────────┐
 │                    PRESENTATION LAYER                       │
 │  Sprints_ASP_NetCore_API                                    │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Controllers/       — REST API endpoints                ││
-│  │  Middlewares/       — GlobalExceptionMiddleware         ││
-│  │  Actions/Filters/   — ActionFilters (валидация, логи)   ││
-│  │  Extensions/        — DI, CORS, Swagger, Versioning     ││
-│  │  Program.cs         — Composition Root                  ││
-│  └─────────────────────────────────────────────────────────┘│
+│  • Controllers/       — REST API endpoints                  │
+│  • Middlewares/       — GlobalExceptionMiddleware           │
+│  • Filters/           — ActionFilters (валидация, логи)     │
+│  • Extensions/        — DI, CORS, Swagger, Versioning,      │
+│                          JWT, Cookies, Claims               │
+│  • Program.cs         — Composition Root                    │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    APPLICATION LAYER                        │
 │  SprintsASP_NetCore_API.Application                         │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  UseCases/DataServices/  — BookingService, EventsService││
-│  │  Dtos/                   — DTO + Filters                ││
-│  │  Mapping/                — AutoMapper-профили           ││
-│  │  Abstractions/           — порты: IRepository,          ││
-│  │                            ITransaction, IEntityFilter, ││
-│  │                            IInterceptLockings           ││
-│  │  Internal/               — Result<T>, PaginatedResult   ││
-│  └─────────────────────────────────────────────────────────┘│
+│  • UseCases/DataServices/  — BookingService, EventsService, │
+│                              UserService, AuthService        │
+│  • Dtos/                   — DTO + Filters                  │
+│  • Mapping/                — AutoMapper-профили             │
+│  • Abstractions/           — порты (IRepository,            │
+│                              ITransaction, IEntityFilter,   │
+│                              IInterceptLockings, ...)        │
+│  • Security/               — IPasswordHasher,               │
+│                              IJwtTokenGenerator             │
+│  • Internal/               — ResultDto, PaginatedResult     │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       DOMAIN LAYER                          │
 │  SprintsASP_NetCore_API.Domain                              │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Entities/       — Event, Booking, BookingStatus        ││
-│  │  Abstractions/   — IEntity                              ||
-|  |  Exceptions/   — *                                      ││
-│  └─────────────────────────────────────────────────────────┘│
+│  • Entities/       — Event, Booking, BookingStatus,         │
+│                       User, UserRole, RefreshToken          │
+│  • Abstractions/   — IEntity                                │
+│  • Exceptions/     — * (доменные исключения)                │
 └─────────────────────────────────────────────────────────────┘
                               ▲
                               │
 ┌─────────────────────────────────────────────────────────────┐
 │                    INFRASTRUCTURE LAYER                     │
 │  SprintsASP_NetCore_API.Infrastructure                      │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  DataAccess/DbContexts/       — AppDbContext            ││
-│  │  DataAccess/Configurations/   — IEntityTypeConfiguration││
-│  │  DataAccess/Interceptors/     — SaveChangesInterceptor  ││
-│  │  DataAccess/Migrations/       — EF Core migrations      ││
-│  │  Repositories/                — EfCoreRepository<T>     ││
-│  │  Concurrency/                 — InterceptLockings       ││
-│  │  System/                      — RefDataService          ││
-│  │  BackgroundServices/          — BookingBackgroundService││
-│  └─────────────────────────────────────────────────────────┘│
+│  • DataAccess/DbContexts/       — AppDbContext              │
+│  • DataAccess/Configurations/   — IEntityTypeConfiguration  │
+│  • DataAccess/Interceptors/     — SaveChangesInterceptor    │
+│  • DataAccess/Migrations/       — EF Core migrations        │
+│  • Repositories/                — EfCoreRepository<T>       │
+│  • Security/                    — PasswordHasher,           │
+│                                    JwtTokenGenerator,       │
+│                                    RsaKeyLoader             │
+│  • Concurrency/                 — InterceptLockings         │
+│  • System/                      — RefDataService            │
+│  • BackgroundServices/          — BookingBackgroundService  │
 └─────────────────────────────────────────────────────────────┘
 ```
 ## Направление зависимостей:
@@ -692,7 +1022,7 @@ var provider = services.BuildServiceProvider();
 - Presentation — зависит от Application и Infrastructure (для Composition Root).
 
 
-## 📁 Структура проекта
+## 📁 Структура проекта (Clean Architecture)
 
 ```
 Ya_Sprints_AspNetCore_WebApi/
@@ -788,10 +1118,6 @@ Ya_Sprints_AspNetCore_WebApi/
 ```
 ---
 
-  
-
-
-
 
 ### 🔄 Поток данных (создание бронирования)
 ```
@@ -832,8 +1158,6 @@ Ya_Sprints_AspNetCore_WebApi/
   
 
 ---
-
-
 
 
 ## ⚡ Оптимизация производительности

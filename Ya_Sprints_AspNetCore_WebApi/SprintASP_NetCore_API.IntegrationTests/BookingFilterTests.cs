@@ -21,22 +21,34 @@ public class BookingFilterTests : TestBase
         await ClearDatabaseAsync();
 
         var eventRepo = GetService<IRepository<Event>>();
+        var userRepo = GetService<IRepository<User>>();
         var bookingRepo = GetService<IRepository<Booking>>();
 
+        // 1. Событие
         var ev = Event.Create(
             Guid.NewGuid(), "Test Event", "Description",
-            DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
+            DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(1).AddHours(2), 10);
 
         await eventRepo.AddAsync(ev);
+
+        // 2. Пользователь (для FK bookings.UserId → users.Id)
+        var user = User.Create(
+            Guid.NewGuid(),
+            "filter_test_user_" + Guid.NewGuid().ToString("N")[..6],
+            "hash",
+            UserRole.User);
+
+        await userRepo.AddAsync(user);
+
         await eventRepo.SaveChangesAsync();
 
-        // Несколько броней с разными статусами
+        // 3. Несколько броней с разными статусами (сигнатура: id, eventId, userId, status, createdAt)
         var bookings = new List<Booking>
         {
-            Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending,   DateTime.UtcNow),
-            Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(1)),
-            Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Rejected,  DateTime.UtcNow.AddMinutes(2)),
-            Booking.Create(Guid.NewGuid(), ev.Id, BookingStatus.Pending,   DateTime.UtcNow.AddMinutes(3)),
+            Booking.Create(Guid.NewGuid(), ev.Id, user.Id, BookingStatus.Pending,   DateTime.UtcNow),
+            Booking.Create(Guid.NewGuid(), ev.Id, user.Id, BookingStatus.Confirmed, DateTime.UtcNow.AddMinutes(1)),
+            Booking.Create(Guid.NewGuid(), ev.Id, user.Id, BookingStatus.Rejected,  DateTime.UtcNow.AddMinutes(2)),
+            Booking.Create(Guid.NewGuid(), ev.Id, user.Id, BookingStatus.Pending,   DateTime.UtcNow.AddMinutes(3)),
         };
 
         foreach (var b in bookings)
@@ -45,7 +57,7 @@ public class BookingFilterTests : TestBase
         await bookingRepo.SaveChangesAsync();
     }
 
-    //   Фильтр по статусу  
+    #region Фильтр по статусу  
 
     [Fact]
     public async Task FilterByStatus_ShouldReturnCorrectBookings()
@@ -67,8 +79,10 @@ public class BookingFilterTests : TestBase
         Assert.Equal(2, paged.TotalCount);
         Assert.All(paged.Items, b => Assert.Equal(BookingStatus.Pending, b.Status));
     }
+    #endregion
 
-    //   Фильтр по EventId  
+
+    #region Фильтр по EventId  
 
     [Fact]
     public async Task FilterByEventId_ShouldReturnBookingsForEvent()
@@ -81,7 +95,7 @@ public class BookingFilterTests : TestBase
 
         var filter = new BookingFilterDto
         {
-            EventId = ev.Id,
+            EventId = ev!.Id,
             Page = 1,
             PageSize = 10
         };
@@ -94,8 +108,38 @@ public class BookingFilterTests : TestBase
         Assert.Equal(4, paged.TotalCount);
         Assert.All(paged.Items, b => Assert.Equal(ev.Id, b.EventId));
     }
+    #endregion
 
-    //   Сортировка по CreatedAt DESC  
+
+    //#region Фильтр по UserId  (Пока в FilterDto нет свойства с UserId) 
+    // 
+    //[Fact]
+    //public async Task FilterByUserId_ShouldReturnBookingsForUser()
+    //{
+    //    var userRepo = GetService<IRepository<User>>();
+    //    var bookingRepo = GetService<IRepository<Booking>>();
+
+    //    var user = (await userRepo.GetAllAsync()).FirstOrDefault();
+    //    Assert.NotNull(user);
+
+    //    var filter = new BookingFilterDto
+    //    {
+    //        UserId = user!.Id,
+    //        Page = 1,
+    //        PageSize = 10
+    //    };
+
+    //    var paged = await bookingRepo.GetPagedAsync(
+    //        filter.ToPredicate(),
+    //        filter.Page!.Value,
+    //        filter.PageSize!.Value);
+
+    //    Assert.Equal(4, paged.TotalCount);
+    //    Assert.All(paged.Items, b => Assert.Equal(user.Id, b.UserId));
+    //}
+    //#endregion
+
+#region Сортировка по CreatedAt DESC  
 
     [Fact]
     public async Task SortByCreatedAtDesc_ShouldReturnSortedBookings()
@@ -110,7 +154,7 @@ public class BookingFilterTests : TestBase
             filter.Page!.Value,
             filter.PageSize!.Value);
 
-        // Сортировка на клиенте — новая модель фильтра не несёт сортировку
+        // Сортировка на клиенте — серверная не поддерживается текущим GetPagedAsync
         var result = paged.Items
             .OrderByDescending(b => b.CreatedAt)
             .ToList();
@@ -120,15 +164,17 @@ public class BookingFilterTests : TestBase
         for (int i = 0; i < result.Count - 1; i++)
             Assert.True(result[i].CreatedAt >= result[i + 1].CreatedAt);
     }
+    #endregion
 
-    //   Пагинация  
+
+    #region Пагинация  
 
     [Fact]
     public async Task Pagination_ShouldReturnCorrectPage()
     {
         var repo = GetService<IRepository<Booking>>();
 
-        // Первая страница: PageSize = 2, получаем 2 из 4
+        // Первая страница
         var page1 = await repo.GetPagedAsync(
             predicate: null,
             page: 1,
@@ -139,7 +185,7 @@ public class BookingFilterTests : TestBase
         var items1 = page1.Items.ToList();
         Assert.Equal(2, items1.Count);
 
-        // Вторая страница: PageSize = 2, получаем оставшиеся 2
+        // Вторая страница
         var page2 = await repo.GetPagedAsync(
             predicate: null,
             page: 2,
@@ -158,8 +204,10 @@ public class BookingFilterTests : TestBase
         // Вместе — все 4 брони
         Assert.Equal(4, ids1.Union(ids2).Count());
     }
+    #endregion
 
-    //   Фильтр + пагинация вместе  
+
+    #region Фильтр + пагинация вместе  
 
     [Fact]
     public async Task FilterByStatusAndPagination_ShouldWorkTogether()
@@ -178,13 +226,12 @@ public class BookingFilterTests : TestBase
             filter.Page!.Value,
             filter.PageSize!.Value);
 
-        // Всего два Pending-бронирования в БД
         Assert.Equal(2, paged.TotalCount);
-
-        // На странице ровно один элемент (PageSize = 1)
         Assert.Single(paged.Items);
-         
+
         var item = paged.Items.First();
         Assert.Equal(BookingStatus.Pending, item.Status);
     }
+    #endregion
+
 }
