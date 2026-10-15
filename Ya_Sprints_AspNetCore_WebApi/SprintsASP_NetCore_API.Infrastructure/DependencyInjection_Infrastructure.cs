@@ -52,8 +52,7 @@ public static class DependencyInjection_Infrastructure
         {
             x.AddConsumer<OrderCreatedConsumer>();
             //x.AddConsumer<HeavyOrderConsumer, HeavyOrderConsumerDefinition>();
-
-
+             
             x.UsingRabbitMq((context, cfg) =>
             {
                 cfg.Host("localhost", "/", h =>
@@ -229,7 +228,7 @@ public class OrderCreatedConsumer : IConsumer<OrderCreated>
 //    }
 
 
-//    Анализ пограничных случаев
+// Анализ пограничных случаев
 //При проектировании важно учитывать, что Polly работает внутри приложения и также потребляет ресурсы.Если создать тысячи отдельных политик для каждого мелкого вызова, потребление памяти вырастет.
 //Лучшая практика — использовать общие экземпляры политик для вызовов к одному и тому же микросервису.
 
@@ -306,10 +305,10 @@ public class OrderCreatedConsumer : IConsumer<OrderCreated>
 
 
 
-//    // Пример Inbox 
+// Пример Inbox 
 
 
-//    using Npgsql; // Для работы с кодами ошибок Postgres
+// using Npgsql; // Для работы с кодами ошибок Postgres
 
 //public async Task HandleOrderPaidAsync(OrderPaidEvent message)
 //{

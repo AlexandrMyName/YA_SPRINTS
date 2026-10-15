@@ -19,6 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SprintASP_NetCore_API.Integ
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{519939AB-0598-4D3E-9286-CEA7CB766262}"
 	ProjectSection(SolutionItems) = preProject
+		Dev.txt = Dev.txt
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
