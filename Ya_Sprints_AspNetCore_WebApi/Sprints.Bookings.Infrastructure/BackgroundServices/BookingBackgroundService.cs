@@ -1,39 +1,37 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Sprints.Bookings.Application.UseCases.DataServices.Contracts;
+using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
+using Sprints.Bookings.Infrastructure.DataAccess.DbContexts;
+using Sprints.Bookings.Application.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Sprints.Bookings.Application.Abstractions;
- 
-using Sprints.Bookings.Application.UseCases.DataServices.Contracts;
-using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
-using Sprints.Bookings.Domain.ValueObjects;
 using Sprints.Contracts;
 
 
 namespace Sprints.Bookings.Infrastructure.BackgroundServices;
 
+
 public class BookingBackgroundService : BackgroundService
 {
+
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IKafkaPublisher _kafka;
     private readonly ILogger<BookingBackgroundService> _logger;
 
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
-
     private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan ProcessingDelay = TimeSpan.FromSeconds(2);
 
     public BookingBackgroundService(
         IServiceScopeFactory scopeFactory,
-        IKafkaPublisher kafka,
         ILogger<BookingBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
-        _kafka = kafka;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -47,58 +45,73 @@ public class BookingBackgroundService : BackgroundService
                 var pendingList = pending.ToList();
                 if (pendingList.Count == 0) continue;
 
-                var tasks = pendingList.Select(b => ProcessBookingAsync(b, bookingService, stoppingToken));
+                var tasks = pendingList.Select(b => ProcessBookingAsync(b, stoppingToken));
                 await Task.WhenAll(tasks);
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "BookingBackgroundService: необработанная ошибка");
             }
         }
-
-        _logger.LogDebug("BookingBackgroundService завершён");
     }
 
     private async Task ProcessBookingAsync(
-        IBookingInfoDto booking,
-        IBookingService bookingService,
-        CancellationToken stoppingToken)
+        IBookingInfoDto booking, CancellationToken stoppingToken)
     {
         try
         {
-            // имитация внешней проверки
             await Task.Delay(ProcessingDelay, stoppingToken);
-
             await _processingSemaphore.WaitAsync(stoppingToken);
+
             try
             {
-                // Меняем статус в СВОЕЙ БД
-                booking.Status = BookingStatus.Confirmed;
-                booking.ProcessedAt = DateTime.UtcNow;
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var outbox = scope.ServiceProvider.GetRequiredService<IOutboxWriter>();
 
-                await bookingService.UpdateBookingAsync(booking);   // SaveChanges внутри
+                // явная транзакция
+                await using var tx = await db.Database.BeginTransactionAsync(stoppingToken);
 
-                _logger.LogInformation("Bookings: бронь {BookingId} подтверждена", booking.Id);
+                try
+                { 
+                    var entity = await db.Bookings.FindAsync(new object[] { booking.Id }, stoppingToken);
+                    if (entity == null)
+                    {
+                        _logger.LogWarning("Bookings: бронь {BookingId} не найдена", booking.Id);
+                        await tx.RollbackAsync(stoppingToken);
+                        return;
+                    }
 
-                // Публикуем ТОЛЬКО ПОСЛЕ успешного сохранения
-                var message = new BookingConfirmed
+                    entity.Confirm();
+
+                    // Кладём в Outbox (НЕ отправляем в Kafka напрямую!)
+                    await outbox.EnqueueAsync(
+                        topic: KafkaTopics.BookingConfirmed,
+                        key: booking.EventId.ToString(),
+                        payload: new BookingConfirmed
+                        {
+                            BookingId = booking.Id,
+                            EventId = booking.EventId,
+                            UserId = booking.UserId,
+                            SeatsCount = 1,
+                            ConfirmedAt = DateTime.UtcNow
+                        },
+                        ct: stoppingToken);
+
+                    // Сохраняем ВСЁ в одной транзакции
+                    await db.SaveChangesAsync(stoppingToken);
+                    await tx.CommitAsync(stoppingToken);
+
+                    _logger.LogInformation(
+                        "Bookings: бронь {BookingId} подтверждена, добавлено в Outbox",
+                        booking.Id);
+                }
+                catch
                 {
-                    BookingId = booking.Id,
-                    EventId = booking.EventId,
-                    UserId = booking.UserId,
-                    SeatsCount = 1,
-                    ConfirmedAt = booking.ProcessedAt.Value
-                };
-
-                await _kafka.PublishAsync(
-                    topic: KafkaTopics.BookingConfirmed,
-                    key: booking.EventId.ToString(),    // все брони одного события в один партишн
-                    message,
-                    stoppingToken);
+                    await tx.RollbackAsync(stoppingToken);
+                    throw;
+                }
             }
             finally
             {

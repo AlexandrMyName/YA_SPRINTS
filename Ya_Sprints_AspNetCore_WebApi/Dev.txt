@@ -42,7 +42,8 @@ $ dotnet ef migrations add Initial_microservices \
   --startup-project Sprints.Users.Api \
   --context AppDbContext \
   --output-dir DataAccess/Migrations
-MSBUILD : error MSB1009: файл проекта не существует.
-Ключ: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints.Users.Infrastructure\Sprints.Users.Infrastructure
-Unable to retrieve project metadata. Ensure it's an SDK-style project. If you're using a custom BaseIntermediateOutputPath or MSBuildProjectExtensionsPath values, Use the --msbuildprojectextensionspath option.
+ 
+
+
+$ docker compose up --build --force-recreate
 

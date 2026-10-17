@@ -11,7 +11,10 @@ public class AppDbContext : BaseDbContext
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
      
-    public DbSet<Booking> Bookings => Set<Booking>(); 
+    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

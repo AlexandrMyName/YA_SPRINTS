@@ -11,8 +11,10 @@ public class AppDbContext : BaseDbContext
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<Event> Events => Set<Event>();  
-     
+    public DbSet<Event> Events => Set<Event>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
