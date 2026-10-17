@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
-namespace Sprints.Contracts
-{
-    internal class BookingConfirmedMessage
-    {
-    }
-}
+namespace Sprints.Contracts;
+
+
+public sealed record BookingConfirmedMessage(
+    Guid BookingId,
+    Guid EventId,
+    Guid UserId,
+    int SeatsCount,
+    DateTime ConfirmedAtUtc);
