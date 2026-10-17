@@ -29,17 +29,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.Property(b => b.Status)
             .IsRequired()
             .HasConversion<string>();
-
-        // настройка связей
-        builder.HasOne(b => b.Event)                
-            .WithMany(e => e.Bookings)             
-            .HasForeignKey(b => b.EventId)           
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne<User>()
-           .WithMany()
-           .HasForeignKey(b => b.UserId)
-           .OnDelete(DeleteBehavior.Restrict);
+         
+         
 
     }
 }

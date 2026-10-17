@@ -10,7 +10,8 @@ using Sprints.Users.Application.Abstractions.Security;
 using Sprints.Users.Infrastructure.DataAccess.DbContexts;
 using Sprints.Users.Infrastructure.DataAccess.Interceptors;
 using Sprints.Users.Infrastructure.Security;
- 
+using Sprints.Users.Infrastructure.Concurrency;
+
 
 namespace Sprints.Users.Infrastructure.DI;
 
@@ -31,8 +32,9 @@ public static class DependencyInjection_Infrastructure
             options.UseNpgsql(config.GetConnectionString("DefaultConnection"));
            // options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
         });
-          
+
         services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
+        services.AddSingleton<IInterceptLockings, InterceptLockings>();
         services.AddScoped<AuditInterceptor>();
 
         services.AddSingleton<IPasswordHasher, PasswordHasher>();           

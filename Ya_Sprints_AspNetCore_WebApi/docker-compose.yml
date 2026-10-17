@@ -1,10 +1,9 @@
 services:
   # ============================================================
-  # Kafka + Zookeeper (legacy-режим)
+  # Zookeeper + Kafka
   # ============================================================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
-    container_name: sprints_zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -15,14 +14,13 @@ services:
       - zookeeper_log:/var/lib/zookeeper/log
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181 | grep -q Mode"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:7.6.0
-    container_name: sprints_kafka
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -38,7 +36,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"    # ← ВАЖНО: включено
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
       - kafka_data:/var/lib/kafka/data
     restart: unless-stopped
@@ -49,13 +47,11 @@ services:
       retries: 10
 
   # ============================================================
-  # Три базы данных — по одной на сервис
+  # Три базы данных
   # ============================================================
   postgres-users:
     image: postgres:15
-    container_name: sprints_users_db
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: sprints_users
@@ -72,9 +68,7 @@ services:
 
   postgres-events:
     image: postgres:15
-    container_name: sprints_events_db
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: sprints_events
@@ -91,9 +85,7 @@ services:
 
   postgres-bookings:
     image: postgres:15
-    container_name: sprints_bookings_db
     environment:
-      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: sprints_bookings
@@ -113,10 +105,8 @@ services:
   # ============================================================
   users-service:
     build:
-      context: ./src                                                  # ← путь к src/
-      dockerfile: Services/Users/Sprints.Users.Api/Dockerfile         # ← от src/
-    image: sprints-users-api:latest
-    container_name: sprints_users_service
+      context: .
+      dockerfile: Sprints.Users.Api/Dockerfile
     depends_on:
       postgres-users:
         condition: service_healthy
@@ -125,7 +115,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres-users;Port=5432;Database=sprints_users;Username=postgres;Password=postgres"
+      ConnectionStrings__DefaultConnection: "Host=postgres-users;Port=5432;Database=sprints_users;Username=postgres;Password=postgres;SslMode=Disable"
       Jwt__Mode: HS256
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users
@@ -134,10 +124,8 @@ services:
 
   events-service:
     build:
-      context: ./src
-      dockerfile: Services/Events/Sprints.Events.Api/Dockerfile
-    image: sprints-events-api:latest
-    container_name: sprints_events_service
+      context: .
+      dockerfile: Sprints.Events.Api/Dockerfile
     depends_on:
       postgres-events:
         condition: service_healthy
@@ -148,7 +136,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres-events;Port=5432;Database=sprints_events;Username=postgres;Password=postgres"
+      ConnectionStrings__DefaultConnection: "Host=postgres-events;Port=5432;Database=sprints_events;Username=postgres;Password=postgres;SslMode=Disable"
       Kafka__BootstrapServers: kafka:29092
       Kafka__ConsumerGroup: sprints-events-consumer
       Kafka__Topic: booking-confirmed
@@ -160,10 +148,8 @@ services:
 
   bookings-service:
     build:
-      context: ./src
-      dockerfile: Services/Bookings/Sprints.Bookings.Api/Dockerfile
-    image: sprints-bookings-api:latest
-    container_name: sprints_bookings_service
+      context: .
+      dockerfile: Sprints.Bookings.Api/Dockerfile
     depends_on:
       postgres-bookings:
         condition: service_healthy
@@ -174,29 +160,13 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Host=postgres-bookings;Port=5432;Database=sprints_bookings;Username=postgres;Password=postgres"
+      ConnectionStrings__DefaultConnection: "Host=postgres-bookings;Port=5432;Database=sprints_bookings;Username=postgres;Password=postgres;SslMode=Disable"
       Kafka__BootstrapServers: kafka:29092
-      Kafka__Topic: booking-confirmed
+      Kafka__ConsumerGroup: sprints-bookings
       Jwt__Mode: HS256
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
-    restart: unless-stopped
-
-  # ============================================================
-  # RabbitMQ (на будущее)
-  # ============================================================
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: sprints_rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
     restart: unless-stopped
 
 volumes:
@@ -206,4 +176,3 @@ volumes:
   users_db_data:
   events_db_data:
   bookings_db_data:
-  rabbitmq_data:

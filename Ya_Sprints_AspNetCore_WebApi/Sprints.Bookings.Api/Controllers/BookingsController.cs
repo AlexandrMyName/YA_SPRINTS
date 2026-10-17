@@ -21,6 +21,22 @@ public class BookingsController : ControllerBase
         _bookingService = bookingService;
     }
 
+
+    [HttpPost("events/{eventId:guid}")]
+    [ProducesResponseType(typeof(IBookingInfoDto), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Create([FromRoute] Guid eventId)
+    {
+        var userId = User.GetUserId();
+        var result = await _bookingService.CreateBookingAsync(eventId, userId);
+
+        if (!result.IsSuccesfuly)
+            return Conflict(result.Reason);
+
+        return Accepted(result.Data);
+    }
+
+
     /// <summary>
     /// Получает информацию о брони по её идентификатору.
     /// Пользователь видит только свои брони, Admin — любые.

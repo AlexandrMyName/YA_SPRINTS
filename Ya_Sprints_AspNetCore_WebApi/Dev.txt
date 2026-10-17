@@ -33,3 +33,16 @@ Topic: orders   PartitionCount: 3   ReplicationFactor: 1
   Topic: orders   Partition: 0   Leader: 1   Replicas: 1   Isr: 1
   Topic: orders   Partition: 1   Leader: 1   Replicas: 1   Isr: 1
   Topic: orders   Partition: 2   Leader: 1   Replicas: 1   Isr: 1 
+
+
+
+
+$ dotnet ef migrations add Initial_microservices \
+  --project Sprints.Users.Infrastructure \
+  --startup-project Sprints.Users.Api \
+  --context AppDbContext \
+  --output-dir DataAccess/Migrations
+MSBUILD : error MSB1009: файл проекта не существует.
+Ключ: D:\Projects\YA\YA_SPRINTS\Ya_Sprints_AspNetCore_WebApi\Sprints.Users.Infrastructure\Sprints.Users.Infrastructure
+Unable to retrieve project metadata. Ensure it's an SDK-style project. If you're using a custom BaseIntermediateOutputPath or MSBuildProjectExtensionsPath values, Use the --msbuildprojectextensionspath option.
+

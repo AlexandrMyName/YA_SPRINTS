@@ -58,11 +58,17 @@ public class Program
         var issuer = jwtSection["Issuer"];
         var audience = jwtSection["Audience"];
 
+        //   ВЫБОР СХЕМЫ ПО УМОЛЧАНИЮ ЗАВИСИТ ОТ РЕЖИМА  
+        var mode = jwtSection["Mode"] ?? "HS256";
+        var defaultScheme = string.Equals(mode, "HS256", StringComparison.OrdinalIgnoreCase)
+            ? AuthSchemes.HS256
+            : AuthSchemes.RS256;
+
         builder.Services
             .AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = AuthSchemes.RS256;
-                options.DefaultChallengeScheme = AuthSchemes.RS256;
+                options.DefaultAuthenticateScheme = defaultScheme;  
+                options.DefaultChallengeScheme = defaultScheme;   
             })
             .AddJwtBearer(AuthSchemes.RS256, options =>
             {
@@ -102,7 +108,7 @@ public class Program
         builder.Services.AddAppAuthorization();
 
         #endregion
-         
+
         builder.Host.UseDefaultServiceProvider((context, options) =>
         {
             if (context.HostingEnvironment.IsDevelopment())

@@ -3,6 +3,7 @@ using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
 using Sprints.Bookings.Application.Abstractions;
 using Sprints.Bookings.Application.Internal;
 using Sprints.Bookings.Application.Filters;
+using Sprints.Bookings.Domain.ValueObjects;
 using Sprints.Bookings.Domain.Exceptions;
 using Sprints.Bookings.Domain.Entities;
 using Microsoft.Extensions.Logging;
@@ -14,215 +15,127 @@ namespace Sprints.Bookings.Application.UseCases.DataServices;
 
 public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookingService
 {
+
     private const int MaxPendingBookingsPerPage = 1000;
     private const int MaxActiveBookingsPerUser = 10;
-     
+
     private readonly ILogger<BookingService> _logger;
     private readonly IMapper _mapper;
     private readonly IInterceptLockings _interceptLockings;
 
+
     public BookingService(
-        IRepository<Booking> repository, 
+        IRepository<Booking> repository,
         ILogger<BookingService> logger,
         IInterceptLockings interceptLockings,
         IMapper mapper) : base(repository, logger, mapper)
-    { 
+    {
         _logger = logger;
         _mapper = mapper;
         _interceptLockings = interceptLockings;
     }
 
-    #region Чтение
 
     public async Task<IEnumerable<IBookingInfoDto>> GetPendingBookingsAsync(
         int maxCountRange = MaxPendingBookingsPerPage)
     {
-        var pendingBookings = await GetFilteredAsync(new BookingFilterDto
+        var pending = await GetFilteredAsync(new BookingFilterDto
         {
             Status = BookingStatus.Pending,
             Page = 1,
-            PageSize = maxCountRange,
+            PageSize = maxCountRange
         });
 
-        return pendingBookings.Items.ToList();
+        return pending.Items.ToList();
     }
+
 
     public async Task<IResultDto<IBookingInfoDto>> GetBookingByIdAsync(
         Guid bookingId, Guid userId, bool isAdmin)
     {
-        var bookingDto = await GetByIdAsync(bookingId);
+        var dto = await GetByIdAsync(bookingId);
 
-        if (!bookingDto.IsSuccesfuly || bookingDto.Data == null)
+        if (!dto.IsSuccesfuly || dto.Data == null)
             throw new KeyNotFoundException($"Бронь {bookingId} не найдена");
 
-        // Проверка прав: пользователь — только свою, Admin — любую
-        if (!isAdmin && bookingDto.Data.UserId != userId)
+        if (!isAdmin && dto.Data.UserId != userId)
             throw new NoRightsException(
                 $"Пользователь {userId} не может просматривать чужую бронь {bookingId}");
 
-        return bookingDto;
+        return dto;
     }
 
-    #endregion
-
-    #region Создание
 
     public async Task<IResultDto<IBookingInfoDto>> CreateBookingAsync(Guid eventId, Guid userId)
     {
-        var semaphore = _interceptLockings.GetOrAddByEventId(eventId);
-        await semaphore.WaitAsync();
-
-        Event? eventEntity = null;
-        BookingInfoDto? createdBooking = null;
-        bool seatsReserved = false;
-
-        await using var transaction = await _eventRepository.BeginTransactionAsync();
-
-        try
-        {
-            // 1. Событие существует
-            var eventResult = await _eventRepository.GetByIdAsync(eventId);
-            if (!eventResult.IsSuccesfuly)
-                throw new KeyNotFoundException($"Событие {eventId} не найдено");
-
-            eventEntity = eventResult.Data;
-            if (eventEntity == null)
-                throw new NullReferenceException("Data was null");
-
-            // 2. Событие уже началось
-            if (eventEntity.StartAt <= DateTime.UtcNow)
-                throw new EventAlreadyStartedException(eventEntity.Id, eventEntity.StartAt);
-
-            // 3. Лимит активных броней у пользователя
-            var activeCount = await CountActiveBookingsAsync(userId);
-            if (activeCount >= MaxActiveBookingsPerUser)
-                throw new ActiveBookingsLimitExceededException(userId, MaxActiveBookingsPerUser);
-
-            // 4. Есть места
-            seatsReserved = eventEntity.TryReserveSeats();
-            if (!seatsReserved)
-                throw new NoAvailableSeatsException("No available seats for this event");
-
-            var updateResult = await _eventRepository.UpdateAsync(eventEntity);
-            if (!updateResult.IsSuccesfuly)
-                throw new Exception("Не удалось обновить количество мест: " + updateResult.Reason);
-
-            // 5. Создаём бронь с UserId
-            createdBooking = new BookingInfoDto
-            {
-                Id = Guid.NewGuid(),
-                EventId = eventId,
-                UserId = userId,
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                ProcessedAt = null
-            };
-
-            var bookingResult = await AddAsync(createdBooking);
-            if (!bookingResult.IsSuccesfuly)
-                throw new Exception("Не удалось создать бронь");
-
-            await _eventRepository.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            _logger.LogInformation(
-                "Создана бронь {BookingId} для пользователя {UserId} на событие {EventId}",
-                createdBooking.Id, userId, eventId);
-
-            return bookingResult;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-
-            if (seatsReserved && eventEntity != null)
-                eventEntity.ReleaseSeats(1);
-
-            throw;
-        }
-        finally
-        {
-            semaphore.Release();
-        }
-    }
-
-    /// <summary>
-    /// Число активных (Pending) броней пользователя.
-    /// </summary>
-    private async Task<int> CountActiveBookingsAsync(Guid userId)
-    {
-        var paged = await Repository.GetPagedAsync(
+        //  Лимит активных броней
+        var active = await Repository.GetPagedAsync(
             predicate: b => b.UserId == userId && b.Status == BookingStatus.Pending,
             page: 1,
             pageSize: MaxActiveBookingsPerUser + 1);
 
-        return paged.TotalCount;
+        if (active.TotalCount >= MaxActiveBookingsPerUser)
+            throw new ActiveBookingsLimitExceededException(userId, MaxActiveBookingsPerUser);
+
+        // Создаём Booking (Pending) — БЕЗ проверки события,
+        //  потому что Events живёт в другом сервисе.
+        // ! Проверка «событие существует / не началось / есть места»
+        //  происходит позже, когда Events получает BookingConfirmed.
+        var booking = Booking.Create(
+            Guid.NewGuid(),
+            eventId,
+            userId,
+            BookingStatus.Pending,
+            DateTime.UtcNow);
+
+        var result = await Repository.AddAsync(booking);
+        if (!result.IsSuccesfuly)
+            return ResultDto<IBookingInfoDto>.Fail(result.Reason ?? "Не удалось создать бронь");
+
+        await Repository.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Bookings: создана бронь {BookingId} (Pending) для User {UserId}, Event {EventId}",
+            booking.Id, userId, eventId);
+
+        return ResultDto<IBookingInfoDto>.Ok(
+            _mapper.Map<IBookingInfoDto>(booking),
+            "Бронь создана, ожидает подтверждения");
     }
-
-    #endregion
-
-    #region Отмена
 
     public async Task<IResultDto<IBookingInfoDto>> CancelBookingAsync(
         Guid bookingId, Guid userId, bool isAdmin)
     {
         var semaphore = _interceptLockings.GetOrAddByBookingId(bookingId);
         await semaphore.WaitAsync();
-
-        await using var transaction = await Repository.BeginTransactionAsync();
-
         try
         {
-            var bookingResult = await Repository.GetByIdAsync(bookingId);
-            if (!bookingResult.IsSuccesfuly || bookingResult.Data == null)
+            var found = await Repository.GetByIdAsync(bookingId);
+            if (!found.IsSuccesfuly || found.Data == null)
                 throw new KeyNotFoundException($"Бронь {bookingId} не найдена");
 
-            var booking = bookingResult.Data;
+            var booking = found.Data;
 
-            // 1. Проверка прав
             if (!isAdmin && booking.UserId != userId)
                 throw new NoRightsException(
                     $"Пользователь {userId} не может отменить чужую бронь {bookingId}");
 
-            // 2. Отменяем (внутри Cancel — защита от повторной отмены)
             booking.Cancel();
-
-            var update = await Repository.UpdateAsync(booking);
-            if (!update.IsSuccesfuly)
-                throw new Exception("Не удалось отменить бронь: " + update.Reason);
-
-            // 3. Возвращаем место на событие — ВНУТРИ той же транзакции
-            var eventResult = await _eventRepository.GetByIdAsync(booking.EventId);
-            if (eventResult.IsSuccesfuly && eventResult.Data != null)
-            {
-                eventResult.Data.ReleaseSeats(1);
-                await _eventRepository.UpdateAsync(eventResult.Data);
-            }
-
+            await Repository.UpdateAsync(booking);
             await Repository.SaveChangesAsync();
-            await transaction.CommitAsync();
 
-            _logger.LogInformation(
-                "Бронь {BookingId} отменена пользователем {UserId} (isAdmin={IsAdmin})",
-                bookingId, userId, isAdmin);
+            // ⚠️ Восстановление места в Events — вне рамок задания
+            // (в задании только уменьшение при подтверждении).
+            // Если хотите — добавьте BookingCancelled и consumer в Events.
 
             return ResultDto<IBookingInfoDto>.Ok(
                 _mapper.Map<IBookingInfoDto>(booking), "Успешно отменена");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
         }
         finally
         {
             semaphore.Release();
         }
     }
-
-    #endregion
-
-    #region Обновление
 
     public async Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item)
     {
@@ -245,6 +158,4 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
             semaphore.Release();
         }
     }
-
-    #endregion
 }

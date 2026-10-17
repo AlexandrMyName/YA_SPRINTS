@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Sprints.Contracts\Sprints.Contracts.csproj" />
     <ProjectReference Include="..\Sprints.Events.Domain\Sprints.Events.Domain.csproj" />
   </ItemGroup>
 
