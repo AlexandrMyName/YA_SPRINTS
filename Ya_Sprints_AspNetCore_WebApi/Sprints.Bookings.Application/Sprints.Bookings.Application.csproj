@@ -6,4 +6,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="15.1.3" />
+    <PackageReference Include="MassTransit.Abstractions" Version="9.2.3" />
+    <PackageReference Include="Refit" Version="9.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sprints.Bookings.Domain\Sprints.Bookings.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
