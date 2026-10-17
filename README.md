@@ -10,7 +10,8 @@
 ## 📖 Оглавление
 
 <br>
- 
+
+ **Часть 1 — Монолит (Sprint 8):**
 - [О проекте](#-о-проекте)
 - [Технологии](#-технологии)
 - [Собственные библиотеки](#-собственные-библиотеки)
@@ -40,9 +41,25 @@
 - [Вклад в проект](#-вклад-в-проект)
 - [Лицензия](#-лицензия)
 
+
+**Часть 2 — Микросервисы (Sprint 9):**
+- [Микросервисная архитектура](#-микросервисная-архитектура)
+- [Состав системы](#-состав-системы)
+- [Sprints.Contracts — общий контракт](#-sprintscontracts--общий-контракт)
+- [Kafka: топики и обработчики](#-kafka-топики-и-обработчики)
+- [Поток события BookingConfirmed (saga)](#-поток-события-bookingconfirmed-saga)
+- [Outbox pattern](#-outbox-pattern)
+- [Inbox pattern](#-inbox-pattern)
+- [JWT между сервисами](#-jwt-между-сервисами)
+- [Запуск микросервисов](#-запуск-микросервисов)
+- [Проверка сценария](#-проверка-сценария)
+
+
 <br>
 
 ---
+
+# Часть 1 — Монолит (Sprint 8)
 
 ## 📌 О проекте
 
@@ -1171,6 +1188,553 @@ Ya_Sprints_AspNetCore_WebApi/
 - **Кеширование** –  отсутствует (для простоты), но может быть добавлено при необходимости.
 ---
 
+
+# Часть 2 — Микросервисы  (Sprint 9)
+
+🏗 Микросервисная архитектура
+В девятом спринте монолит декомпозирован на 3 независимых сервиса, связанных через Apache Kafka. 
+- Каждый сервис — самостоятельное приложение со своим жизненным циклом, своей БД, своим docker-compose-сервисом.
+
+Монолит остаётся в репозитории как историческая версия (Sprint 8). Микросервисная версия — новая архитектура для Sprint 9.
+
+Ключевые принципы
+- Нет HTTP-вызовов между сервисами. Всё общение — через Kafka
+- Своя БД у каждого. Сервисы не делят схемы
+- Eventual consistency. Данные сходятся к согласованному состоянию асинхронно
+- Outbox + Inbox + Saga. Гарантии доставки и идемпотентности
+- JWT выдаёт Users, проверяют все
+
+📋 Состав системы
+
+- Users	5001	   sprints_users	   5432	Регистрация, логин, выдача JWT, refresh-токены
+- Events	5002  	sprints_events	  5433	CRUD событий, AvailableSeats
+- Bookings	5003	sprints_bookings	5434	Создание/отмена броней
+  
+Инфраструктура:
+
+- zookeeper — 2181
+- kafka — 9092 (внешний), 29092 (внутренний для Docker)
+- postgres-users — 5432
+- postgres-events — 5433
+- postgres-bookings — 5434
+
+```Схема
+text
+┌──────────┐  HTTP  ┌──────────┐
+│  Client  │◀──────▶│  Users   │◀── own DB (sprints_users)
+└────┬─────┘        └──────────┘
+     │
+     │  HTTP  (JWT в заголовке)
+     ├────────────────▶┌──────────┐◀── own DB (sprints_events)
+     │                 │  Events  │
+     │                 └────┬─────┘
+     │                      ▲
+     │                      │ booking-confirmed
+     │                      │ booking-rejected
+     │                 ┌────┴─────┐
+     │                 │  Kafka   │
+     │                 └────┬─────┘
+     │                      │
+     │  HTTP                │
+     └────────────────▶┌────▼─────┐◀── own DB (sprints_bookings)
+                       │ Bookings │
+                       └──────────┘
+```
+
+- Events и Bookings никогда не общаются друг с другом напрямую. Только через Kafka.
+
+📦 Sprints.Contracts — общий контракт
+Отдельный проект-библиотека Sprints.Contracts, который подключают все три сервиса. Содержит только DTO и константы — ноль зависимостей (ни EF, ни MassTransit, ни Refit).
+
+**KafkaTopics.cs**
+```csharp
+namespace Sprints.Contracts;
+
+public static class KafkaTopics
+{
+    public const string BookingConfirmed = "booking-confirmed";
+    public const string BookingRejected  = "booking-rejected";
+}
+
+```
+Издатель и подписчик ссылаются на одну и ту же строку — опечатка исключена.
+
+**BookingConfirmed.cs**
+```csharp
+public sealed record BookingConfirmed
+{
+    public Guid MessageId { get; init; }    // ← для Inbox-дедупликации
+    public Guid BookingId { get; init; }
+    public Guid EventId { get; init; }
+    public Guid UserId { get; init; }
+    public int SeatsCount { get; init; }
+    public DateTime ConfirmedAt { get; init; }
+}
+```
+
+**BookingRejected.cs**
+```csharp
+public sealed record BookingRejected
+{
+    public Guid MessageId { get; init; }
+    public Guid BookingId { get; init; }
+    public Guid EventId { get; init; }
+    public string Reason { get; init; } = "";
+    public DateTime RejectedAt { get; init; }
+}
+```
+Правило контракта: только то, что реально нужно подписчику. Никаких внутренних сущностей, никаких EF-типов.
+
+📨 Kafka: топики и обработчики
+ 
+- booking-confirmed	Bookings	Events	«Бронь подтверждена, зарезервируй место»
+- booking-rejected	Events	Bookings	«Мест нет / событие не найдено, отклони бронь»
+- Партиций: 3 на топик (создаётся при старте через KafkaTopicInitializer в Events).
+
+Consumer groups
+
+- Events	sprints-events	booking-confirmed
+- Bookings	sprints-bookings	booking-rejected
+- Producer группы не указывает — группа это понятие только для консьюмеров.
+
+Как работает группа
+```text
+Topic booking-confirmed, partitions = 3
+
+
+Group sprints-events:
+  Instance A1 → P0
+  Instance A2 → P1
+  Instance A3 → P2
+  (каждое сообщение = один instance этой группы)
+
+Group sprints-audit:
+  Instance B1 → P0, P1, P2
+  (эта группа видит ВСЕ сообщения параллельно с sprints-events)
+Внутри одной группы сообщения распределяются между инстансами
+
+Разные группы видят все сообщения независимо
+
+Порядок и ключ сообщения
+Все сообщения отправляются с key = EventId.ToString():
+```
+
+```csharp
+await producer.ProduceAsync("booking-confirmed", new Message<string, string>
+{
+    Key = message.EventId.ToString(),   // ← один партишн на EventId
+    Value = json
+});
+```
+
+- Гарантия: все сообщения по одному событию идут в один партишн и обрабатываются по порядку. Это важно для корректного AvailableSeats при параллельных бронях.
+
+Ручной commit offset
+``` csharp
+var config = new ConsumerConfig
+{
+    // ...
+    EnableAutoCommit = false    // ← ОБЯЗАТЕЛЬНО
+};
+
+// ...
+
+handler.HandleAsync(message, ct).GetAwaiter().GetResult();
+consumer.Commit(result);        // ← только после успеха
+Если HandleAsync упал — offset не коммитится → Kafka перечитает сообщение. Inbox (ниже) защитит от повторного применения.
+```
+
+
+🔄 Поток события BookingConfirmed (saga)
+Успешное бронирование
+``` text
+1. POST /api/v1/bookings/events/{eventId}
+        ↓
+2. Bookings создаёт Booking (Pending) в своей БД
+        ↓
+3. BackgroundService: Pending → Confirmed
+   ├─ Transaction:
+   │   • UPDATE bookings.status = Confirmed
+   │   • INSERT outbox_messages (BookingConfirmed)
+   │  (ОБЕ записи в одной транзакции)
+        ↓
+4. OutboxProcessor: читает outbox_messages
+   ├─ Produce BookingConfirmed → Kafka "booking-confirmed"
+   └─ UPDATE outbox_messages.processed_at
+        ↓
+5. Events: BookingConfirmedSubscriber (group = sprints-events)
+   ├─ Inbox-check (MessageId) → если дубль, skip
+   ├─ Transaction:
+   │   • If AvailableSeats >= SeatsCount:
+   │       UPDATE events.available_seats -= SeatsCount
+   │       INSERT inbox_messages
+   │   • Else:
+   │       INSERT outbox_messages (BookingRejected)
+   │       INSERT inbox_messages
+   └─ Commit Kafka offset
+        ↓
+6. (только при отказе) OutboxProcessor в Events
+   └─ Produce BookingRejected → Kafka
+        ↓
+7. (только при отказе) Bookings: BookingRejectedSubscriber
+   ├─ Inbox-check
+   ├─ Transaction:
+   │   • UPDATE bookings.status = Rejected
+   │   • INSERT inbox_messages
+   └─ Commit offset
+```
+
+Сценарий с отказом
+- totalSeats = 1, три параллельных брони
+- Bookings создаёт 3 × Pending
+- BackgroundService подтверждает все 3 → 3 × BookingConfirmed в Kafka
+- Events обрабатывает:
+- 1-я: AvailableSeats (1) >= 1 → уменьшает до 0, пишет Inbox
+- 2-я: AvailableSeats (0) < 1 → Outbox(BookingRejected), Inbox
+- 3-я: AvailableSeats (0) < 1 → Outbox(BookingRejected), Inbox
+- Bookings получает 2 × BookingRejected:
+- Оба переводят соответствующие брони в Rejected
+- Итог: 1 бронь Confirmed, 2 брони Rejected, AvailableSeats = 0
+
+Ничего не теряется, нет овербукинга, нет отрицательных мест.
+
+📤 Outbox pattern
+Проблема
+Классическая ошибка:
+
+``` csharp
+await db.SaveChangesAsync();    // ✅ статус подтверждён
+await kafka.PublishAsync(...);  // ❌ упало → Events не узнает
+```
+Результат: Bookings утверждает Confirmed, но Events не уменьшил места. Данные разошлись.
+
+Или наоборот:
+
+``` csharp
+await kafka.PublishAsync(...);  // ✅ отправлено
+await db.SaveChangesAsync();    // ❌ упало → Kafka-сообщение есть, но брони Confirmed нет
+```
+Events уменьшит место для «фантомной» брони.
+
+Решение
+Outbox — таблица в БД, куда сообщение пишется в той же транзакции, что и бизнес-изменения:
+
+``` csharp
+await using var tx = await db.Database.BeginTransactionAsync();
+
+booking.Confirm();                                      // бизнес
+await outbox.EnqueueAsync(topic, key, payload);        // Outbox (INSERT)
+
+await db.SaveChangesAsync();                            // атомарно
+await tx.CommitAsync();                                 // либо оба, либо ни одного
+```
+Отдельный воркер (OutboxProcessor) читает outbox_messages, публикует в Kafka, ставит processed_at. При ошибке — retry (до MaxAttempts = 10).
+
+Схема таблицы
+```sql
+CREATE TABLE outbox_messages (
+    "Id"           uuid PRIMARY KEY,           -- MessageId
+    "Type"         varchar(100) NOT NULL,       -- "BookingConfirmed"
+    "Topic"        varchar(100) NOT NULL,       -- "booking-confirmed"
+    "Key"          varchar(200) NOT NULL,       -- EventId
+    "Payload"      jsonb NOT NULL,              -- JSON
+    "CreatedAt"    timestamptz NOT NULL,
+    "ProcessedAt"  timestamptz,
+    "Attempts"     int NOT NULL,
+    "LastError"    varchar(2000)
+);
+
+CREATE INDEX ix_outbox_unprocessed
+    ON outbox_messages ("ProcessedAt", "CreatedAt");
+```
+    
+**Что это даёт**
+- Атомарность: сообщение и бизнес-изменение либо оба сохранены, либо оба откатились
+- Гарантия доставки: если Kafka недоступен — сообщение дождётся в БД
+- Retry: временный сбой Kafka → повторная попытка через 2 сек
+- Аудит: все сообщения в БД, можно посмотреть историю
+
+**OutboxProcessor** — фоновый воркер
+```csharp
+protected override async Task ExecuteAsync(CancellationToken ct)
+{
+    var producerConfig = new ProducerConfig
+    {
+        BootstrapServers = _options.BootstrapServers,
+        Acks = Acks.All,
+        EnableIdempotence = true
+    };
+    using var producer = new ProducerBuilder<string, string>(producerConfig).Build();
+
+    while (!ct.IsCancellationRequested)
+    {
+        var batch = await db.OutboxMessages
+            .Where(m => m.ProcessedAt == null && m.Attempts < 10)
+            .OrderBy(m => m.CreatedAt)
+            .Take(20)
+            .ToListAsync(ct);
+
+        foreach (var msg in batch)
+        {
+            try
+            {
+                await producer.ProduceAsync(msg.Topic,
+                    new Message<string, string> { Key = msg.Key, Value = msg.Payload }, ct);
+                msg.MarkProcessed();
+            }
+            catch (Exception ex) { msg.MarkFailed(ex.Message); }
+        }
+
+        await db.SaveChangesAsync(ct);
+        await Task.Delay(TimeSpan.FromSeconds(2), ct);
+    }
+}
+```
+
+📥 Inbox pattern
+Проблема
+- Kafka гарантирует at-least-once доставку. При сбое может доставить сообщение повторно. Если просто обработать дважды:
+
+``` text
+BookingConfirmed(MessageId = A)
+  Первая доставка:  AvailableSeats 5 → 4 ✅
+  Повторная доставка: AvailableSeats 4 → 3 ❌ (некорректно уменьшилось)
+```
+**Решение**
+- Inbox — таблица с MessageId, которая проверяется в той же транзакции, что и бизнес-изменение:
+
+``` csharp
+await using var tx = await db.Database.BeginTransactionAsync();
+ 
+// 1. Проверка
+var already = await db.InboxMessages.FindAsync(message.MessageId);
+if (already != null) { await tx.CommitAsync(); return; }    // дубль → skip
+
+// 2. Бизнес
+ev.AvailableSeats -= message.SeatsCount;
+
+// 3. Inbox
+db.InboxMessages.Add(InboxMessage.Create(message.MessageId, "BookingConfirmed"));
+
+// 4. Атомарно
+await db.SaveChangesAsync();
+await tx.CommitAsync();
+```
+
+Схема
+```sql
+CREATE TABLE inbox_messages (
+    "Id"          uuid PRIMARY KEY,           -- MessageId из Kafka
+    "Type"        varchar(100) NOT NULL,
+    "ReceivedAt"  timestamptz NOT NULL,
+    "ProcessedAt" timestamptz NOT NULL
+);
+```
+
+**Что это даёт**
+- Идемпотентность: повторная доставка не изменит данные
+- At-least-once эффективно превращается в exactly-once на уровне бизнес-эффекта
+
+**Прозрачность:** видно, какие сообщения обработаны
+
+🔐 JWT между сервисами
+- JWT выдаёт только Users. Events и Bookings проверяют его локально.
+
+Общие параметры
+- Все три сервиса должны иметь одинаковые:
+
+```yaml
+Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
+Jwt__Issuer: "Sprints.Users"
+Jwt__Audience: "Sprints.Clients"
+В appsettings.json каждого сервиса:
+```
+
+```json
+"Jwt": {
+  "Mode": "HS256",
+  "HsKey": "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123",
+  "Issuer": "Sprints.Users",
+  "Audience": "Sprints.Clients"
+}
+```
+
+Проверка в Events и Bookings
+```csharp
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
+    {
+        var jwt = builder.Configuration.GetSection("Jwt");
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwt["HsKey"]!)),
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// Pipeline:
+app.UseAuthentication();
+app.UseAuthorization();
+```
+
+userId из claim
+- Никаких походов в Users для проверки существования пользователя:
+
+```csharp
+var userId = User.GetUserId();   // из claim "userId" / "sub" / ClaimTypes.NameIdentifier
+```
+JWT подписан Users → значит, userId достоверен. Проверка существования в БД — синхронный HTTP, запрещён заданием.
+
+⚠️ Смена роли
+Если пользователь стал Admin — нужно залогиниться заново (или дождаться /auth/refresh), потому что JWT — снимок claims на момент выдачи.
+
+🚀 Запуск микросервисов
+1. **Ключи RSA** (если используете **RS256**)
+```bash
+mkdir -p keys
+openssl genrsa -out keys/private.pem 2048
+openssl rsa -in keys/private.pem -pubout -out keys/public.pem
+```
+
+Для **HS256** (dev-режим) — ключи не нужны, только Jwt:HsKey в конфиге.
+
+2. Сборка и запуск
+Из корня решения:
+
+```bash
+docker compose up --build
+```
+Что поднимается:
+- sprints_zookeeper (2181)
+- sprints_kafka (9092)
+- sprints_users_db (5432 → sprints_users)
+- sprints_events_db (5433 → sprints_events)
+- sprints_bookings_db (5434 → sprints_bookings)
+- sprints_users_service (5001)
+- sprints_events_service (5002)
+- sprints_bookings_service (5003)
+
+3. Swagger UI 
+- Users	http://localhost:5001/swagger
+- Events	http://localhost:5002/swagger
+- Bookings	http://localhost:5003/swagger
+- http://, не https:// — внутри контейнера HTTPS не настроен.
+
+4. Подключение к БД (pgAdmin / DBeaver)
+Три отдельных соединения: 
+- Users	localhost	5432	sprints_users	postgres / postgres
+- Events	localhost	5433	sprints_events	postgres / postgres
+- Bookings	localhost	5434	sprints_bookings	postgres / postgres
+! Три независимых PostgreSQL — не одна БД с тремя схемами.
+
+✅ Проверка сценария
+1. Регистрация и логин (Users)
+```bash
+# Регистрация
+curl -X POST http://localhost:5001/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"login":"admin","password":"adm123"}'
+ 
+# Сделать Admin (SQL)
+
+docker exec -it sprints_users_db \
+  psql -U postgres -d sprints_users \
+  -c "UPDATE users SET \"Role\" = 'Admin' WHERE \"Login\" = 'admin';"
+
+# Логин заново (новый токен с ролью Admin)
+curl -X POST http://localhost:5001/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"login":"admin","password":"adm123"}'
+# → скопируйте accessToken
+2. Создать событие (Events, Admin)
+bash
+curl -X POST http://localhost:5002/api/v1/events \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test Event",
+    "description": "",
+    "startAt": "2027-01-01T10:00:00",
+    "endAt": "2027-01-01T12:00:00",
+    "totalSeats": 10
+  }'
+# → запомните eventId
+3. Проверить AvailableSeats = 10
+bash
+curl http://localhost:5002/api/v1/events/<eventId>
+# availableSeats = 10
+4. Создать бронь (Bookings)
+bash
+curl -X POST http://localhost:5003/api/v1/bookings/events/<eventId> \
+  -H "Authorization: Bearer <TOKEN>"
+# → 202 Accepted, status = Pending
+5. Подождать 2–3 секунды (BackgroundService + Kafka)
+6. Проверить результат
+Bookings:
+
+bash
+curl http://localhost:5003/api/v1/bookings/<bookingId> \
+  -H "Authorization: Bearer <TOKEN>"
+# status = Confirmed
+Events:
+
+bash
+curl http://localhost:5002/api/v1/events/<eventId>
+# availableSeats = 9   ← уменьшилось через Kafka!
+7. Проверить Kafka
+bash
+# Топики созданы?
+docker exec -it sprints_kafka \
+  kafka-topics --bootstrap-server localhost:29092 --list
+# booking-confirmed
+# booking-rejected
+
+# Outbox / Inbox
+docker exec -it sprints_bookings_db psql -U postgres -d sprints_bookings \
+  -c "SELECT \"Type\", \"ProcessedAt\" FROM outbox_messages ORDER BY \"CreatedAt\" DESC LIMIT 5;"
+
+docker exec -it sprints_events_db psql -U postgres -d sprints_events \
+  -c "SELECT \"Type\", \"ProcessedAt\" FROM inbox_messages ORDER BY \"ProcessedAt\" DESC LIMIT 5;"
+8. Проверить Saga (нет мест)
+bash
+# Создать событие с totalSeats = 1
+# Сделать 3 брони
+# Через 3 сек:
+#   Events: availableSeats = 0
+#   Bookings: 1 Confirmed, 2 Rejected
+# В логах:
+docker compose logs events-service | grep "BookingRejected"
+docker compose logs bookings-service | grep "Rejected"
+```
+  
+ 
+⚡ Что добавлено в Sprint 9 (итог)
+ 
+- Разделение на 3 сервиса	Sprints.Users.*, Sprints.Events.*, Sprints.Bookings.*
+- Своя БД у каждого	3 × postgres:15 в compose
+- Sprints.Contracts	Общий проект с KafkaTopics, BookingConfirmed, BookingRejected
+- Kafka producer (Bookings)	KafkaPublisher (Singleton) + OutboxProcessor
+- Kafka consumer (Events)	BookingConfirmedSubscriber (group = sprints-events)
+- Kafka producer (Events)	KafkaPublisher + OutboxProcessor
+- Kafka consumer (Bookings)	BookingRejectedSubscriber (group = sprints-bookings)
+- Outbox pattern	Таблица outbox_messages в обеих БД
+- Inbox pattern	Таблица inbox_messages в обеих БД
+- Saga	BookingConfirmed → BookingRejected при нехватке мест
+- JWT shared	HsKey / Issuer / Audience — одинаковые в трёх сервисах
+- Topic creation	KafkaTopicInitializer в Events
+- Manual commit	EnableAutoCommit = false + Commit после обработки
+- Message key	EventId.ToString() → порядок в партишне
 
 
 
