@@ -48,28 +48,28 @@ public static class DependencyInjection_Infrastructure
         services.AddHostedService<BookingBackgroundService>();
 
 
-        services.AddMassTransit(x =>
-        {
-            x.AddConsumer<OrderCreatedConsumer>();
-            //x.AddConsumer<HeavyOrderConsumer, HeavyOrderConsumerDefinition>();
+        //services.AddMassTransit(x =>
+        //{
+        //    x.AddConsumer<OrderCreatedConsumer>();
+        //    //x.AddConsumer<HeavyOrderConsumer, HeavyOrderConsumerDefinition>();
              
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host("localhost", "/", h =>
-                {
-                    h.Username("guest");
-                    h.Password("guest");
-                });
+        //    x.UsingRabbitMq((context, cfg) =>
+        //    {
+        //        cfg.Host("localhost", "/", h =>
+        //        {
+        //            h.Username("guest");
+        //            h.Password("guest");
+        //        });
 
-                // Не перекладывать в _error — просто отбрасывать сообщение после исчерпания retry
-                // cfg.DiscardFaultedMessages();
+        //        // Не перекладывать в _error — просто отбрасывать сообщение после исчерпания retry
+        //        // cfg.DiscardFaultedMessages();
 
 
-                cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
+        //        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(10)));
 
-                cfg.ConfigureEndpoints(context);
-            });
-        });
+        //        cfg.ConfigureEndpoints(context);
+        //    });
+        //});
          
         return services;
     }
@@ -80,48 +80,48 @@ public static class DependencyInjection_Infrastructure
 
 }
 
-public class HeavyOrderConsumerDefinition : ConsumerDefinition<HeavyOrderConsumer>
-{
-    protected override void ConfigureConsumer(
-        IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<HeavyOrderConsumer> consumerConfigurator,
-        IRegistrationContext context)
-    {
-        endpointConfigurator.UseMessageRetry(r =>
-            r.Exponential(5, TimeSpan.FromSeconds(2), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(3)));
-    }
-}
-// private readonly IPublishEndpoint _publishEndpoint;
+//public class HeavyOrderConsumerDefinition : ConsumerDefinition<HeavyOrderConsumer>
+//{
+//    protected override void ConfigureConsumer(
+//        IReceiveEndpointConfigurator endpointConfigurator,
+//        IConsumerConfigurator<HeavyOrderConsumer> consumerConfigurator,
+//        IRegistrationContext context)
+//    {
+//        endpointConfigurator.UseMessageRetry(r =>
+//            r.Exponential(5, TimeSpan.FromSeconds(2), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(3)));
+//    }
+//}
+//// private readonly IPublishEndpoint _publishEndpoint;
 
 
-public record OrderCreated
-{
-    public Guid OrderId { get; init; }
-    public string CustomerEmail { get; init; }
-    public decimal TotalAmount { get; init; }
-}
-public class OrderCreatedConsumer : IConsumer<OrderCreated>
-{
-    private readonly ILogger<OrderCreatedConsumer> _logger;
+//public record OrderCreated
+//{
+//    public Guid OrderId { get; init; }
+//    public string CustomerEmail { get; init; }
+//    public decimal TotalAmount { get; init; }
+//}
+//public class OrderCreatedConsumer : IConsumer<OrderCreated>
+//{
+//    private readonly ILogger<OrderCreatedConsumer> _logger;
 
-    public OrderCreatedConsumer(ILogger<OrderCreatedConsumer> logger)
-    {
-        _logger = logger;
-    }
+//    public OrderCreatedConsumer(ILogger<OrderCreatedConsumer> logger)
+//    {
+//        _logger = logger;
+//    }
 
-    public async Task Consume(ConsumeContext<OrderCreated> context)
-    {
-        var message = context.Message;
+//    public async Task Consume(ConsumeContext<OrderCreated> context)
+//    {
+//        var message = context.Message;
 
-        _logger.LogInformation(
-            "Получен заказ {OrderId} от {Email} на сумму {Amount}",
-            message.OrderId,
-            message.CustomerEmail,
-            message.TotalAmount);
+//        _logger.LogInformation(
+//            "Получен заказ {OrderId} от {Email} на сумму {Amount}",
+//            message.OrderId,
+//            message.CustomerEmail,
+//            message.TotalAmount);
 
-        // ... логика обработки заказа ...
-    }
-}
+//        // ... логика обработки заказа ...
+//    }
+//}
 #region lesson
 
 //public class InventoryClient

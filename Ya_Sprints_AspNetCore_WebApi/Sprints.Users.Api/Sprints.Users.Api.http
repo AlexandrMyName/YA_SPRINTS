@@ -1,0 +1,6 @@
+@Sprints.Users.Api_HostAddress = http://localhost:5047
+
+GET {{Sprints.Users.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
