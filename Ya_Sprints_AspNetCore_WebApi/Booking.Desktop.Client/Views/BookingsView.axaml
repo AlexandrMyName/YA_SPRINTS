@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Booking.Desktop.Client.BookingsView"
+             xmlns:vm="clr-namespace:Booking.Desktop.Client.ViewModels"
+             xmlns:views="clr-namespace:Booking.Desktop.Client"
+             Background="White">
+
+  <Grid RowDefinitions="Auto,Auto,*">
+    <Border Grid.Row="0" Background="#FAFAFA" Padding="12,8"
+            BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="6">
+          <Button Content="+ New booking" Classes="toolbar"
+                  Command="{Binding CreateCommand}"/>
+          <Button Content="✕ Cancel" Classes="toolbar"
+                  Command="{Binding DeleteCommand}"
+                  IsEnabled="{Binding HasSelection}"/>
+          <Button Content="↻ Refresh" Classes="toolbar" Command="{Binding LoadCommand}"/>
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Right" Text="{Binding CountLabel}"
+                   Classes="label" VerticalAlignment="Center"/>
+      </DockPanel>
+    </Border>
+
+    <TextBlock Grid.Row="1" Text="{Binding Error}" Foreground="#C62828"
+               Padding="12,6" TextWrapping="Wrap"
+               IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto" Padding="15">
+      <Grid>
+        <ItemsControl ItemsSource="{Binding Items}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" ItemWidth="320" ItemHeight="220"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:BookingCardVm">
+              <Border Classes="card"
+                      Classes.selected="{Binding IsSelected}"
+                      Margin="5" Width="310" Height="210"
+                      Cursor="Hand"
+                      PointerPressed="Card_PointerPressed">
+                <Grid RowDefinitions="Auto,*,Auto">
+                  <Border Grid.Row="0" Background="#FAFAFA"
+                          CornerRadius="6,6,0,0" Padding="12,10">
+                    <DockPanel>
+                      <Border DockPanel.Dock="Right"
+                              Classes="status"
+                              Classes.Pending="{Binding IsPending}"
+                              Classes.Confirmed="{Binding IsConfirmed}"
+                              Classes.Rejected="{Binding IsRejected}"
+                              Classes.Cancelled="{Binding IsCancelled}">
+                        <TextBlock Text="{Binding StatusLabel}" FontSize="11" FontWeight="SemiBold"
+                                   Classes.Pending="{Binding IsPending}"
+                                   Classes.Confirmed="{Binding IsConfirmed}"
+                                   Classes.Rejected="{Binding IsRejected}"
+                                   Classes.Cancelled="{Binding IsCancelled}"/>
+                      </Border>
+                      <TextBlock Text="{Binding ShortId}" FontSize="12"
+                                 FontWeight="SemiBold" Foreground="#455A64"
+                                 VerticalAlignment="Center"/>
+                    </DockPanel>
+                  </Border>
+
+                  <Border Grid.Row="1" Padding="12,8" Background="White">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="{Binding EventLabel}" FontSize="11" Foreground="#666"
+                                 TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Text="{Binding UserLabel}"  FontSize="11" Foreground="#666"
+                                 TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                  </Border>
+
+                  <Border Grid.Row="2" Background="#F5F5F5" CornerRadius="0,0,6,6"
+                          Padding="12,6" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+                    <TextBlock Text="{Binding CreatedLabel}"
+                               FontSize="10" Foreground="#777"/>
+                  </Border>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="Нет броней"
+                   Classes="label" FontSize="13" Foreground="#90A4AE"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsVisible="{Binding !Items.Count}"/>
+      </Grid>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

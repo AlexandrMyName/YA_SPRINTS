@@ -1,0 +1,139 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" 
+             d:DesignWidth="800" 
+             d:DesignHeight="450"
+             xmlns:views="clr-namespace:Booking.Desktop.Client"
+              Background="#ECEFF1"
+             x:Class="Booking.Desktop.Client.ShellView">
+
+          <Grid RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*,40">
+
+    <!-- ========== ROW 0: Toolbar ========== -->
+    <Border Grid.Row="0" Grid.ColumnSpan="2"
+            BorderBrush="#B0BEC5" BorderThickness="0,0,0,1">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+          <GradientStop Offset="0.0" Color="#ECEFF1"/>
+          <GradientStop Offset="1.0" Color="#CFD8DC"/>
+        </LinearGradientBrush>
+      </Border.Background>
+
+      <DockPanel LastChildFill="False" Margin="6,2">
+        <Menu DockPanel.Dock="Left" Background="Transparent">
+          <MenuItem Header="File" CornerRadius="0">
+            <Label Content="Sprints Desktop"
+                   FontSize="11" Foreground="Gray"
+                   FontStyle="Italic" FontWeight="Bold"/>
+            <MenuItem Header="New…" Command="{Binding CreateCommand}"/>
+            <Separator/>
+            <MenuItem Header="Refresh" Command="{Binding RefreshCommand}"/>
+            <Separator/>
+            <MenuItem Header="Logout" Command="{Binding LogoutCommand}"/>
+          </MenuItem>
+          <MenuItem Header="Edit" CornerRadius="0">
+            <MenuItem Header="Edit Selected" Command="{Binding EditSelectedCommand}"/>
+            <MenuItem Header="Delete Selected" Command="{Binding DeleteSelectedCommand}"/>
+          </MenuItem>
+          <MenuItem Header="View" CornerRadius="0">
+            <MenuItem Header="Users"    Command="{Binding SwitchTabCommand}" CommandParameter="Users"/>
+            <MenuItem Header="Events"   Command="{Binding SwitchTabCommand}" CommandParameter="Events"/>
+            <MenuItem Header="Bookings" Command="{Binding SwitchTabCommand}" CommandParameter="Bookings"/>
+          </MenuItem>
+          <MenuItem Header="Help" IsEnabled="False" CornerRadius="0"/>
+        </Menu>
+
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="0,2">
+          <TextBlock Text="User:" Classes="label"/>
+          <TextBlock Text="{Binding CurrentUserName}" FontWeight="SemiBold"
+                     Foreground="#263238" VerticalAlignment="Center"/>
+          <TextBlock Text="•" Foreground="#90A4AE"/>
+          <TextBlock Text="{Binding CurrentRoleLabel}" Classes="label"/>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- ========== ROW 1: Tabs strip ========== -->
+    <Border Grid.Row="1" Grid.ColumnSpan="2"
+            Background="#F5F5F5"
+            BorderBrush="#D0D0D0" BorderThickness="0,0,0,1">
+      <StackPanel Orientation="Horizontal" Spacing="4" Margin="10,4">
+        <Button Content="Users"
+                Classes="tab"
+                Classes.active="{Binding IsUsersTab}"
+                Command="{Binding SwitchTabCommand}" CommandParameter="Users"
+                MinWidth="120"/>
+        <Button Content="Events"
+                Classes="tab"
+                Classes.active="{Binding IsEventsTab}"
+                Command="{Binding SwitchTabCommand}" CommandParameter="Events"
+                MinWidth="120"/>
+        <Button Content="Bookings"
+                Classes="tab"
+                Classes.active="{Binding IsBookingsTab}"
+                Command="{Binding SwitchTabCommand}" CommandParameter="Bookings"
+                MinWidth="120"/>
+      </StackPanel>
+    </Border>
+
+    <!-- ========== ROW 2: Content ========== -->
+    <Border Grid.Row="2" Grid.Column="0"
+            Background="White"
+            BorderBrush="#D0D0D0" BorderThickness="0,0,1,0">
+      <ContentControl Content="{Binding CurrentContent}"/>
+    </Border>
+
+    <!-- Right placeholder (40px) -->
+    <Border Grid.Row="2" Grid.Column="1"
+            Background="#ECEFF1"
+            BorderBrush="#D0D0D0" BorderThickness="1,0,0,0">
+      <StackPanel Spacing="5" VerticalAlignment="Bottom" Margin="0,0,0,5">
+        <Button Background="Transparent" CornerRadius="3" Height="35" Width="35"
+                HorizontalAlignment="Center">
+          <Button.Styles>
+            <Style Selector="Button:pointerover /template/ ContentPresenter">
+              <Setter Property="Background" Value="#CFD8DC"/>
+            </Style>
+          </Button.Styles>
+          <TextBlock Text="⚙" FontSize="16" Foreground="#546E7A"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Button>
+        <Button Background="Transparent" CornerRadius="3" Height="35" Width="35"
+                HorizontalAlignment="Center">
+          <Button.Styles>
+            <Style Selector="Button:pointerover /template/ ContentPresenter">
+              <Setter Property="Background" Value="#CFD8DC"/>
+            </Style>
+          </Button.Styles>
+          <TextBlock Text="☰" FontSize="16" Foreground="#546E7A"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Button>
+        <Button Background="Transparent" CornerRadius="3" Height="35" Width="35"
+                Margin="0,0,0,5" HorizontalAlignment="Center">
+          <Button.Styles>
+            <Style Selector="Button:pointerover /template/ ContentPresenter">
+              <Setter Property="Background" Value="#CFD8DC"/>
+            </Style>
+          </Button.Styles>
+          <TextBlock Text="📈" FontSize="16" Foreground="#546E7A"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Button>
+      </StackPanel>
+    </Border>
+
+    <!-- ========== ROW 3: Status bar ========== -->
+    <Border Grid.Row="3" Grid.ColumnSpan="2"
+            Background="#CFD8DC"
+            BorderBrush="#B0BEC5" BorderThickness="0,1,0,0"
+            Padding="10,4">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Left" Text="{Binding StatusMessage}"
+                   FontSize="11" Foreground="#37474F" VerticalAlignment="Center"/>
+        <TextBlock DockPanel.Dock="Right" Text="{Binding CurrentVersion}"
+                   FontSize="11" Foreground="#546E7A" VerticalAlignment="Center"/>
+      </DockPanel>
+    </Border>
+  </Grid>
+</UserControl>

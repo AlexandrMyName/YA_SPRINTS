@@ -1,0 +1,20 @@
+# Корень решения — исключаем всё лишнее
+**/bin
+**/obj
+**/.vs
+**/.vscode
+**/.idea
+**/TestResults
+**/*.user
+
+# Старый монолит — не участвует в микросервисах
+SprintsASP_NetCore_API.*
+SprintASP_NetCore_API.IntegrationTests
+Tests
+
+# Прочее
+Dockerfile.rar
+*.md
+.git
+.gitignore
+Dev.txt

@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Booking.Desktop.Client.LoginView"
+             Background="#ECEFF1">
+
+  <Grid>
+    <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+            Classes="card" Padding="32" Width="380">
+      <StackPanel Spacing="16">
+        <TextBlock Text="Sprints Desktop" FontSize="22" FontWeight="Bold"
+                   Foreground="#263238" HorizontalAlignment="Center"/>
+        <TextBlock Text="Вход" FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="Логин" Classes="section"/>
+          <TextBox Text="{Binding Login}" Watermark="admin"/>
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="Пароль" Classes="section"/>
+          <TextBox Text="{Binding Password}" PasswordChar="•" Watermark="admin"/>
+        </StackPanel>
+
+        <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828"
+                   FontSize="12" TextWrapping="Wrap"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+        <Button Content="Войти"
+                Command="{Binding LoginCommand}"
+                IsEnabled="{Binding !IsBusy}"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                Padding="0,10"
+                Background="#2196F3" Foreground="White"/>
+
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3"/>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>
