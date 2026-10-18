@@ -41,18 +41,19 @@ public class JwtTokenGenerator : IJwtTokenGenerator
 
     public AccessTokenResult GenerateAccessToken(User user)
     {
+
         SigningCredentials creds = _hsKey != null
             ? new SigningCredentials(_hsKey, SecurityAlgorithms.HmacSha256)
             : new SigningCredentials(_rsaPrivateKey!, SecurityAlgorithms.RsaSha256);
 
         var claims = new[]
         {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-        new Claim("userId", user.Id.ToString()),
-        new Claim(JwtRegisteredClaimNames.UniqueName, user.Login),
-        new Claim(ClaimTypes.Role, user.Role.ToString()),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim("userId", user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.UniqueName, user.Login),
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
         var expires = DateTime.UtcNow.AddMinutes(_options.AccessTokenMinutes);
 

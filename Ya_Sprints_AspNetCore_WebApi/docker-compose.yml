@@ -1,5 +1,30 @@
 services:
   # ============================================================
+  # Автогенерация JWT-ключей (один раз при первом запуске)
+  # ============================================================
+  jwt-keys-init:
+    image: alpine:3.19
+    container_name: sprints_jwt_keys_init
+    volumes:
+      - jwt_keys:/keys
+    command: >
+      sh -c "
+        if [ -f /keys/private.pem ] && [ -f /keys/public.pem ]; then
+          echo '[jwt-keys] keys already exist — skip';
+          exit 0;
+        fi;
+        echo '[jwt-keys] generating RSA keys...';
+        apk add --no-cache openssl >/dev/null 2>&1;
+        mkdir -p /keys;
+        openssl genrsa -out /keys/private.pem 2048;
+        openssl rsa -in /keys/private.pem -pubout -out /keys/public.pem;
+        chmod 644 /keys/private.pem /keys/public.pem;
+        chmod 755 /keys;
+        echo '[jwt-keys] done';
+      "
+    restart: "no"
+
+  # ============================================================
   # Zookeeper + Kafka
   # ============================================================
   zookeeper:
@@ -110,8 +135,12 @@ services:
     depends_on:
       postgres-users:
         condition: service_healthy
+      jwt-keys-init:
+        condition: service_completed_successfully
     ports:
       - "5001:8080"
+    volumes:
+      - jwt_keys:/app/keys:ro
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
@@ -120,6 +149,8 @@ services:
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
+      Jwt__PrivateKeyPath: "keys/private.pem"
+      Jwt__PublicKeyPath:  "keys/public.pem"
     restart: unless-stopped
 
   events-service:
@@ -131,8 +162,12 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      jwt-keys-init:
+        condition: service_completed_successfully
     ports:
       - "5002:8080"
+    volumes:
+      - jwt_keys:/app/keys:ro
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
@@ -144,6 +179,7 @@ services:
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
+      Jwt__PublicKeyPath: "keys/public.pem"
     restart: unless-stopped
 
   bookings-service:
@@ -155,8 +191,12 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      jwt-keys-init:
+        condition: service_completed_successfully
     ports:
       - "5003:8080"
+    volumes:
+      - jwt_keys:/app/keys:ro
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
@@ -167,6 +207,7 @@ services:
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
+      Jwt__PublicKeyPath: "keys/public.pem"
     restart: unless-stopped
 
 volumes:
@@ -176,3 +217,4 @@ volumes:
   users_db_data:
   events_db_data:
   bookings_db_data:
+  jwt_keys:

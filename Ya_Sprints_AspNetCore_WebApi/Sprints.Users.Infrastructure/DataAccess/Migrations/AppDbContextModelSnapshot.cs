@@ -85,6 +85,16 @@ namespace Sprints.Users.Infrastructure.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Login = "admin",
+                            PasswordHash = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+                            Role = "Admin"
+                        });
                 });
 
             modelBuilder.Entity("Sprints.Users.Domain.Entities.RefreshToken", b =>

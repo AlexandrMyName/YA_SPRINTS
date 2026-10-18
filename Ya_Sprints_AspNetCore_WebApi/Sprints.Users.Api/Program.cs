@@ -11,12 +11,10 @@ using Sprints.Users.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 
-
-[assembly: ApiController] // Все контроллеры будут API
+[assembly: ApiController]
 
 
 namespace Sprints.Users.Api;
-
 
 public class Program
 {
@@ -26,68 +24,53 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
-        // Presentation-конфигурация  
+        // Presentation-конфигурация
         builder.Services
-            .AddCorsPolicies()                  // Presentation
-            .AddControllersWithCacheAndValidation() // Presentation (MVC + ActionFilters)
+            .AddCorsPolicies()
+            .AddControllersWithCacheAndValidation()
             .AddEndpointsApiExplorer()
             .AddSwaggerGenWithDocumentation()
-            .AddApiVersioningCustom();          // Presentation
+            .AddApiVersioningCustom();
 
-        // Слои  
+        // Слои
         builder.Services
-            .AddApplication()                          // Application
-            .AddInfrastructure(builder.Configuration); // Infrastructure
-
+            .AddApplication()
+            .AddInfrastructure(builder.Configuration);
 
         #region SECURITY
 
-        builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+        builder.Services.Configure<JwtOptions>(
+            builder.Configuration.GetSection(JwtOptions.SectionName));
 
         var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 
-        var publicPath = Path.Combine(AppContext.BaseDirectory,
-            jwtSection["PublicKeyPath"] ?? "keys/public.pem");
-        var rsaPublicKey = RsaKeyLoader.LoadPublicKey(publicPath);
-
-        var hsKeyStr = jwtSection["HsKey"] ?? "";
-        if (hsKeyStr.Length < 32)
-            throw new InvalidOperationException("Jwt:HsKey must be at least 32 characters.");
-        var hsKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(hsKeyStr));
+        var mode = jwtSection["Mode"] ?? "HS256";
+        var isHs256 = string.Equals(mode, "HS256", StringComparison.OrdinalIgnoreCase);
 
         var issuer = jwtSection["Issuer"];
         var audience = jwtSection["Audience"];
 
-        //   ВЫБОР СХЕМЫ ПО УМОЛЧАНИЮ ЗАВИСИТ ОТ РЕЖИМА  
-        var mode = jwtSection["Mode"] ?? "HS256";
-        var defaultScheme = string.Equals(mode, "HS256", StringComparison.OrdinalIgnoreCase)
-            ? AuthSchemes.HS256
-            : AuthSchemes.RS256;
+        // Схема по умолчанию — по Mode  
+        var defaultScheme = isHs256 ? AuthSchemes.HS256 : AuthSchemes.RS256;
 
-        builder.Services
+        var authBuilder = builder.Services
             .AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = defaultScheme;  
-                options.DefaultChallengeScheme = defaultScheme;   
-            })
-            .AddJwtBearer(AuthSchemes.RS256, options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = issuer,
-                    ValidAudience = audience,
-                    IssuerSigningKey = rsaPublicKey,
-                    ValidAlgorithms = new[] { SecurityAlgorithms.RsaSha256 },
-                    ClockSkew = TimeSpan.Zero
-                };
-                options.Events = new JwtBearerEvents();
-                options.Events.UseMultiSourceToken();
-            })
-            .AddJwtBearer(AuthSchemes.HS256, options =>
+                options.DefaultAuthenticateScheme = defaultScheme;
+                options.DefaultChallengeScheme = defaultScheme;
+            });
+
+        if (isHs256)
+        {
+            // HS256-режим: только HS256-схема 
+            var hsKeyStr = jwtSection["HsKey"] ?? "";
+            if (hsKeyStr.Length < 32)
+                throw new InvalidOperationException(
+                    "Jwt:HsKey must be at least 32 characters (required in HS256 mode).");
+
+            var hsKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(hsKeyStr));
+
+            authBuilder.AddJwtBearer(AuthSchemes.HS256, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -104,8 +87,34 @@ public class Program
                 options.Events = new JwtBearerEvents();
                 options.Events.UseMultiSourceToken();
             });
+        }
+        else
+        {
+            // RS256-режим: только RS256-схема  
+            var publicPath = Path.Combine(AppContext.BaseDirectory,
+                jwtSection["PublicKeyPath"] ?? "keys/public.pem");
+            var rsaPublicKey = RsaKeyLoader.LoadPublicKey(publicPath);
 
-        builder.Services.AddAppAuthorization();
+            authBuilder.AddJwtBearer(AuthSchemes.RS256, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    IssuerSigningKey = rsaPublicKey,
+                    ValidAlgorithms = new[] { SecurityAlgorithms.RsaSha256 },
+                    ClockSkew = TimeSpan.Zero
+                };
+                options.Events = new JwtBearerEvents();
+                options.Events.UseMultiSourceToken();
+            });
+        }
+
+        builder.Services.AddAppAuthorization(builder.Configuration);
 
         #endregion
 
@@ -120,9 +129,8 @@ public class Program
 
         var app = builder.Build();
 
-        // Pipeline  
-        app.InitializeDataBases()                       // из Presentation.Extensions (бывший Data.DataAccess)
-           .UseMiddleware<GlobalExceptionMiddleware>(); // Presentation
+        app.InitializeDataBases()
+           .UseMiddleware<GlobalExceptionMiddleware>();
 
         if (app.Environment.IsDevelopment())
         {

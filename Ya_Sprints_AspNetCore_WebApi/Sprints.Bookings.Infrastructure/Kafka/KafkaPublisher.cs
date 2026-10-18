@@ -8,11 +8,9 @@ using Confluent.Kafka;
 namespace Sprints.Bookings.Infrastructure.Kafka;
 
 
-/// <summary>
-/// Singleton. Один продюсер на всё приложение — потокобезопасен, тяжёлый.
-/// </summary>
 public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
 {
+
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaPublisher> _logger;
 
@@ -21,6 +19,7 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+
     public KafkaPublisher(IOptions<KafkaOptions> options, ILogger<KafkaPublisher> logger)
     {
         _logger = logger;
@@ -28,23 +27,27 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
         var config = new ProducerConfig
         {
             BootstrapServers = options.Value.BootstrapServers,
-            Acks = Acks.All,                    // ждём подтверждения от всех реплик
-            EnableIdempotence = true            // защита от дублей при retry
+            Acks = Acks.All,
+            EnableIdempotence = true
         };
 
         _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
-    public async Task PublishAsync<T>(string topic, string key, T message, CancellationToken ct = default)
+
+    public async Task PublishAsync<T>(
+        string topic, string key, T message, CancellationToken ct = default)
         where T : class
     {
         var payload = JsonSerializer.Serialize(message, JsonOptions);
+        await PublishRawAsync(topic, key, payload, ct);
+    }
 
-        var kafkaMessage = new Message<string, string>
-        {
-            Key = key,
-            Value = payload
-        };
+
+    public async Task PublishRawAsync(
+        string topic, string key, string rawJson, CancellationToken ct = default)
+    {
+        var kafkaMessage = new Message<string, string> { Key = key, Value = rawJson };
 
         try
         {
@@ -62,8 +65,8 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
 
     public void Dispose()
     {
-        // flush + dispose
-        _producer.Flush(TimeSpan.FromSeconds(5));
-        _producer.Dispose();
+        try { _producer.Flush(TimeSpan.FromSeconds(5)); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Kafka: ошибка при Flush"); }
+        finally { _producer.Dispose(); }
     }
 }

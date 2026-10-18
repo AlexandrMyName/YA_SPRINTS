@@ -47,3 +47,8 @@ $ dotnet ef migrations add Initial_microservices \
 
 $ docker compose up --build --force-recreate
 
+
+Для локальной генерации ключей (Без Docker)
+mkdir -p keys
+openssl genrsa -out keys/private.pem 2048
+openssl rsa -in keys/private.pem -pubout -out keys/public.pem

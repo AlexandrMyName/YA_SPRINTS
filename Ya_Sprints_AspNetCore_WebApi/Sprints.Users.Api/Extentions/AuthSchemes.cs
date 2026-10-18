@@ -12,6 +12,5 @@ public static class AuthSchemes
 public static class AuthPolicies
 {
     public const string AnyAuthenticated = "AnyAuthenticated";
-    public const string Admin = "Admin";
-    public const string AdminRs256Only = "AdminRs256Only";
+    public const string Admin = "Admin"; 
 }

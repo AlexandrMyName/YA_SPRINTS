@@ -1,13 +1,15 @@
-﻿using Sprints.Bookings.Infrastructure.DataAccess.DbContexts;
+﻿using Confluent.Kafka;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Sprints.Bookings.Domain.ValueObjects;
-using Sprints.Bookings.Domain.Entities;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Npgsql;
+using Sprints.Bookings.Domain.Entities;
+using Sprints.Bookings.Domain.ValueObjects;
+using Sprints.Bookings.Infrastructure.DataAccess.DbContexts;
 using Sprints.Contracts;
 using System.Text.Json;
-using Confluent.Kafka;
 
 
 namespace Sprints.Bookings.Infrastructure.Kafka;
@@ -38,10 +40,10 @@ public class BookingRejectedSubscriber : BackgroundService
 
 
     protected override Task ExecuteAsync(CancellationToken ct)
-        => Task.Run(() => ConsumeLoop(ct), ct);
+        => Task.Run(() => ConsumeLoopAsync(ct), ct);
 
 
-    private void ConsumeLoop(CancellationToken ct)
+    private async Task ConsumeLoopAsync(CancellationToken ct)
     {
 
         var config = new ConsumerConfig
@@ -49,7 +51,7 @@ public class BookingRejectedSubscriber : BackgroundService
             BootstrapServers = _options.BootstrapServers,
             GroupId = _options.ConsumerGroup,
             AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoCommit = false        // коммит вручную
+            EnableAutoCommit = false
         };
 
         using var consumer = new ConsumerBuilder<string, string>(config).Build();
@@ -70,25 +72,45 @@ public class BookingRejectedSubscriber : BackgroundService
                         result.Message.Value, JsonOptions);
                     if (message == null) { consumer.Commit(result); continue; }
 
-                    HandleAsync(message, ct).GetAwaiter().GetResult();
+                    await HandleAsync(message, ct);
 
                     consumer.Commit(result);
                 }
-                catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
-                catch (ConsumeException ex) { _logger.LogError(ex, "Kafka: ошибка Consume"); }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (ConsumeException ex)
+                {
+                    _logger.LogError(ex, "Kafka: ошибка Consume, пропускаем");
+                    if (result != null) consumer.Commit(result);
+
+                    try { await Task.Delay(1000, ct); }
+                    catch (OperationCanceledException) { break; }
+                }
                 catch (Exception ex)
                 {
-                    // Не коммитим — Kafka доставит повторно. Inbox обеспечит идемпотентность.
-                    _logger.LogError(ex, "Kafka: ошибка обработки BookingRejected");
+                    _logger.LogError(ex,
+                        "Kafka: ошибка обработки BookingRejected (offset НЕ коммичен). " +
+                        "Partition={Partition}, Offset={Offset}",
+                        result?.Partition.Value, result?.Offset.Value);
+
+                    try { await Task.Delay(1000, ct); }
+                    catch (OperationCanceledException) { break; }
                 }
             }
         }
         finally
         {
-            consumer.Close();
+            try { consumer.Close(); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Kafka: ошибка при Close consumer"); }
         }
     }
 
+    /// <summary>
+    /// Inbox-first: сначала INSERT InboxMessage, ловим PK violation (23505),
+    /// и только после успешного INSERT — бизнес-логика.
+    /// </summary>
     private async Task HandleAsync(BookingRejected message, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
@@ -98,37 +120,39 @@ public class BookingRejectedSubscriber : BackgroundService
 
         try
         {
-            // Inbox: дедупликация
-            var alreadyProcessed = await db.InboxMessages.FindAsync(
-                new object[] { message.MessageId }, ct);
-
-            if (alreadyProcessed != null)
+            // 1. Inbox-INSERT первым  
+            try
+            {
+                db.InboxMessages.Add(
+                    InboxMessage.Create(message.MessageId, nameof(BookingRejected)));
+                await db.SaveChangesAsync(ct);
+            }
+            catch (Exception ex) when (IsDuplicateKey(ex))
             {
                 _logger.LogDebug(
-                    "Inbox: сообщение {MessageId} уже обработано — skip", message.MessageId);
+                    "Inbox: BookingRejected {MessageId} уже обработан (PK violation) — skip",
+                    message.MessageId);
                 await tx.CommitAsync(ct);
                 return;
             }
 
-            // Загружаем бронь
-            var booking = await db.Bookings.FindAsync(new object[] { message.BookingId }, ct);
+            // 2. Бизнес-логика  
+            var booking = await db.Bookings.FindAsync(
+                new object[] { message.BookingId }, ct);
+
             if (booking == null)
             {
                 _logger.LogWarning(
-                    "Bookings: бронь {BookingId} не найдена при BookingRejected", message.BookingId);
-                // Всё равно записываем в Inbox — чтобы не переобрабатывать
-                db.InboxMessages.Add(InboxMessage.Create(message.MessageId, nameof(BookingRejected)));
-                await db.SaveChangesAsync(ct);
+                    "Bookings: бронь {BookingId} не найдена при BookingRejected",
+                    message.BookingId);
                 await tx.CommitAsync(ct);
                 return;
             }
 
-            // Идемпотентность на уровне бизнес-логики
             if (booking.Status == BookingStatus.Rejected)
             {
-                _logger.LogDebug("Bookings: бронь {BookingId} уже Rejected", message.BookingId);
-                db.InboxMessages.Add(InboxMessage.Create(message.MessageId, nameof(BookingRejected)));
-                await db.SaveChangesAsync(ct);
+                _logger.LogDebug(
+                    "Bookings: бронь {BookingId} уже Rejected", message.BookingId);
                 await tx.CommitAsync(ct);
                 return;
             }
@@ -136,17 +160,13 @@ public class BookingRejectedSubscriber : BackgroundService
             if (booking.Status == BookingStatus.Cancelled)
             {
                 _logger.LogWarning(
-                    "Bookings: бронь {BookingId} уже Cancelled, Rejected проигнорирован", message.BookingId);
-                db.InboxMessages.Add(InboxMessage.Create(message.MessageId, nameof(BookingRejected)));
-                await db.SaveChangesAsync(ct);
+                    "Bookings: бронь {BookingId} уже Cancelled, Rejected проигнорирован",
+                    message.BookingId);
                 await tx.CommitAsync(ct);
                 return;
             }
 
-            // Меняем статус + пишем в Inbox в одной транзакции
             booking.Reject();
-            db.InboxMessages.Add(InboxMessage.Create(message.MessageId, nameof(BookingRejected)));
-
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
@@ -159,5 +179,16 @@ public class BookingRejectedSubscriber : BackgroundService
             await tx.RollbackAsync(ct);
             throw;
         }
+    }
+
+    private static bool IsDuplicateKey(Exception ex)
+    {
+        for (var cur = ex; cur != null; cur = cur.InnerException)
+        {
+            if (cur is PostgresException pg &&
+                pg.SqlState == PostgresErrorCodes.UniqueViolation)
+                return true;
+        }
+        return false;
     }
 }

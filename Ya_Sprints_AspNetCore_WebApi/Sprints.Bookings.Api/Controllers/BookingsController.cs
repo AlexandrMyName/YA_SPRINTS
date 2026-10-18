@@ -1,8 +1,10 @@
-﻿using Sprints.Bookings.Application.UseCases.DataServices.Contracts;
-using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
-using Sprints.Bookings.Presentation.Extentions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sprints.Bookings.Application.Dtos;
+using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
+using Sprints.Bookings.Application.Filters;
+using Sprints.Bookings.Application.UseCases.DataServices.Contracts;
+using Sprints.Bookings.Presentation.Extentions;
 
 
 namespace Sprints.Bookings.Controllers;
@@ -21,6 +23,18 @@ public class BookingsController : ControllerBase
         _bookingService = bookingService;
     }
 
+
+    [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResult<IBookingInfoDto>), StatusCodes.Status200OK)]
+    [Produces("application/json")]
+    public async Task<IActionResult> List([FromQuery] BookingFilterDto filter)
+    {
+        filter ??= new BookingFilterDto();
+
+        var result = await _bookingService.GetFilteredAsync(filter);
+        return Ok(result);
+    }
+     
 
     [HttpPost("events/{eventId:guid}")]
     [ProducesResponseType(typeof(IBookingInfoDto), StatusCodes.Status202Accepted)]

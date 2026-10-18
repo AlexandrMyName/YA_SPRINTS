@@ -1,14 +1,16 @@
-﻿ 
-using Sprints.Events.Application.Abstractions;
+﻿using Sprints.Events.Application.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Confluent.Kafka;
- 
+
 
 namespace Sprints.Events.Infrastructure.Kafka;
 
-
+/// <summary>
+/// Singleton-обёртка над IProducer. Потокобезопасна, создаётся один раз.
+/// Регистрируется как Singleton в DI; Dispose вызывается DI при остановке приложения.
+/// </summary>
 public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
 {
 
@@ -19,7 +21,6 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
-
 
     public KafkaPublisher(IOptions<KafkaOptions> options, ILogger<KafkaPublisher> logger)
     {
@@ -36,11 +37,19 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
     }
 
 
-    public async Task PublishAsync<T>(string topic, string key, T message, CancellationToken ct = default)
+    public async Task PublishAsync<T>(
+        string topic, string key, T message, CancellationToken ct = default)
         where T : class
     {
         var payload = JsonSerializer.Serialize(message, JsonOptions);
-        var kafkaMessage = new Message<string, string> { Key = key, Value = payload };
+        await PublishRawAsync(topic, key, payload, ct);
+    }
+
+
+    public async Task PublishRawAsync(
+        string topic, string key, string rawJson, CancellationToken ct = default)
+    {
+        var kafkaMessage = new Message<string, string> { Key = key, Value = rawJson };
 
         try
         {
@@ -59,7 +68,17 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
 
     public void Dispose()
     {
-        _producer.Flush(TimeSpan.FromSeconds(5));
-        _producer.Dispose();
+        try
+        {
+            _producer.Flush(TimeSpan.FromSeconds(5));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Kafka: ошибка при Flush producer");
+        }
+        finally
+        {
+            _producer.Dispose();
+        }
     }
 }

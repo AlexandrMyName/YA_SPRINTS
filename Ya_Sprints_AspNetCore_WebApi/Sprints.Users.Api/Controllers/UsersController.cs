@@ -13,7 +13,7 @@ namespace Sprints.Users.Presentation.Controllers;
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "v1")]
 [Route("api/v{version:apiVersion}/[controller]")]
-[Authorize(Policy = AuthPolicies.AdminRs256Only)]
+[Authorize(Policy = AuthPolicies.Admin)]
 public class UsersController : ControllerBase
 {
 

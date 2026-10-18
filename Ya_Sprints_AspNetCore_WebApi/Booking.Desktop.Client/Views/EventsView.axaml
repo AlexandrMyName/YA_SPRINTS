@@ -1,0 +1,92 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Booking.Desktop.Client.EventsView"
+             xmlns:vm="clr-namespace:Booking.Desktop.Client.ViewModels"
+             xmlns:views="clr-namespace:Booking.Desktop.Client"
+             Background="White">
+
+  <Grid RowDefinitions="Auto,Auto,*">
+    <Border Grid.Row="0" Background="#FAFAFA" Padding="12,8"
+            BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="6">
+          <Button Content="+ New event" Classes="toolbar"
+                  Command="{Binding CreateCommand}"
+                  IsVisible="{Binding IsAdmin}"/>
+          <Button Content="✎ Edit" Classes="toolbar"
+                  Command="{Binding EditCommand}"
+                  IsEnabled="{Binding HasSelection}"
+                  IsVisible="{Binding IsAdmin}"/>
+          <Button Content="✕ Delete" Classes="toolbar"
+                  Command="{Binding DeleteCommand}"
+                  IsEnabled="{Binding HasSelection}"
+                  IsVisible="{Binding IsAdmin}"/>
+          <Button Content="↻ Refresh" Classes="toolbar" Command="{Binding LoadCommand}"/>
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Right" Text="{Binding CountLabel}"
+                   Classes="label" VerticalAlignment="Center"/>
+      </DockPanel>
+    </Border>
+
+    <TextBlock Grid.Row="1" Text="{Binding Error}" Foreground="#C62828"
+               Padding="12,6" TextWrapping="Wrap"
+               IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+    <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto" Padding="15">
+      <Grid>
+        <ItemsControl ItemsSource="{Binding Items}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" ItemWidth="320" ItemHeight="240"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:EventCardVm">
+              <Border Classes="card"
+                      Classes.selected="{Binding IsSelected}"
+                      Margin="5" Width="310" Height="230"
+                      Cursor="Hand"
+                      PointerPressed="Card_PointerPressed"
+                      DoubleTapped="Card_DoubleTapped">
+                <Grid RowDefinitions="Auto,*,Auto">
+                  <Border Grid.Row="0" Background="#FAFAFA"
+                          CornerRadius="6,6,0,0" Padding="12,10">
+                    <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold"
+                               Foreground="#263238" TextTrimming="CharacterEllipsis"/>
+                  </Border>
+
+                  <Border Grid.Row="1" Padding="12,8" Background="White">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{Binding Description}" FontSize="11"
+                                 Foreground="#666" TextWrapping="Wrap" MaxLines="3"
+                                 TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Text="{Binding WhenLabel}" FontSize="11" Foreground="#455A64"/>
+                    </StackPanel>
+                  </Border>
+
+                  <Border Grid.Row="2" Background="#F5F5F5" CornerRadius="0,0,6,6"
+                          Padding="12,6" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+                    <DockPanel>
+                      <TextBlock Text="{Binding SeatsLabel}" FontSize="11"
+                                 FontWeight="SemiBold" Foreground="#37474F"/>
+                    </DockPanel>
+                  </Border>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Text="Нет событий"
+                   Classes="label" FontSize="13" Foreground="#90A4AE"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsVisible="{Binding !Items.Count}"/>
+      </Grid>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

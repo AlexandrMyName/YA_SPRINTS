@@ -1,0 +1,111 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Booking.Desktop.Client.App"
+             xmlns:vm="clr-namespace:Sprints.Desktop.ViewModels"
+             xmlns:views="clr-namespace:Booking.Desktop.Client"
+             RequestedThemeVariant="Light"> 
+
+   <Application.DataTemplates>
+        <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+          <views:LoginView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ShellViewModel}">
+          <views:ShellView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UsersViewModel}">
+          <views:UsersView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EventsViewModel}">
+          <views:EventsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BookingsViewModel}">
+          <views:BookingsView />
+        </DataTemplate>
+  </Application.DataTemplates>
+
+  <Application.Styles>
+    <FluentTheme />
+
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="BorderBrush" Value="#D0D0D0"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="#37474F"/>
+      <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#555"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Button.toolbar">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="10,4"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="Foreground" Value="#37474F"/>
+    </Style>
+    <Style Selector="Button.toolbar:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#B0BEC5"/>
+    </Style>
+
+    <Style Selector="Button.tab">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="10,6"/>
+      <Setter Property="CornerRadius" Value="3"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="#455A64"/>
+    </Style>
+    <Style Selector="Button.tab:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#E0E4E7"/>
+    </Style>
+    <Style Selector="Button.tab.active">
+      <Setter Property="Background" Value="#CFD8DC"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="#263238"/>
+    </Style>
+
+    <Style Selector="Border.status">
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Padding" Value="6,2"/>
+    </Style>
+    <Style Selector="Border.status.Pending">
+      <Setter Property="Background" Value="#FFF8E1"/>
+    </Style>
+    <Style Selector="Border.status.Confirmed">
+      <Setter Property="Background" Value="#E8F5E9"/>
+    </Style>
+    <Style Selector="Border.status.Rejected">
+      <Setter Property="Background" Value="#FFEBEE"/>
+    </Style>
+    <Style Selector="Border.status.Cancelled">
+      <Setter Property="Background" Value="#ECEFF1"/>
+    </Style>
+
+    <Style Selector="TextBlock.status.Pending">   <Setter Property="Foreground" Value="#F57C00"/></Style>
+    <Style Selector="TextBlock.status.Confirmed"> <Setter Property="Foreground" Value="#2E7D32"/></Style>
+    <Style Selector="TextBlock.status.Rejected">  <Setter Property="Foreground" Value="#C62828"/></Style>
+    <Style Selector="TextBlock.status.Cancelled"> <Setter Property="Foreground" Value="#546E7A"/></Style>
+
+    <Style Selector="Border.badge.Admin">
+      <Setter Property="Background" Value="#EDE7F6"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Padding" Value="6,2"/>
+    </Style>
+    <Style Selector="Border.badge.User">
+      <Setter Property="Background" Value="#ECEFF1"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="Padding" Value="6,2"/>
+    </Style>
+    <Style Selector="TextBlock.badge.Admin"> <Setter Property="Foreground" Value="#5E35B1"/></Style>
+    <Style Selector="TextBlock.badge.User">  <Setter Property="Foreground" Value="#546E7A"/></Style>
+  </Application.Styles>
+</Application>

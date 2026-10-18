@@ -16,12 +16,8 @@ namespace Sprints.Bookings.Infrastructure.DI;
 public static class DependencyInjection_Infrastructure
 {
 
-    /// <summary>
-    /// Регистрирует всё, что работает с внешним миром:
-    /// БД, репозитории, интерцепторы, фоновые воркеры, системные сервисы.
-    /// </summary>
     public static IServiceCollection AddInfrastructure(
-     this IServiceCollection services, IConfiguration config)
+        this IServiceCollection services, IConfiguration config)
     {
         services.AddDbContext<AppDbContext>(o =>
             o.UseNpgsql(config.GetConnectionString("DefaultConnection")));
@@ -29,19 +25,17 @@ public static class DependencyInjection_Infrastructure
         services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
         services.AddScoped<IInterceptLockings, InterceptLockings>();
 
-        // Outbox
         services.AddScoped<IOutboxWriter, OutboxWriter>();
 
-        // Kafka
         services.Configure<KafkaOptions>(config.GetSection(KafkaOptions.SectionName));
 
-        // Background services
-        services.AddHostedService<BookingBackgroundService>();   // Pending → Confirmed + Outbox
-        services.AddHostedService<OutboxProcessor>();            // Outbox  → Kafka
-        services.AddHostedService<BookingRejectedSubscriber>();  // Kafka   → Inbox + Booking.Rejected
+        // KafkaPublisher — Singleton, IDisposable
+        services.AddSingleton<IKafkaPublisher, KafkaPublisher>();
+
+        services.AddHostedService<BookingBackgroundService>();
+        services.AddHostedService<OutboxProcessor>();
+        services.AddHostedService<BookingRejectedSubscriber>();
 
         return services;
-    }  
+    }
 }
-
- 
