@@ -29,7 +29,7 @@ public static class DependencyInjection_Infrastructure
         services.AddSingleton<IKafkaPublisher, KafkaPublisher>();
 
         services.AddHostedService<KafkaTopicInitializer>();
-        services.AddHostedService<BookingConfirmedSubscriber>();
+        services.AddHostedService<BookingRequestedSubscriber>();
         services.AddHostedService<OutboxProcessor>();
 
         return services;

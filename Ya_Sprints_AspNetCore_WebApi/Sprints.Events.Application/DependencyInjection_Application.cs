@@ -19,7 +19,7 @@ public static class DependencyInjection_Application
     {
         // Use cases
         services.AddScoped<IEventService, EventsService>();
-        services.AddScoped<IBookingConfirmedHandler, BookingConfirmedHandler>();
+        services.AddScoped<IBookingRequestedHandler, BookingRequestedHandler>();
 
         // AutoMapper (профили в этой же сборке)
         services.AddAutoMapper(cfg =>

@@ -5,13 +5,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Sprints.Contracts;
 
-
 namespace Sprints.Events.Infrastructure.Kafka;
 
-/// <summary>
-/// Создаёт топик booking-confirmed при старте, если его нет.
-/// Запускается ДО BookingConfirmedSubscriber.
-/// </summary>
 public class KafkaTopicInitializer : IHostedService
 {
     private readonly KafkaOptions _options;
@@ -34,24 +29,20 @@ public class KafkaTopicInitializer : IHostedService
 
             await admin.CreateTopicsAsync(new[]
             {
-                new TopicSpecification
-                {
-                    Name = KafkaTopics.BookingConfirmed,
-                    NumPartitions = 3,
-                    ReplicationFactor = 1
-                }
+                new TopicSpecification { Name = KafkaTopics.BookingRequested, NumPartitions = 3, ReplicationFactor = 1 },
+                new TopicSpecification { Name = KafkaTopics.BookingAccepted,  NumPartitions = 3, ReplicationFactor = 1 },
+                new TopicSpecification { Name = KafkaTopics.BookingRejected,  NumPartitions = 3, ReplicationFactor = 1 }
             });
 
-            _logger.LogInformation("Kafka: топик {Topic} создан", KafkaTopics.BookingConfirmed);
+            _logger.LogInformation("Kafka: топики созданы (или уже существуют)");
         }
         catch (CreateTopicsException ex) when (ex.Results.All(r => r.Error.Code == ErrorCode.TopicAlreadyExists))
         {
-            _logger.LogInformation("Kafka: топик {Topic} уже существует", KafkaTopics.BookingConfirmed);
+            _logger.LogInformation("Kafka: топики уже существуют");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Kafka: не удалось создать топик {Topic}", KafkaTopics.BookingConfirmed);
-            // не валим сервис
+            _logger.LogError(ex, "Kafka: не удалось создать топики");
         }
     }
 

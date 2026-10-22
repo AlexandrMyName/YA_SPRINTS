@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Sprints.Bookings.Domain\Sprints.Bookings.Domain.csproj" />
+    <ProjectReference Include="..\Sprints.Contracts\Sprints.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

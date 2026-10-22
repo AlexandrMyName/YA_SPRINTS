@@ -33,15 +33,14 @@ public class OutboxWriter : IOutboxWriter
         // будет дедуплицировать по нему.
         var messageId = Guid.NewGuid();
 
-        // Если у контракта есть MessageId — заполняем. Иначе используем анонимный прокси.
+        // Если у контракта есть MessageId — заполняем. Иначе используем анонимный прокси. 
         object payloadWithId = payload switch
         {
-            Sprints.Contracts.BookingConfirmed bc => (object)(bc with { MessageId = messageId }),
-            Sprints.Contracts.BookingRejected br => (object)(br with { MessageId = messageId }),
+            Sprints.Contracts.BookingAccepted ba => ba with { MessageId = messageId },
+            Sprints.Contracts.BookingRejected br => br with { MessageId = messageId },
             _ => throw new InvalidOperationException(
-                $"Тип {typeof(T).Name} не поддерживает MessageId. Добавьте его в switch в OutboxWriter.EnqueueAsync.")
+                $"Events.OutboxWriter: тип {typeof(T).Name} не поддерживает MessageId")
         };
-
         var json = JsonSerializer.Serialize(payloadWithId, JsonOptions);
 
         var message = OutboxMessage.Create(
