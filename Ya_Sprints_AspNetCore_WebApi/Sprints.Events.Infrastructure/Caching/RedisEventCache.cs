@@ -1,4 +1,5 @@
 ﻿using Sprints.Events.Application.Dtos.EntitiesDtos.Events;
+using Sprints.Events.Application.Abstractions.Options;
 using Microsoft.Extensions.Caching.Distributed;
 using Sprints.Events.Application.Abstractions;
 using Microsoft.Extensions.Options;

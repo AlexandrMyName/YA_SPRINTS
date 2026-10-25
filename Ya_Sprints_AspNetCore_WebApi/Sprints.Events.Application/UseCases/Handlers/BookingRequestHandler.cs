@@ -6,14 +6,17 @@ using Sprints.Contracts;
 
 namespace Sprints.Events.Application.UseCases;
 
+
 public class BookingRequestedHandler : IBookingRequestedHandler
 {
+
     private readonly IRepository<Event> _events;
     private readonly IRepository<InboxMessage> _inbox;
     private readonly IOutboxWriter _outbox;
     private readonly IInterceptLockings _locks;
     private readonly IEventCache _cache;
     private readonly ILogger<BookingRequestedHandler> _logger;
+
 
     public BookingRequestedHandler(
         IRepository<Event> events,
@@ -31,8 +34,10 @@ public class BookingRequestedHandler : IBookingRequestedHandler
         _logger = logger;
     }
 
+
     public async Task HandleAsync(BookingRequested message, CancellationToken ct = default)
     {
+
         var semaphore = _locks.GetOrAddByEventId(message.EventId);
         await semaphore.WaitAsync(ct);
 

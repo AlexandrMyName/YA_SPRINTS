@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Sprints.Events.Application.Abstractions;
+using Sprints.Events.Application.Abstractions.Options;
 using Sprints.Events.Application.Dtos.EntitiesDtos.Events;
 using Sprints.Events.Infrastructure.Caching;
 using Sprints.Events.Infrastructure.Concurrency;
@@ -10,6 +11,7 @@ using Sprints.Events.Infrastructure.DataAccess.DbContexts;
 using Sprints.Events.Infrastructure.Kafka;
 using Sprints.Events.Infrastructure.Outbox;
 using Sprints.Events.Infrastructure.Repositories;
+
 
 namespace Sprints.Events.Infrastructure.DI;
 
