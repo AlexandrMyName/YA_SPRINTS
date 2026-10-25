@@ -84,6 +84,8 @@ public partial class ShellViewModel : ObservableObject
 
     // ─── Делегирующие команды — вызывают команду активной вкладки ───
 
+
+
     [RelayCommand]
     private async Task CreateAsync()
     {
@@ -101,8 +103,7 @@ public partial class ShellViewModel : ObservableObject
         switch (CurrentTab)
         {
             case AppTab.Events: await Events.EditCommand.ExecuteAsync(null); break;
-            case AppTab.Users: await Users.EditCommand.ExecuteAsync(null); break;
-            case AppTab.Bookings: await Bookings.EditCommand.ExecuteAsync(null); break;
+            case AppTab.Users: await Users.EditCommand.ExecuteAsync(null); break; 
         }
     }
 

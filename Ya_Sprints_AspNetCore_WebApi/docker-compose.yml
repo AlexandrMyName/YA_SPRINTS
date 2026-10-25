@@ -174,7 +174,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres-events;Port=5432;Database=sprints_events;Username=postgres;Password=postgres;SslMode=Disable"
       Kafka__BootstrapServers: kafka:29092
       Kafka__ConsumerGroup: sprints-events-consumer
-      Kafka__Topic: booking-confirmed
+      # Kafka__Topic: booking-confirmed   ← УДАЛЕНО (устаревшая переменная, нигде не читается)
       Jwt__Mode: HS256
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users

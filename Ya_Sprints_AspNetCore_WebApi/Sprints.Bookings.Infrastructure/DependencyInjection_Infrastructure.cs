@@ -32,9 +32,10 @@ public static class DependencyInjection_Infrastructure
         // KafkaPublisher — Singleton, IDisposable
         services.AddSingleton<IKafkaPublisher, KafkaPublisher>();
 
-        services.AddHostedService<BookingBackgroundService>();
-        services.AddHostedService<OutboxProcessor>();
-        services.AddHostedService<BookingRejectedSubscriber>();
+        // services.AddHostedService<BookingBackgroundService>();  // [Depricated]
+        services.AddHostedService<OutboxProcessor>();              // Outbox → Kafka
+        services.AddHostedService<BookingAcceptedSubscriber>();    // Kafka → Pending→Confirmed
+        services.AddHostedService<BookingRejectedSubscriber>();    // Kafka → Pending→Rejected
 
         return services;
     }

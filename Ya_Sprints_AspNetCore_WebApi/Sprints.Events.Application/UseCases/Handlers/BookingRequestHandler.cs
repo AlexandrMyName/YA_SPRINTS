@@ -1,28 +1,26 @@
-﻿using Sprints.Events.Application.Abstractions;
-using Sprints.Events.Domain.Entities;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Sprints.Contracts;
+using Sprints.Events.Application.Abstractions;
+using Sprints.Events.Domain.Entities;
 
 
 namespace Sprints.Events.Application.UseCases;
 
 
-public class BookingConfirmedHandler : IBookingConfirmedHandler
+public class BookingRequestedHandler : IBookingRequestedHandler
 {
-
     private readonly IRepository<Event> _events;
     private readonly IRepository<InboxMessage> _inbox;
     private readonly IOutboxWriter _outbox;
     private readonly IInterceptLockings _locks;
-    private readonly ILogger<BookingConfirmedHandler> _logger;
+    private readonly ILogger<BookingRequestedHandler> _logger;
 
-
-    public BookingConfirmedHandler(
+    public BookingRequestedHandler(
         IRepository<Event> events,
         IRepository<InboxMessage> inbox,
         IOutboxWriter outbox,
         IInterceptLockings locks,
-        ILogger<BookingConfirmedHandler> logger)
+        ILogger<BookingRequestedHandler> logger)
     {
         _events = events;
         _inbox = inbox;
@@ -31,33 +29,31 @@ public class BookingConfirmedHandler : IBookingConfirmedHandler
         _logger = logger;
     }
 
-
-    public async Task HandleAsync(BookingConfirmed message, CancellationToken ct = default)
+    public async Task HandleAsync(BookingRequested message, CancellationToken ct = default)
     {
-
         var semaphore = _locks.GetOrAddByEventId(message.EventId);
         await semaphore.WaitAsync(ct);
 
         try
         {
-            // Inbox dedup — до транзакции? Или внутри?
-            // Внутри — правильно, чтобы повтор не проскочил между check и save.
             await using var tx = await _events.BeginTransactionAsync(ct);
             try
             {
-                // 1. Проверка дубля
+                // ─── 1. Inbox dedup ───
                 var existing = await _inbox.GetByIdAsync(message.MessageId, ct);
                 if (existing.IsSuccesfuly)
                 {
                     _logger.LogDebug(
-                        "Events: сообщение {MessageId} уже обработано — skip",
+                        "Events: BookingRequested {MessageId} уже обработан — skip",
                         message.MessageId);
                     await tx.CommitAsync(ct);
                     return;
                 }
 
-                // 2. Загружаем событие
+                // ─── 2. Загружаем событие ───
                 var evResult = await _events.GetByIdAsync(message.EventId, ct);
+
+                // Случай A: событие не найдено → Rejected
                 if (!evResult.IsSuccesfuly || evResult.Data == null)
                 {
                     _logger.LogWarning(
@@ -73,7 +69,7 @@ public class BookingConfirmedHandler : IBookingConfirmedHandler
 
                 var ev = evResult.Data;
 
-                // 3. Проверка мест
+                // Случай B: нет мест → Rejected
                 if (ev.AvailableSeats < message.SeatsCount)
                 {
                     _logger.LogWarning(
@@ -87,16 +83,28 @@ public class BookingConfirmedHandler : IBookingConfirmedHandler
                     return;
                 }
 
-                // 4. Успех — уменьшаем
+                // ─── 3. Успех: уменьшаем + BookingAccepted ───
                 ev.AvailableSeats -= message.SeatsCount;
                 await _events.UpdateAsync(ev, ct);
+
+                await _outbox.EnqueueAsync(
+                    topic: KafkaTopics.BookingAccepted,
+                    key: message.EventId.ToString(),
+                    payload: new BookingAccepted
+                    {
+                        BookingId = message.BookingId,
+                        EventId = message.EventId,
+                        AcceptedAt = DateTime.UtcNow
+                    },
+                    ct: ct);
+
                 await MarkProcessedAsync(message.MessageId, ct);
                 await _events.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
 
                 _logger.LogInformation(
-                    "Events: уменьшены места {EventId} на {Count}, осталось {Left}",
-                    message.EventId, message.SeatsCount, ev.AvailableSeats);
+                    "Events: зарезервировано {Count} мест для {EventId}, осталось {Left} (Booking {BookingId})",
+                    message.SeatsCount, message.EventId, ev.AvailableSeats, message.BookingId);
             }
             catch
             {
@@ -110,8 +118,7 @@ public class BookingConfirmedHandler : IBookingConfirmedHandler
         }
     }
 
-
-    private Task EnqueueRejectedAsync(BookingConfirmed original, string reason, CancellationToken ct)
+    private Task EnqueueRejectedAsync(BookingRequested original, string reason, CancellationToken ct)
         => _outbox.EnqueueAsync(
             topic: KafkaTopics.BookingRejected,
             key: original.EventId.ToString(),
@@ -124,9 +131,6 @@ public class BookingConfirmedHandler : IBookingConfirmedHandler
             },
             ct: ct);
 
-
-    private async Task MarkProcessedAsync(Guid messageId, CancellationToken ct)
-    {
-        await _inbox.AddAsync(InboxMessage.Create(messageId, nameof(BookingConfirmed)), ct);
-    }
+    private Task MarkProcessedAsync(Guid messageId, CancellationToken ct)
+        => _inbox.AddAsync(InboxMessage.Create(messageId, nameof(BookingRequested)), ct);
 }

@@ -7,26 +7,25 @@ using Sprints.Contracts;
 using Sprints.Events.Application.Abstractions;
 using System.Text.Json;
 
-
 namespace Sprints.Events.Infrastructure.Kafka;
 
 
-public class BookingConfirmedSubscriber : BackgroundService
+public class BookingRequestedSubscriber : BackgroundService
 {
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly KafkaOptions _options;
-    private readonly ILogger<BookingConfirmedSubscriber> _logger;
+    private readonly ILogger<BookingRequestedSubscriber> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public BookingConfirmedSubscriber(
+    public BookingRequestedSubscriber(
         IServiceScopeFactory scopeFactory,
         IOptions<KafkaOptions> options,
-        ILogger<BookingConfirmedSubscriber> logger)
+        ILogger<BookingRequestedSubscriber> logger)
     {
         _scopeFactory = scopeFactory;
         _options = options.Value;
@@ -38,6 +37,7 @@ public class BookingConfirmedSubscriber : BackgroundService
 
     private async Task ConsumeLoopAsync(CancellationToken ct)
     {
+
         var config = new ConsumerConfig
         {
             BootstrapServers = _options.BootstrapServers,
@@ -46,11 +46,12 @@ public class BookingConfirmedSubscriber : BackgroundService
             EnableAutoCommit = false
         };
 
+
         using var consumer = new ConsumerBuilder<string, string>(config).Build();
-        consumer.Subscribe(KafkaTopics.BookingConfirmed);
+        consumer.Subscribe(KafkaTopics.BookingRequested);
         _logger.LogInformation(
-            "Kafka: подписан на {Topic}, group={Group}",
-            KafkaTopics.BookingConfirmed, _options.ConsumerGroup);
+            "Kafka: Events подписан на {Topic}, group={Group}",
+            KafkaTopics.BookingRequested, _options.ConsumerGroup);
 
         try
         {
@@ -60,56 +61,40 @@ public class BookingConfirmedSubscriber : BackgroundService
                 try
                 {
                     result = consumer.Consume(ct);
-
-                    // null-защита
                     if (result?.Message?.Value == null) continue;
 
-                    // Десериализация — до создания scope, чтобы scope не висел
-                    var message = JsonSerializer.Deserialize<BookingConfirmed>(
+                    var message = JsonSerializer.Deserialize<BookingRequested>(
                         result.Message.Value, JsonOptions);
 
                     if (message == null)
                     {
-                        _logger.LogWarning("Kafka: пустое сообщение, skip");
+                        _logger.LogWarning("Kafka: пустое BookingRequested, skip");
                         consumer.Commit(result);
                         continue;
                     }
 
                     using var scope = _scopeFactory.CreateScope();
                     var handler = scope.ServiceProvider
-                        .GetRequiredService<IBookingConfirmedHandler>();
+                        .GetRequiredService<IBookingRequestedHandler>();
 
-                    // async/await без sync-over-async
                     await handler.HandleAsync(message, ct);
-
-                    // commit только после успеха
                     consumer.Commit(result);
                 }
-                catch (OperationCanceledException) when (ct.IsCancellationRequested)
-                {
-                    // graceful shutdown
-                    break;
-                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (ConsumeException ex)
                 {
-                    // ошибка чтения — коммитим, чтобы не застрять
-                    _logger.LogError(ex, "Kafka: ошибка Consume, пропускаем сообщение");
+                    _logger.LogError(ex, "Kafka: ошибка Consume, skip offset");
                     if (result != null) consumer.Commit(result);
-
-                    // пауза против спама при недоступном брокере
                     try { await Task.Delay(1000, ct); }
                     catch (OperationCanceledException) { break; }
                 }
                 catch (Exception ex)
                 {
-                    // При падении обработки Kafka переотправит,
-                    // Inbox-таблица защитит от повторного применения.
+                    // НЕ коммитим — Kafka доставит повторно, Inbox защитит
                     _logger.LogError(ex,
-                        "Kafka: ошибка обработки сообщения (offset НЕ коммичен, будет retry). " +
-                        "Partition={Partition}, Offset={Offset}",
+                        "Kafka: ошибка обработки BookingRequested (offset НЕ коммичен). " +
+                        "Partition={P}, Offset={O}",
                         result?.Partition.Value, result?.Offset.Value);
-
-                    // Короткая пауза, чтобы не крутиться в горячем цикле
                     try { await Task.Delay(1000, ct); }
                     catch (OperationCanceledException) { break; }
                 }
@@ -117,15 +102,8 @@ public class BookingConfirmedSubscriber : BackgroundService
         }
         finally
         {
-            try
-            {
-                consumer.Close();
-                _logger.LogInformation("Kafka: consumer закрыт");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Kafka: ошибка при закрытии consumer");
-            }
+            try { consumer.Close(); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Kafka: ошибка Close consumer"); }
         }
     }
 }

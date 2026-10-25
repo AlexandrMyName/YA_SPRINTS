@@ -11,6 +11,7 @@ using Sprints.Contracts;
 namespace Sprints.Bookings.Infrastructure.BackgroundServices;
 
 
+[Obsolete("Бронь подтверждается: сервисом событий, см. BookingAcceptedSubscriber")]
 public class BookingBackgroundService : BackgroundService
 {
 
@@ -83,19 +84,18 @@ public class BookingBackgroundService : BackgroundService
                         return;
                     }
 
-                    entity.Confirm();
-
-                    // Кладём в Outbox (НЕ отправляем в Kafka напрямую!)
+                    // entity.Confirm();
+                     
                     await outbox.EnqueueAsync(
-                        topic: KafkaTopics.BookingConfirmed,
+                        topic: KafkaTopics.BookingRequested,
                         key: booking.EventId.ToString(),
-                        payload: new BookingConfirmed
+                        payload: new BookingRequested
                         {
                             BookingId = booking.Id,
                             EventId = booking.EventId,
                             UserId = booking.UserId,
                             SeatsCount = 1,
-                            ConfirmedAt = DateTime.UtcNow
+                            RequestedAt = DateTime.UtcNow
                         },
                         ct: stoppingToken);
 
