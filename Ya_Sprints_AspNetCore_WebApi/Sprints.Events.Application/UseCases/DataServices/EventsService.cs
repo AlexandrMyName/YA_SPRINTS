@@ -19,10 +19,12 @@ public class EventsService : IEventService
     private readonly IRepository<Event> _repository;
     private readonly ILogger<EventsService> _logger;
     private readonly IMapper _mapper;
+    private readonly IEventCache _cache;
 
 
     public EventsService(
         IRepository<Event> repository,
+        IEventCache cache,
         ILogger<EventsService> logger,
         IInterceptLockings interceptLockings,
         IMapper mapper)
@@ -31,45 +33,63 @@ public class EventsService : IEventService
         _interceptLockings = interceptLockings;
         _logger = logger;
         _mapper = mapper;
+        _cache = cache;
     }
-     
 
+
+    public bool IsExisted(Guid id) => _repository.IsExisted(id);
+    public bool IsExistedByTitle(string name) => _repository.IsExistedByTitle(name);
+
+    /// <summary>
+    /// Inbox: ReleaseSeats (из Kafka).
+    /// Кеш единичного события инвалидируется; top-10 не трогаем — TTL 60 c.
+    /// </summary>
     public async Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count)
     {
+
         var semaphore = _interceptLockings.GetOrAddByEventId(eventId);
         await semaphore.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            var eventResult = await _repository.GetByIdAsync(eventId);
-            if (!eventResult.IsSuccesfuly || eventResult.Data == null)
-                throw new NullReferenceException("Event is null");
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    var eventResult = await _repository.GetByIdAsync(eventId);
+                    if (!eventResult.IsSuccesfuly || eventResult.Data == null)
+                        throw new NullReferenceException("Event is null");
 
-            eventResult.Data.ReleaseSeats(count);
-            await _repository.UpdateAsync(eventResult.Data);
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+                    eventResult.Data.ReleaseSeats(count);
+                    await _repository.UpdateAsync(eventResult.Data);
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            // Инвалидация вне транзакции. Если Redis упадёт — ResilientEventCache
+            // залогирует warning, а TTL подстрахует от долгого стейла.
+            await _cache.InvalidateEventAsync(eventId);
+
+            _logger.LogInformation("Места освобождены для события {EventId}: -{Count}", eventId, count);
         }
         finally
         {
             semaphore.Release();
         }
     }
-     
+
 
     public async Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto)
     {
-        // Бизнес-правило: гарантируем Id  
         if (dto.Id == Guid.Empty || dto.Id == default)
             dto.Id = Guid.NewGuid();
 
-        // Бизнес-правило: уникальность Id и Title  
         if (IsExisted(dto.Id) || IsExistedByTitle(dto.Title))
             throw new DuplicateEventException(
                 $"Событие с Id={dto.Id} или Title='{dto.Title}' уже существует");
@@ -77,29 +97,41 @@ public class EventsService : IEventService
         var semaphore = _interceptLockings.GetOrAddByEventId(dto.Id);
         await semaphore.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            _logger.LogInformation("Запрос добавления события с ID: " + dto.Id);
+            IResultDto<IEventInfoDto> result;
 
-            var eventEntity = Event.Create(
-                dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats ?? 0);
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    _logger.LogInformation("Запрос добавления события с ID: {EventId}", dto.Id);
 
-            var result = await _repository.AddAsync(eventEntity);
-            if (!result.IsSuccesfuly)
-                return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? "");
+                    var eventEntity = Event.Create(
+                        dto.Id, dto.Title, dto.Description, dto.StartAt, dto.EndAt, dto.TotalSeats ?? 0);
 
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
+                    var addResult = await _repository.AddAsync(eventEntity);
+                    if (!addResult.IsSuccesfuly)
+                        return ResultDto<IEventInfoDto>.Fail(addResult?.Reason ?? "");
 
-            _logger.LogInformation($"Добавлена модель: {eventEntity.Id}");
-            return ResultDto<IEventInfoDto>.Ok(
-                _mapper.Map<EventInfoDto>(eventEntity), result?.Message ?? "");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    result = ResultDto<IEventInfoDto>.Ok(
+                        _mapper.Map<EventInfoDto>(eventEntity), addResult?.Message ?? "");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            // Новое событие может попасть в top-10 (если событий меньше 10) → инвалидируем. .
+            await _cache.InvalidateTopEventsAsync();
+
+            _logger.LogInformation("Добавлена модель: {EventId}", dto.Id);
+            return result;
         }
         finally
         {
@@ -107,16 +139,14 @@ public class EventsService : IEventService
         }
     }
 
-    /// <summary>
-    /// Массовое создание событий: генерация Id, проверка уникальности, маппинг.
-    /// </summary>
+
     public async Task<IResultDto<IEventInfoDto>> CreateEventsRangeAsync(IEnumerable<ICreateEventDto> dtos)
     {
+
         var dtoList = dtos.ToList();
         if (!dtoList.Any())
             return ResultDto<IEventInfoDto>.Fail("Список пуст");
 
-        // Бизнес-правило: заполнить Id и проверить уникальность  
         var prepared = new List<EventInfoDto>(dtoList.Count);
 
         foreach (var d in dtoList)
@@ -124,7 +154,6 @@ public class EventsService : IEventService
             if (d.Id == Guid.Empty || d.Id == default)
                 d.Id = Guid.NewGuid();
 
-            // Дополнительно: не сталкиваться с уже сгенерированными в этом же запросе
             while (IsExisted(d.Id) || prepared.Any(p => p.Id == d.Id))
                 d.Id = Guid.NewGuid();
 
@@ -134,109 +163,150 @@ public class EventsService : IEventService
 
             prepared.Add(_mapper.Map<EventInfoDto>(d));
         }
-         
+
         return await AddRangeAsync(prepared);
     }
+ 
 
     public async Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item)
     {
         var result = await UpdateAsync(item);
         if (result.IsSuccesfuly && result.Data != null)
         {
-            _logger.LogInformation($"Обновлена модель: {result.Data.Title}");
+            _logger.LogInformation("Обновлена модель: {Title}", result.Data.Title);
             return ResultDto<IEventInfoDto>.Ok(result.Data, result.Message ?? "");
         }
         return ResultDto<IEventInfoDto>.Fail(result.Reason ?? "");
     }
 
-     
 
     public async Task<IResultDto<IEventInfoDto>> AddAsync(IEventInfoDto item)
     {
         var semaphore = _interceptLockings.GetOrAddByEventId(item.Id);
         await semaphore.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            _logger.LogInformation("Запрос добавления события с ID: " + item.Id);
+            IResultDto<IEventInfoDto> result;
 
-            var eventEntity = await _repository.AddAsync(_mapper.Map<Event>(item));
-            if (!eventEntity.IsSuccesfuly)
-                return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    _logger.LogInformation("Запрос добавления события с ID: {EventId}", item.Id);
 
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
+                    var eventEntity = await _repository.AddAsync(_mapper.Map<Event>(item));
+                    if (!eventEntity.IsSuccesfuly)
+                        return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
 
-            _logger.LogInformation($"Добавлена модель: {eventEntity?.Data?.Title}");
-            return ResultDto<IEventInfoDto>.Ok(item, eventEntity?.Message ?? "");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    result = ResultDto<IEventInfoDto>.Ok(item, eventEntity?.Message ?? "");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            await _cache.InvalidateTopEventsAsync();
+
+            _logger.LogInformation("Добавлена модель: {Title}", item.Title);
+            return result;
         }
         finally
         {
             semaphore.Release();
         }
     }
+
 
     public async Task<IResultDto<IEventInfoDto>> UpdateAsync(IEventInfoDto item)
     {
+
         var semaphore = _interceptLockings.GetOrAddByEventId(item.Id);
         await semaphore.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            _logger.LogInformation("Запрос обновления события с ID: " + item.Id);
+            IResultDto<IEventInfoDto> result;
 
-            var eventEntity = await _repository.UpdateAsync(_mapper.Map<Event>(item));
-            if (!eventEntity.IsSuccesfuly)
-                return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    _logger.LogInformation("Запрос обновления события с ID: {EventId}", item.Id);
 
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
+                    var eventEntity = await _repository.UpdateAsync(_mapper.Map<Event>(item));
+                    if (!eventEntity.IsSuccesfuly)
+                        return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
 
-            _logger.LogInformation($"Обновлена модель: {eventEntity?.Data?.Title}");
-            return ResultDto<IEventInfoDto>.Ok(item, eventEntity?.Message ?? "");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    result = ResultDto<IEventInfoDto>.Ok(item, eventEntity?.Message ?? "");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            // Update меняет TotalSeats/Title → популярность (TotalSeats - AvailableSeats)
+            // могла измениться → инвалидируем и единичный ключ, и top-10.
+            await _cache.InvalidateEventAsync(item.Id);
+            await _cache.InvalidateTopEventsAsync();
+
+            _logger.LogInformation("Обновлена модель: {Title}", item.Title);
+            return result;
         }
         finally
         {
             semaphore.Release();
         }
     }
+
 
     public async Task<IResultDto<IEventInfoDto>> DeleteAsync(Guid id)
     {
         var semaphore = _interceptLockings.GetOrAddByEventId(id);
         await semaphore.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            _logger.LogInformation("Запрос удаления события с ID: " + id);
+            IResultDto<IEventInfoDto> result;
 
-            var eventEntity = await _repository.DeleteAsync(id);
-            if (!eventEntity.IsSuccesfuly)
-                return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    _logger.LogInformation("Запрос удаления события с ID: {EventId}", id);
 
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
+                    var eventEntity = await _repository.DeleteAsync(id);
+                    if (!eventEntity.IsSuccesfuly)
+                        return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
 
-            _logger.LogInformation($"Удалена модель c ID: {id}");
-            return ResultDto<IEventInfoDto>.Ok(eventEntity?.Message ?? "");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    result = ResultDto<IEventInfoDto>.Ok(eventEntity?.Message ?? "");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            await _cache.InvalidateEventAsync(id);
+            // Удалённое событие не должно отображаться в top-10 до истечения TTL.
+            await _cache.InvalidateTopEventsAsync();
+
+            _logger.LogInformation("Удалена модель c ID: {EventId}", id);
+            return result;
         }
         finally
         {
@@ -244,7 +314,6 @@ public class EventsService : IEventService
         }
     }
 
-   
 
     public async Task<IResultDto<IEventInfoDto>> AddRangeAsync(IEnumerable<IEventInfoDto> items)
     {
@@ -258,27 +327,38 @@ public class EventsService : IEventService
         foreach (var sem in semaphores)
             await sem.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            _logger.LogInformation("Запрос добавления списка событий в коллекцию");
+            IResultDto<IEventInfoDto> result;
 
-            var result = await _repository.AddRangeAsync(
-                itemList.Select(i => _mapper.Map<Event>(i)).ToList());
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    _logger.LogInformation("Запрос добавления списка событий в коллекцию");
 
-            if (!result.IsSuccesfuly)
-                return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? "");
+                    var addResult = await _repository.AddRangeAsync(
+                        itemList.Select(i => _mapper.Map<Event>(i)).ToList());
 
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
+                    if (!addResult.IsSuccesfuly)
+                        return ResultDto<IEventInfoDto>.Fail(addResult?.Reason ?? "");
+
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    result = ResultDto<IEventInfoDto>.Ok(addResult?.Message ?? "");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            await _cache.InvalidateTopEventsAsync();
 
             _logger.LogInformation("Добавление моделей данных - успешно");
-            return ResultDto<IEventInfoDto>.Ok(result?.Message ?? "");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+            return result;
         }
         finally
         {
@@ -287,13 +367,13 @@ public class EventsService : IEventService
         }
     }
 
+   
     public async Task<IResultDto<IEventInfoDto>> UpdateRangeAsync(IEnumerable<IEventInfoDto> items)
     {
         var itemList = items.ToList();
         if (!itemList.Any())
             return ResultDto<IEventInfoDto>.Fail("Список пуст");
 
-        // Бизнес-правило: все сущности должны существовать  
         var missing = itemList.Where(i => !IsExisted(i.Id)).Select(i => $"{i.Id}:{i.Title}").ToList();
         if (missing.Count > 0)
             return ResultDto<IEventInfoDto>.Fail(
@@ -305,27 +385,41 @@ public class EventsService : IEventService
         foreach (var sem in semaphores)
             await sem.WaitAsync();
 
-        await using var transaction = await _repository.BeginTransactionAsync();
         try
         {
-            _logger.LogInformation("Запрос обновления списка событий в коллекции");
+            IResultDto<IEventInfoDto> result;
 
-            var result = await _repository.UpdateRangeAsync(
-                itemList.Select(i => _mapper.Map<Event>(i)).ToList());
+            await using (var transaction = await _repository.BeginTransactionAsync())
+            {
+                try
+                {
+                    _logger.LogInformation("Запрос обновления списка событий в коллекции");
 
-            if (!result.IsSuccesfuly)
-                return ResultDto<IEventInfoDto>.Fail(result?.Reason ?? "");
+                    var updateResult = await _repository.UpdateRangeAsync(
+                        itemList.Select(i => _mapper.Map<Event>(i)).ToList());
 
-            await _repository.SaveChangesAsync();
-            await transaction.CommitAsync();
+                    if (!updateResult.IsSuccesfuly)
+                        return ResultDto<IEventInfoDto>.Fail(updateResult?.Reason ?? "");
+
+                    await _repository.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    result = ResultDto<IEventInfoDto>.Ok(updateResult?.Message ?? "");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            foreach (var id in ids)
+                await _cache.InvalidateEventAsync(id);
+
+            await _cache.InvalidateTopEventsAsync();
 
             _logger.LogInformation("Обновление моделей данных - успешно");
-            return ResultDto<IEventInfoDto>.Ok(result?.Message ?? "");
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
+            return result;
         }
         finally
         {
@@ -333,13 +427,13 @@ public class EventsService : IEventService
                 sem.Release();
         }
     }
- 
+
 
     public async Task<IEnumerable<IEventInfoDto>> GetAllAsync()
     {
         _logger.LogInformation("Запрос всех событий");
         var events = await _repository.GetAllAsync();
-        _logger.LogInformation($"Количество: {events.Count()} данных");
+        _logger.LogInformation("Количество: {Count} данных", events.Count());
         return events.Select(e => _mapper.Map<IEventInfoDto>(e)).ToList();
     }
 
@@ -356,28 +450,65 @@ public class EventsService : IEventService
 
         var dtos = paged.Items.Select(e => _mapper.Map<IEventInfoDto>(e)).ToList();
 
-        _logger.LogInformation($"Возвращено {dtos.Count} элементов из {paged.TotalCount}");
+        _logger.LogInformation("Возвращено {Count} элементов из {Total}", dtos.Count, paged.TotalCount);
         return PaginatedResult<IEventInfoDto>.Create(dtos, paged.TotalCount, paged.Page, paged.PageSize);
     }
 
-
+    /// <summary>
+    /// GetById с Cache-Aside
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<IResultDto<IEventInfoDto>> GetByIdAsync(Guid id)
     {
-        _logger.LogInformation("Запрос события с ID: " + id);
+        _logger.LogInformation("Запрос события с ID: {EventId}", id);
 
-        var eventEntity = await _repository.GetByIdAsync(id);
-        if (eventEntity.IsSuccesfuly && eventEntity.Data != null)
+        var cached = await _cache.GetEventAsync(id);
+        if (cached is not null)
         {
-            _logger.LogInformation($"Получена модель {eventEntity.Data.Title}");
-            return ResultDto<IEventInfoDto>.Ok(
-                _mapper.Map<IEventInfoDto>(eventEntity.Data), eventEntity.Message ?? "");
+            _logger.LogInformation("Событие {EventId} из кеша", id);
+            return ResultDto<IEventInfoDto>.Ok(cached, "Из кеша");
         }
-        return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
+
+        // Cache miss → идём в БД
+        var eventEntity = await _repository.GetByIdAsync(id);
+        if (!eventEntity.IsSuccesfuly || eventEntity.Data is null)
+            return ResultDto<IEventInfoDto>.Fail(eventEntity?.Reason ?? "");
+
+        var dto = _mapper.Map<EventInfoDto>(eventEntity.Data);
+        await _cache.SetEventAsync(dto);
+
+        _logger.LogInformation("Получена модель {Title} из БД", eventEntity.Data.Title);
+        return ResultDto<IEventInfoDto>.Ok(dto, eventEntity.Message ?? "");
     }
 
 
-    public bool IsExisted(Guid id) => _repository.IsExisted(id);
+    public async Task<IReadOnlyList<IEventInfoDto>> GetTopAsync(int take = 10, CancellationToken ct = default)
+    {
+        // Ключ events:top10 — всегда про 10. Если клиент просит меньше - режем на выдаче,
+        // но кешируем/читаем из БД всегда 10. Это исключает cache poisoning по параметру take.
+        const int cacheSize = 10;
+        if (take > cacheSize) take = cacheSize;
 
+        _logger.LogInformation("Запрос топа событий (take={Take})", take);
 
-    public bool IsExistedByTitle(string name) => _repository.IsExistedByTitle(name);
+        var cached = await _cache.GetTopEventsAsync(ct);
+        if (cached is not null)
+        {
+            _logger.LogInformation("Топ событий из кеша: {Count}", cached.Count);
+            return cached.Take(take).Cast<IEventInfoDto>().ToList();
+        }
+
+        // Популярность = занятые места = TotalSeats - AvailableSeats
+        var entities = await _repository.GetOrderedAsync(
+            q => q.OrderByDescending(e => e.TotalSeats - e.AvailableSeats),
+            cacheSize,
+            ct);
+
+        var dtos = _mapper.Map<List<EventInfoDto>>(entities);
+        await _cache.SetTopEventsAsync(dtos, ct);
+
+        _logger.LogInformation("Топ событий из БД: {Count}", dtos.Count);
+        return dtos.Take(take).Cast<IEventInfoDto>().ToList();
+    }
 }

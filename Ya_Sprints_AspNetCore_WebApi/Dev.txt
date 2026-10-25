@@ -52,3 +52,7 @@ $ docker compose up --build --force-recreate
 mkdir -p keys
 openssl genrsa -out keys/private.pem 2048
 openssl rsa -in keys/private.pem -pubout -out keys/public.pem
+
+Если нужно поднять стек совсем без Redis (например, в CI), достаточно:
+ 
+docker compose up -d --scale redis=0 events-service

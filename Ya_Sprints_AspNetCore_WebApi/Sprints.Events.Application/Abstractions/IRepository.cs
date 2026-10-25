@@ -29,4 +29,9 @@ public interface IRepository<T> where T : class, IEntity
 
     Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default);
     Task<int> SaveChangesAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<T>> GetOrderedAsync(Func<IQueryable<T>,
+        IOrderedQueryable<T>> orderBy, 
+        int take, 
+        CancellationToken ct = default);
 }

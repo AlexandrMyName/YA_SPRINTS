@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Sprints.Events.Application.Dtos;
+﻿using Sprints.Events.Application.UseCases.DataServices.Contracts;
 using Sprints.Events.Application.Dtos.EntitiesDtos.Events;
 using Sprints.Events.Application.Filters;
-using Sprints.Events.Application.UseCases.DataServices.Contracts;
+using Microsoft.AspNetCore.Authorization;
+using Sprints.Events.Application.Dtos;
+using Microsoft.AspNetCore.Mvc;
+
 
 namespace Sprints.Events.Controllers;
+
 
 [Authorize]
 [ApiVersion("1.0")]
@@ -13,6 +15,7 @@ namespace Sprints.Events.Controllers;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class EventsController : ControllerBase
 {
+
     private readonly IEventService _eventsService;
 
     public EventsController(IEventService eventsService)
@@ -23,7 +26,28 @@ public class EventsController : ControllerBase
     #region Ручки
 
     /// <summary>
+    /// Метод возвращает топ-N самых популярных событий (по числу занятых мест).
+    /// Кешируется в Redis (ключ events:top10, TTL 60 c).
+    /// </summary>
+    [ProducesResponseType(typeof(IEnumerable<EventInfoDto>), StatusCodes.Status200OK)]
+    [Produces("application/json")]
+    [HttpGet("top")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetTop(
+        [FromQuery] int take = 10,
+        CancellationToken ct = default)
+    {
+        // Защита от отрицательных/нулевых значений — иначе .Take(-1) вернёт пустое.
+        // Верхняя граница (take > 10) обрезается внутри EventsService до cacheSize.
+        if (take <= 0) take = 10;
+
+        var top = await _eventsService.GetTopAsync(take, ct);
+        return Ok(top);
+    }
+
+    /// <summary>
     /// Метод возвращает событие по идентификатору.
+    /// Кешируется в Redis (ключ events:event:{id}, TTL 300 c).
     /// </summary>
     [ProducesResponseType(typeof(ApiResult<EventInfoDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
