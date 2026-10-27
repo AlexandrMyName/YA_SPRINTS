@@ -65,7 +65,7 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
         return Task.FromResult(PaginatedResult<T>.Create(items, total, page, pageSize));
     }
 
-    // ===================== Запись =====================
+   
 
     public async Task<IResultEntity<T>> AddAsync(T item, CancellationToken ct = default)
     {
@@ -131,7 +131,7 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
         return ResultEntity<T>.Ok("Успешно");
     }
 
-    // ===================== Проверки =====================
+   
 
     public bool IsExisted(Guid id) => _items.ContainsKey(id);
 
@@ -147,12 +147,16 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
         }
         return false;
     }
-
-    // ===================== Транзакция и сохранение =====================
+     
 
     public Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default)
         => Task.FromResult<ITransaction>(new NullTransaction());
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
         => Task.FromResult(_items.Count);
+
+    public Task<IReadOnlyList<T>> GetOrderedAsync(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy, int take, CancellationToken ct = default)
+    {
+        throw new NotImplementedException("DEPRICATED");
+    }
 }

@@ -72,6 +72,31 @@ services:
       retries: 10
 
   # ============================================================
+  # Redis (кеш EventsService)
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: sprints_redis
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
   # Три базы данных
   # ============================================================
   postgres-users:
@@ -164,6 +189,10 @@ services:
         condition: service_healthy
       jwt-keys-init:
         condition: service_completed_successfully
+      # service_started (не service_healthy): сервис должен стартовать,
+      # даже если Redis недоступен — ResilientEventCache деградирует в Null-режим.
+      redis:
+        condition: service_started
     ports:
       - "5002:8080"
     volumes:
@@ -174,12 +203,17 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres-events;Port=5432;Database=sprints_events;Username=postgres;Password=postgres;SslMode=Disable"
       Kafka__BootstrapServers: kafka:29092
       Kafka__ConsumerGroup: sprints-events-consumer
-      # Kafka__Topic: booking-confirmed   ← УДАЛЕНО (устаревшая переменная, нигде не читается)
       Jwt__Mode: HS256
       Jwt__HsKey: "SHARED_SECRET_KEY_AT_LEAST_32_CHARS_LONG_123"
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
       Jwt__PublicKeyPath: "keys/public.pem"
+      # --- Redis / Cache (переопределяем appsettings.json) ---
+      Redis__Enabled: "true"
+      Redis__ConnectionString: "redis:6379,abortConnect=false,connectTimeout=2000,syncTimeout=2000"
+      Redis__InstanceName: "sprints:"
+      Cache__EventTtlSeconds: "300"
+      Cache__TopEventsTtlSeconds: "60"
     restart: unless-stopped
 
   bookings-service:
@@ -218,3 +252,4 @@ volumes:
   events_db_data:
   bookings_db_data:
   jwt_keys:
+  redis_data:

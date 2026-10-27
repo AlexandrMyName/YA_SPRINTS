@@ -13,4 +13,13 @@ public interface IEventService : IDataStorageService<IEventInfoDto, Event>
     Task<IResultDto<IEventInfoDto>> CreateEventsRangeAsync(IEnumerable<ICreateEventDto> dtos);
     Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item);
     Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count);
+
+
+    /// <summary>
+    /// Топ-N событий по популярности (кешируется на TopEventsTtlSeconds) 
+    /// </summary>
+    /// <param name="take"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task<IReadOnlyList<IEventInfoDto>> GetTopAsync(int take = 10, CancellationToken ct = default);
 }

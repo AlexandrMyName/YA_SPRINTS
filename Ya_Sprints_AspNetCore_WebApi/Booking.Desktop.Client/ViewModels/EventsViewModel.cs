@@ -8,8 +8,8 @@ using Sprints.Desktop.Api;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Threading.Tasks; 
+
 
 namespace Sprints.Desktop.ViewModels;
 
@@ -20,6 +20,7 @@ public partial class EventsViewModel : ObservableObject
     private readonly ILogger<EventsViewModel> _logger;
 
     [ObservableProperty] private ObservableCollection<EventCardVm> _items = new();
+    [ObservableProperty] private ObservableCollection<EventCardVm> _topItems = new();
     [ObservableProperty] private EventCardVm? _selected;
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string? _error;
@@ -27,6 +28,10 @@ public partial class EventsViewModel : ObservableObject
 
     public string CountLabel => $"{Items.Count} событий";
     public bool HasSelection => Selected != null;
+
+    // Computed-свойства для секции топа
+    public bool HasTop => TopItems.Count > 0;
+    public string TopCountLabel => $"Топ-{TopItems.Count}";
 
     public EventsViewModel(IEventsApi api, IDialogService dialogs, ILogger<EventsViewModel> logger)
     {
@@ -37,6 +42,16 @@ public partial class EventsViewModel : ObservableObject
     public async Task LoadAsync()
     {
         IsLoading = true; Error = null;
+
+        // Параллельная загрузка: основной список и топ независимы.
+        // Каждый метод ловит свои исключения, поэтому Task.WhenAll не бросит.
+        await Task.WhenAll(LoadItemsAsync(), LoadTopAsync());
+
+        IsLoading = false;
+    }
+
+    private async Task LoadItemsAsync()
+    {
         try
         {
             var paged = await _api.GetEventsAsync(1, 100);
@@ -45,8 +60,28 @@ public partial class EventsViewModel : ObservableObject
             OnPropertyChanged(nameof(CountLabel));
             OnPropertyChanged(nameof(HasSelection));
         }
-        catch (Exception ex) { Error = ex.Message; _logger.LogError(ex, "Load events"); }
-        finally { IsLoading = false; }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+            _logger.LogError(ex, "Load events");
+        }
+    }
+
+    private async Task LoadTopAsync()
+    {
+        // Топ — не критичная часть: ошибки логируем, но Error не выставляем,
+        // чтобы основной экран продолжал работать.
+        try
+        {
+            var top = await _api.GetTopEventsAsync(10);
+            TopItems = new ObservableCollection<EventCardVm>(top.Select(x => new EventCardVm(x)));
+            OnPropertyChanged(nameof(HasTop));
+            OnPropertyChanged(nameof(TopCountLabel));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Load top events");
+        }
     }
 
     [RelayCommand]

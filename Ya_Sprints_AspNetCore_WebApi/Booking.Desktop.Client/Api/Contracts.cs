@@ -1,5 +1,6 @@
 ﻿using Refit;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,6 +33,11 @@ public interface IEventsApi
     [Get("/api/v1/events")]
     Task<PaginatedResult<EventInfoDto>> GetEventsAsync(
         [Query] int page = 1, [Query] int pageSize = 100, CancellationToken ct = default);
+
+    // Топ-10 популярных событий. На сервере кешируется в Redis (TTL 60 c).
+    [Get("/api/v1/events/top")]
+    Task<List<EventInfoDto>> GetTopEventsAsync(
+        [Query] int take = 10, CancellationToken ct = default);
 
     [Post("/api/v1/events")]
     Task<string> CreateEventAsync([Body] CreateEventDto dto, CancellationToken ct = default);

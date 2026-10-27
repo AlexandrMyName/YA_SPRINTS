@@ -53,7 +53,7 @@
 - [JWT между сервисами](#-jwt-между-сервисами)
 - [Запуск микросервисов](#-запуск-микросервисов)
 - [Проверка сценария](#-проверка-сценария)
-
+- [Кеширование (Redis)](#-кеширование-(redis))
 
 <br>
 
@@ -1185,7 +1185,7 @@ Ya_Sprints_AspNetCore_WebApi/
 - **Асинхронные операции** – все обращения к БД асинхронны.
 - **Оптимистическая блокировка** – через xmin для предотвращения конкурентных изменений.
 - **Батчинг** – EF Core группирует несколько SaveChanges в один раунд-трип.
-- **Кеширование** –  отсутствует (для простоты), но может быть добавлено при необходимости.
+- **Кеширование** – в монолите отсутствует. В микросервисной версии (Sprint 9) добавлено для EventsService — см. [Кеширование (Redis)](#-кеширование-redis).
 ---
 
 
@@ -1217,12 +1217,13 @@ Ya_Sprints_AspNetCore_WebApi/
 - postgres-users — 5432
 - postgres-events — 5433
 - postgres-bookings — 5434
-
+- redis — 6379
+- 
 ```Схема
 text
-┌──────────┐  HTTP  ┌──────────┐
-│  Client  │◀──────▶│  Users   │◀── own DB (sprints_users)
-└────┬─────┘        └──────────┘
+┌──────────┐◀── own DB (sprints_events)
+│  Events  │◀── Redis (cache: event:{id}, top10)
+└────┬─────┘
      │
      │  HTTP  (JWT в заголовке)
      ├────────────────▶┌──────────┐◀── own DB (sprints_events)
@@ -1624,7 +1625,8 @@ docker compose up --build
 - sprints_users_service (5001)
 - sprints_events_service (5002)
 - sprints_bookings_service (5003)
-
+- sprints_redis (6379)
+  
 3. Swagger UI 
 - Users	http://localhost:5001/swagger
 - Events	http://localhost:5002/swagger
@@ -1717,7 +1719,178 @@ bash
 docker compose logs events-service | grep "BookingRejected"
 docker compose logs bookings-service | grep "Rejected"
 ```
-  
+---
+
+## 🚀 Кеширование (Redis)
+
+<br>
+В EventsService добавлено кеширование по паттерну **Cache-Aside**. Цель — снять нагрузку с PostgreSQL на самых частых read-эндпоинтах и продемонстрировать работу с Redis в микросервисной архитектуре.
+
+### Что кешируется
+
+| Данные | Ключ | TTL | Источник инвалидации |
+|---|---|---|---|
+| Событие по Id (`GET /api/v1/events/{id}`) | `events:event:{id}` | **300 c** | `Update`, `Delete`, `UpdateRange`, `BookingRequestedHandler` (Kafka) |
+| Топ-10 популярных (`GET /api/v1/events/top`) | `events:top10` | **60 c** | TTL + admin-операции (`Create`, `Update`, `Delete`, `Add`, `AddRange`, `UpdateRange`) |
+
+Популярность события вычисляется как `TotalSeats - AvailableSeats` (занятые места). Эндпоинт `GET /api/v1/events/top?take=N` возвращает N элементов из закешированного топа (при `take > 10` обрезается до 10).
+
+### Почему именно так
+
+**Cache-Aside** — самый предсказуемый паттерн для read-heavy сценария. Хендлер сначала спрашивает кеш; при промахе читает БД, кладёт в кеш и возвращает. При попадании — БД **не трогается вообще** (покрыто юнит-тестами).
+
+**Разные TTL для разных данных:**
+
+- **Событие — 300 c.** Меняется редко (admin-операции), но важно, чтобы после `PUT /events/{id}` пользователь сразу видел обновление. 300 c — это «страховка», а не основной механизм: инвалидация при изменениях работает мгновенно, TTL защищает от забытых путей инвалидации.
+- **Топ-10 — 60 c.** Зависит от потока броней. Если инвалидировать его на каждую бронь — получим cache-thrashing (при 100 RPS кеш будет постоянно пуст). 60 c — компромисс: топ может отставать от реальности максимум на минуту, зато кеш реально работает.
+
+**Инвалидация, а не update.** 
+- При изменении события кеш **удаляется** (`RemoveAsync`), а не перезаписывается. Это защищает от гонки «писатель vs писатель»: при `Update` кеша два параллельных writer'а могли бы перезаписать свежие данные устаревшим снапшотом (last-write-wins). `Remove + lazy refill` через cache-aside безопаснее.
+
+**Top-10 не инвалидируется на бронь.** 
+- `BookingRequestedHandler` (Kafka) уменьшает `AvailableSeats`, но не сбрасывает топ — иначе при потоке броней кеш топа будет постоянно пуст. TTL 60 c ограничивает стейл, а admin-операции (редкие) инвалидируют топ явно.
+
+### Порядок операций: БД → инвалидация
+
+- Инвалидация кеша вынесена **вне транзакции**, строго после `SaveChanges` + `Commit`:
+
+```csharp
+// EventsService.UpdateAsync — упрощённо
+await using (var tx = await _repository.BeginTransactionAsync())
+{
+    try
+    {
+        await _repository.UpdateAsync(entity);
+        await _repository.SaveChangesAsync();
+        await tx.CommitAsync();
+    }
+    catch { await tx.RollbackAsync(); throw; }
+}
+
+// ← только здесь, после успешного коммита
+await _cache.InvalidateEventAsync(item.Id);
+await _cache.InvalidateTopEventsAsync();
+```
+
+**Что это даёт**:
+``` ```
+- Если транзакция упадёт — кеш не тронется (не зачем сбрасывать данные, которые не изменились).
+- Если упадёт инвалидация — данные в БД уже консистентны, а следующий читатель подтянет их из БД при промахе.
+- Роллбэк на уже закоммиченной транзакции невозможен структурно — catch находится внутри await using, инвалидация — снаружи.
+
+**Поведение при недоступности Redis**
+- Сервис не падает и клиент не получает 5xx. Это гарантирует несколько слоёв защиты:
+
+ 
+**abortConnect=false в connection string	StackExchange.Redis** 
+- не блокирует старт приложения, даже если Redis недоступен
+**connectTimeout=2000, syncTimeout=2000**
+- Быстрая деградация — максимум 2 с на операцию
+**depends_on: service_started (не service_healthy)**
+- EventsService стартует, даже если Redis не прошёл healthcheck
+**ResilientEventCache	try/catch вокруг каждого вызова:**
+- get → null (cache miss), set/invalidate → no-op, ошибка → LogWarning
+**NullEventCache при Redis:Enabled=false**
+- Полное отключение кеша — всё работает без Redis вообще
+**Что видит клиент при упавшем Redis:**
+- HTTP-эндпоинты отвечают 200 OK.
+- Данные приходят из БД (как при cache miss).
+- Время ответа первого запроса может вырасти до 2–4 с (таймауты connectTimeout + syncTimeout), далее — быстрее.
+- В логах сервиса — Warning: Redis get failed for event {id}, не Error.
+- В теле ответа ошибок нет.
+
+Проверка:
+
+```bash
+docker compose stop redis
+curl -i http://localhost:5002/api/v1/events/{id}   # → 200 OK
+docker compose logs events-service | grep -i redis # → Warning
+docker compose start redis                          # кеш восстанавливается сам
+Поведение при асинхронных событиях (Kafka)
+BookingRequestedHandler — консьюмер топика booking-requested. При успешной брони он уменьшает AvailableSeats и инвалидирует единичный ключ events:event:{id}:
+```
+
+```csharp
+var eventChanged = false;
+await using (var tx = await _events.BeginTransactionAsync(ct))
+{
+    // ... inbox dedup, проверка мест, UPDATE events, outbox(BookingAccepted)
+    eventChanged = true;
+    await tx.CommitAsync(ct);
+}
+
+if (eventChanged)
+    await _cache.InvalidateEventAsync(message.EventId);
+```
+
+- Ветки Rejected (нет мест / событие не найдено) и duplicate-skip (Inbox hit) кеш не трогают — сущность не менялась, инвалидировать нечего. Это защита от лишних round-trip'ов в Redis при массовых отказах (например, при всплеске овербукинга).
+- Top-10 из Kafka-пути не инвалидируется — TTL 60 c.
+
+**Ключи кеша — в одном месте**
+- Все ключи собраны в Sprints.Events.Application/Abstractions/Caching/CacheKeys.cs:
+
+```csharp
+public static class CacheKeys
+{
+    public static string Event(Guid id) => $"events:event:{id}";
+    public const string TopEvents = "events:top10";
+}
+```
+
+- InstanceName = "sprints:" в конфиге → реальные ключи в Redis выглядят как sprints:events:event:{guid} и sprints:events:top10. Это защищает от коллизий, если Redis шарится между сервисами.
+
+**Конфигурация**
+- appsettings.json (EventsService):
+
+```json
+{
+  "Redis": {
+    "Enabled": true,
+    "ConnectionString": "localhost:6379,abortConnect=false,connectTimeout=2000,syncTimeout=2000",
+    "InstanceName": "sprints:"
+  },
+  "Cache": {
+    "EventTtlSeconds": 300,
+    "TopEventsTtlSeconds": 60
+  }
+}
+```
+
+**В docker-compose.yml для events-service переменные переопределяются:**
+
+```yaml
+environment:
+  Redis__Enabled: "true"
+  Redis__ConnectionString: "redis:6379,abortConnect=false,connectTimeout=2000,syncTimeout=2000"
+  Redis__InstanceName: "sprints:"
+  Cache__EventTtlSeconds: "300"
+  Cache__TopEventsTtlSeconds: "60"
+```
+- Redis:Enabled=false → в DI регистрируется NullEventCache (все методы — no-op, get → null). Сервис полностью работоспособен без Redis.
+
+**Тесты**
+Sprints.Events.UnitTests — отдельный проект (xUnit + Moq), 13 тестов:
+
+ 
+**EventsService_CacheTests.cs**
+- cache hit (БД не трогается), cache miss (БД → кеш), negative cache не пишется, top-10 hit/miss, регрессия «take не портит кеш», инвалидация + порядок save → invalidate
+**BookingRequestedHandler_CacheTests.cs**
+- успешная бронь инвалидирует event (top — нет), Rejected не инвалидирует, Inbox-дубль не инвалидирует
+- 
+Запуск:
+```bash
+dotnet test Sprints.Events.UnitTests
+```
+
+- Каждый тест помечен ACK #N в комментариях — маппинг на пункты задания.
+
+**Известные ограничения**
+- Гонка «read vs write»: cache-aside допускает, что читатель, стартовавший до коммита писателя, может положить в кеш устаревший снапшот. Окно ограничено TTL (300 c); IInterceptLockings сериализует только писателей.
+- Для production рассмотрели бы versioned cache keys, для учебного проекта — осознанно принято ограничение.
+- Нет circuit breaker: при падении Redis каждый запрос ждёт до 2 с на Get. Для production добавили бы Polly с CircuitBreakerStrategyOptions (после 3 подряд ошибок — не трогать Redis 30 с).
+- service_started вместо service_healthy: сервис стартует, даже если Redis не прошёл healthcheck. Это осознанно (требование «стартует без Redis»), но означает, что при первом запуске Redis может быть ещё не готов — первые запросы пойдут в БД, кеш заполнится через несколько секунд.
+
+---
  
 ⚡ Что добавлено в Sprint 9 (итог)
  
@@ -1735,7 +1908,9 @@ docker compose logs bookings-service | grep "Rejected"
 - Topic creation	KafkaTopicInitializer в Events
 - Manual commit	EnableAutoCommit = false + Commit после обработки
 - Message key	EventId.ToString() → порядок в партишне
-
+- Redis cache	Cache-Aside для event:{id} и top10; `ResilientEventCache` + `NullEventCache`
+- Инвалидация из Kafka	`BookingRequestedHandler` сбрасывает event:{id} после commit (top — только TTL)
+- Unit-тесты кеша	`Sprints.Events.UnitTests` — 13 тестов на hit/miss/invalidation
 
 
 ## 🤝 Вклад в проект

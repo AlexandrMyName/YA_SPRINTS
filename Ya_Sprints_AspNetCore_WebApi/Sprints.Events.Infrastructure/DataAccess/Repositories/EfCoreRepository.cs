@@ -114,14 +114,14 @@ public class EfCoreRepository<T> : IRepository<T> where T : class, IEntity
         return ResultEntity<T>.Ok($"Успешно удалено: {entity.Id}");
     }
 
-    // ===================== Проверки =====================
+    // Проверки  
 
     public bool IsExisted(Guid id) => _dbSet.Any(e => e.Id == id);
 
     public bool IsExistedByTitle(string name)
         => _dbSet.Any(e => EF.Property<string>(e, "Title") == name);
 
-    // ===================== Транзакция и сохранение =====================
+    // Транзакция и сохранение  
 
     public async Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default)
     {
@@ -134,4 +134,14 @@ public class EfCoreRepository<T> : IRepository<T> where T : class, IEntity
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         => await _context.SaveChangesAsync(ct);
+
+
+    public async Task<IReadOnlyList<T>> GetOrderedAsync(
+    Func<IQueryable<T>, IOrderedQueryable<T>> orderBy,
+    int take,
+    CancellationToken ct = default)
+    {
+        if (take < 1) take = 10;
+        return await orderBy(_dbSet.AsNoTracking()).Take(take).ToListAsync(ct);
+    }
 }
