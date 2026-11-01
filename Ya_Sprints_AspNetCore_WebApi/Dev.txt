@@ -56,3 +56,84 @@ openssl rsa -in keys/private.pem -pubout -out keys/public.pem
 Если нужно поднять стек совсем без Redis (например, в CI), достаточно:
  
 docker compose up -d --scale redis=0 events-service
+
+
+
+
+
+# TEST DATA
+
+
+Подключение необходимых компонентов через NuGet
+Для настройки автотрейсинга в современном .NET-сервисе требуется установить несколько пакетов:
+OpenTelemetry.Extensions.Hosting интегрирует OpenTelemetry в стандартный жизненный цикл приложения;
+OpenTelemetry.Instrumentation.AspNetCore перехватывает входящие HTTP-запросы к вашему API и автоматически создаёт корневые или дочерние спаны;
+OpenTelemetry.Instrumentation.Http отвечает за исходящие запросы через HttpClient, автоматически выполняя операцию Inject заголовков traceparent;
+OpenTelemetry.Exporter.Console — простейший инструмент для вывода собранных трейсов в консоль приложения для локальной проверки конфигурации.
+Конфигурация автотрейсинга в коде
+Вся настройка выполняется один раз в файле инициализации приложения Program.cs. Нужно зарегистрировать службы OpenTelemetry в контейнере зависимостей и указать, какие именно источники данных слушать.
+Пример настройки сервиса, который собирает данные о веб-запросах и исходящих вызовах:
+
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Настраиваем OpenTelemetry для сбора трейсов
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracerProviderBuilder =>
+    {
+        tracerProviderBuilder
+            // Задаём имя нашего сервиса в системе мониторинга
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("OrderManagementService"))
+            
+            // Автоматически собираем все входящие HTTP-запросы к нашему API
+            .AddAspNetCoreInstrumentation()
+            
+            // Автоматически отслеживаем все исходящие HTTP-вызовы через HttpClient
+            .AddHttpClientInstrumentation()
+            
+            // Выводим результаты в консоль приложения для тестирования
+            .AddConsoleExporter();
+    });
+
+var app = builder.Build(); 
+Фильтрация трафика на примере
+При настройке автоматического сбора данных в реальных высоконагруженных проектах базового подключения часто недостаточно. Система начинает собирать всё подряд, включая служебные технические запросы, что засоряет хранилище. Для управления этим процессом в OpenTelemetry есть продвинутые параметры конфигурации.
+Метод расширения AddAspNetCoreInstrumentation принимает лямбда-выражение для настройки опций, где ключевое свойство — Filter. Это предикат, который решает, нужно ли вообще создавать трейс для конкретного входящего HTTP-запроса.
+Для фильтрации путей часто используется метод HttpContext.Request.Path.StartsWithSegments(). Он проверяет, начинается ли текущий адрес запроса с определённого сегмента. Это стандартный способ исключить из мониторинга чисто технические эндпоинты, такие как проверки здоровья сервиса (/health) или метрики Prometheus (/metrics). 
+Если предикат возвращает false, OpenTelemetry полностью игнорирует запрос, экономя ресурсы процессора.
+Расширенная конфигурация с фильтрацией:
+
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracerProviderBuilder =>
+    {
+        tracerProviderBuilder
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("OrderManagementService"))
+            
+            // Настраиваем автосбор входящих запросов с фильтрацией
+            .AddAspNetCoreInstrumentation(options =>
+            {
+                // Исключаем системные запросы из трейсинга
+                options.Filter = httpContext => 
+                {
+                    var path = httpContext.Request.Path;
+                    
+                    // Если запрос идёт на /health или /metrics, спан НЕ создаётся
+                    return !path.StartsWithSegments("/health") && 
+                           !path.StartsWithSegments("/metrics");
+                };
+            })
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter();
+    });
+
+var app = builder.Build(); 
+Как автотрейсинг управляет контекстом на практике
+Когда автотрейсинг активен, механизм работает по строгому алгоритму. При поступлении входящего вызова метод AddAspNetCoreInstrumentation проверяет заголовки. Если в них есть traceparent, он выполняет операцию Extract, связывая сервис с вызывающей стороной. Если заголовка нет, создаётся новый уникальный TraceId.
+Внутри приложения контекст передаётся по цепочке вызовов с помощью встроенного механизма асинхронного локального хранилища (AsyncLocal). Когда вы используете HttpClient, метод AddHttpClientInstrumentation автоматически обращается в это хранилище, извлекает текущий идентификатор трейса и выполняет Inject в уходящие заголовки, формируя непрерывную цепочку.
