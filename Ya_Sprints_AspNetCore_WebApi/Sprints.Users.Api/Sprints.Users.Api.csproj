@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\reflectionPropertyAccessor_Lib\reflectionPropertyAccessor_Lib.csproj" />
+    <ProjectReference Include="..\Sprints.Observability\Sprints.Observability.csproj" />
     <ProjectReference Include="..\Sprints.Users.Application\Sprints.Users.Application.csproj" />
     <ProjectReference Include="..\Sprints.Users.Infrastructure\Sprints.Users.Infrastructure.csproj" />
   </ItemGroup>

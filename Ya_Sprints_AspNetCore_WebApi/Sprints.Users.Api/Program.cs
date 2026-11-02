@@ -1,14 +1,15 @@
-using Sprints.Users.Middlewares.Extentions.Configurations;
-using Sprints.Users.Application.Abstractions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Sprints.Users.Presentation.Extentions;
-using Sprints.Users.Infrastructure.Security;
-using Sprints.Users.Presentation.Extensions;
-using Sprints.Users.Infrastructure.DI;
-using Microsoft.IdentityModel.Tokens;
-using Sprints.Users.Application.DI;
-using Sprints.Users.Middlewares;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Sprints.Observability;
+using Sprints.Users.Application.Abstractions.Options;
+using Sprints.Users.Application.DI;
+using Sprints.Users.Infrastructure.DI;
+using Sprints.Users.Infrastructure.Security;
+using Sprints.Users.Middlewares;
+using Sprints.Users.Middlewares.Extentions.Configurations;
+using Sprints.Users.Presentation.Extensions;
+using Sprints.Users.Presentation.Extentions;
 using System.Text;
 
 [assembly: ApiController]
@@ -35,7 +36,9 @@ public class Program
         // Слои
         builder.Services
             .AddApplication()
-            .AddInfrastructure(builder.Configuration);
+            .AddInfrastructure(builder.Configuration)
+            .AddSprintsObservability("users-service");
+
 
         #region SECURITY
 
@@ -128,6 +131,10 @@ public class Program
         });
 
         var app = builder.Build();
+
+
+       //  app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
 
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();

@@ -162,6 +162,8 @@ services:
         condition: service_healthy
       jwt-keys-init:
         condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
     ports:
       - "5001:8080"
     volumes:
@@ -175,7 +177,8 @@ services:
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
       Jwt__PrivateKeyPath: "keys/private.pem"
-      Jwt__PublicKeyPath:  "keys/public.pem"
+      Jwt__PublicKeyPath: "keys/public.pem"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     restart: unless-stopped
 
   events-service:
@@ -192,6 +195,8 @@ services:
       # service_started (не service_healthy): сервис должен стартовать,
       # даже если Redis недоступен — ResilientEventCache деградирует в Null-режим.
       redis:
+        condition: service_started
+      otel-collector:
         condition: service_started
     ports:
       - "5002:8080"
@@ -214,6 +219,7 @@ services:
       Redis__InstanceName: "sprints:"
       Cache__EventTtlSeconds: "300"
       Cache__TopEventsTtlSeconds: "60"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     restart: unless-stopped
 
   bookings-service:
@@ -227,6 +233,8 @@ services:
         condition: service_healthy
       jwt-keys-init:
         condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
     ports:
       - "5003:8080"
     volumes:
@@ -242,8 +250,72 @@ services:
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
       Jwt__PublicKeyPath: "keys/public.pem"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     restart: unless-stopped
 
+
+  # ============================================================
+  # OBSERVABILITY STACK (Prometheus / Jaeger / Grafana)
+  # ============================================================
+  
+  # 1. Jaeger (Трассировки)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: sprints_jaeger
+    ports:
+      - "16686:16686" # Jaeger UI
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+
+  # 2. Prometheus (Метрики)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sprints_prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  # 3. Grafana (Визуализация)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sprints_grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+      - jaeger
+
+  # 4. OpenTelemetry Collector (Хаб)
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: sprints_otel_collector
+    command: ["--config=/etc/otelcol-contrib/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC (принимает от сервисов)
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Метрики самого коллектора
+      - "8889:8889"   # Экспортер Prometheus из коллектора
+    depends_on:
+      - jaeger
+      - prometheus
+    restart: unless-stopped
+     
 volumes:
   zookeeper_data:
   zookeeper_log:
@@ -253,3 +325,5 @@ volumes:
   bookings_db_data:
   jwt_keys:
   redis_data:
+  prometheus_data:  
+  grafana_data:   

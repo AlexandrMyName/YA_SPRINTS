@@ -1,22 +1,26 @@
-using Sprints.Events.Middlewares.Extentions.Configurations;
-using Sprints.Events.Application.Abstractions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Sprints.Events.Presentation.Extentions;
-using Sprints.Events.Presentation.Extensions;
-using Sprints.Events.Infrastructure.Security;
-using Sprints.Events.Infrastructure.DI;
-using Microsoft.IdentityModel.Tokens;
-using Sprints.Events.Application.DI;
-using Sprints.Events.Middlewares;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Sprints.Events.Application.Abstractions.Options;
+using Sprints.Events.Application.DI;
+using Sprints.Events.Infrastructure.DI;
+using Sprints.Events.Infrastructure.Security;
+using Sprints.Events.Middlewares;
+using Sprints.Events.Middlewares.Extentions.Configurations;
+using Sprints.Events.Presentation.Extensions;
+using Sprints.Events.Presentation.Extentions;
+using Sprints.Observability;
 using System.Text;
 
 [assembly: ApiController]
 
 namespace Sprints.Events.Api;
 
+
 public class Program
 {
+
+
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +34,9 @@ public class Program
 
         builder.Services
             .AddApplication()
-            .AddInfrastructure(builder.Configuration);
+            .AddInfrastructure(builder.Configuration)
+            .AddSprintsObservability("events-service");
+
 
         #region SECURITY
 
@@ -120,6 +126,10 @@ public class Program
         });
 
         var app = builder.Build();
+
+
+        //  app.UseOpenTelemetryPrometheusScrapingEndpoint();
+         
 
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();

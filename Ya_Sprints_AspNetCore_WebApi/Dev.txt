@@ -59,6 +59,22 @@ docker compose up -d --scale redis=0 events-service
 
 
 
+проверка подключения prometheus
+ docker exec -it sprints_grafana curl -v http://prometheus:9090/api/v1/query?query=up
+
+
+Grafana: http://localhost:3000 (admin/admin Ika123ika//123 ). В настройках добавьте источники данных:
+
+Prometheus: URL http://prometheus:9090
+
+Jaeger: URL http://jaeger:16686
+
+Jaeger UI: http://localhost:16686 — здесь вы увидите распределенные трассировки запросов между сервисами.
+
+Prometheus: http://localhost:9090 — для прямых запросов к метрикам (например, otel_http_server_request_duration_seconds_count).
+
+
+
 
 
 # TEST DATA

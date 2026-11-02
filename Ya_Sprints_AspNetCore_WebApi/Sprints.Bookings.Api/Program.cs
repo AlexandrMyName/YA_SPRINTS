@@ -10,7 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using Sprints.Bookings.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
- 
+using Sprints.Observability;
+
 
 [assembly: ApiController]
 
@@ -33,7 +34,8 @@ public class Program
 
         builder.Services
             .AddApplication()
-            .AddInfrastructure(builder.Configuration);
+            .AddInfrastructure(builder.Configuration)
+            .AddSprintsObservability("bookings-service");
 
         #region SECURITY
 
@@ -122,8 +124,11 @@ public class Program
             }
         });
 
-        var app = builder.Build();
+        var app = builder.Build(); 
+        // app.AddSprintsObservability()
 
+        //  app.UseOpenTelemetryPrometheusScrapingEndpoint();
+        
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
 
