@@ -47,7 +47,6 @@ public class BookingRejectedSubscriber : BackgroundService
            catch (Exception ex)
            {
                Console.WriteLine($"КРИТИЧЕСКАЯ ОШИБКА В КОНСЬЮМЕРЕ: {ex.Message}");
-               throw;
            }
        }, stoppingToken);
 

@@ -37,12 +37,30 @@ Topic: orders   PartitionCount: 3   ReplicationFactor: 1
 
 
 
+  #region для создания ключей 
+
+  mkdir -p Sprints.Bookings.Api/bin/Debug/net9.0/keys
+mkdir -p Sprints.Events.Api/bin/Debug/net9.0/keys
+
+  openssl genrsa -out temp_private.pem 2048 && \
+openssl rsa -in temp_private.pem -pubout -out Sprints.Bookings.Api/bin/Debug/net9.0/keys/public.pem && \
+openssl rsa -in temp_private.pem -pubout -out Sprints.Events.Api/bin/Debug/net9.0/keys/public.pem && \
+rm temp_private.pem
+  #endregion
+
+
 $ dotnet ef migrations add Initial_microservices \
   --project Sprints.Users.Infrastructure \
   --startup-project Sprints.Users.Api \
   --context AppDbContext \
   --output-dir DataAccess/Migrations
  
+
+
+ docker compose up -d --build bookings-service events-service
+
+
+
 
 
 $ docker compose up --build --force-recreate
