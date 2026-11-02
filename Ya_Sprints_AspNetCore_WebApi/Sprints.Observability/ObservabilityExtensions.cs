@@ -24,6 +24,7 @@ public static class ObservabilityExtensions
                     .AddHttpClientInstrumentation()
                     .AddEntityFrameworkCoreInstrumentation()
                     .AddConfluentKafkaInstrumentation()
+                    .AddSource("Sprints.Kafka.Consumer")
                     .AddOtlpExporter(opt =>
                     {
                         // Отправляем в OTel Collector

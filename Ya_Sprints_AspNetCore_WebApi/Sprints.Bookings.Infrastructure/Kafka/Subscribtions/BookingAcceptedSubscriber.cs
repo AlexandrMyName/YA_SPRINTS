@@ -9,11 +9,11 @@ using Sprints.Bookings.Domain.Entities;
 using Sprints.Bookings.Domain.ValueObjects;
 using Sprints.Bookings.Infrastructure.DataAccess.DbContexts;
 using Sprints.Contracts;
+using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 
-
 namespace Sprints.Bookings.Infrastructure.Kafka;
-
 
 public class BookingAcceptedSubscriber : BackgroundService
 {
@@ -26,6 +26,8 @@ public class BookingAcceptedSubscriber : BackgroundService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    private static readonly ActivitySource ActivitySource = new("Sprints.Kafka.Consumer");
+
     public BookingAcceptedSubscriber(
         IServiceScopeFactory scopeFactory,
         IOptions<KafkaOptions> options,
@@ -36,8 +38,18 @@ public class BookingAcceptedSubscriber : BackgroundService
         _logger = logger;
     }
 
-    protected override Task ExecuteAsync(CancellationToken ct)
-        => Task.Run(() => ConsumeLoopAsync(ct), ct);
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        => Task.Run(async () =>
+        {
+            try
+            {
+                await ConsumeLoopAsync(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"КРИТИЧЕСКАЯ ОШИБКА В КОНСЬЮМЕРЕ: {ex.Message}");
+            }
+        }, stoppingToken);
 
     private async Task ConsumeLoopAsync(CancellationToken ct)
     {
@@ -63,35 +75,45 @@ public class BookingAcceptedSubscriber : BackgroundService
                     result = consumer.Consume(ct);
                     if (result?.Message?.Value == null) continue;
 
-                    var message = JsonSerializer.Deserialize<BookingAccepted>(
-                        result.Message.Value, JsonOptions);
+                    // Безопасное извлечение traceparent
+                    ActivityContext parentContext = default;
+                    byte[]? traceparentHeader = null;
+                    if (result.Message.Headers != null && result.Message.Headers.TryGetLastBytes("traceparent", out var headerBytes))
+                    {
+                        traceparentHeader = headerBytes;
+                    }
+
+                    if (traceparentHeader != null)
+                    {
+                        var traceparent = Encoding.UTF8.GetString(traceparentHeader);
+                        ActivityContext.TryParse(traceparent, null, out parentContext);
+                    }
+
+                    using var activity = ActivitySource.StartActivity(
+                        $"Kafka Consume {result.Topic}",
+                        ActivityKind.Consumer,
+                        parentContext);
+
+                    var message = JsonSerializer.Deserialize<BookingAccepted>(result.Message.Value, JsonOptions);
                     if (message == null) { consumer.Commit(result); continue; }
 
                     await HandleAsync(message, ct);
                     consumer.Commit(result);
+
+                    _logger.LogInformation("Kafka: Успешно обработано BookingAccepted {MessageId}", message.MessageId);
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
-                catch (ConsumeException ex)
-                {
-                    _logger.LogError(ex, "Kafka: ошибка Consume BookingAccepted");
-                    if (result != null) consumer.Commit(result);
-                    try { await Task.Delay(1000, ct); }
-                    catch (OperationCanceledException) { break; }
-                }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,
-                        "Kafka: ошибка BookingAccepted (offset НЕ коммичен). Partition={P}, Offset={O}",
+                    _logger.LogError(ex, "Kafka: ошибка BookingAccepted (Partition={P}, Offset={O})",
                         result?.Partition.Value, result?.Offset.Value);
-                    try { await Task.Delay(1000, ct); }
-                    catch (OperationCanceledException) { break; }
+                    try { await Task.Delay(1000, ct); } catch { break; }
                 }
             }
         }
         finally
         {
-            try { consumer.Close(); }
-            catch (Exception ex) { _logger.LogWarning(ex, "Kafka: ошибка Close"); }
+            try { consumer.Close(); } catch (Exception ex) { _logger.LogWarning(ex, "Kafka: ошибка Close"); }
         }
     }
 
@@ -103,37 +125,21 @@ public class BookingAcceptedSubscriber : BackgroundService
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         try
         {
-            // Inbox первым
             try
             {
-                db.InboxMessages.Add(
-                    InboxMessage.Create(message.MessageId, nameof(BookingAccepted)));
+                db.InboxMessages.Add(InboxMessage.Create(message.MessageId, nameof(BookingAccepted)));
                 await db.SaveChangesAsync(ct);
             }
             catch (Exception ex) when (IsDuplicateKey(ex))
             {
-                _logger.LogDebug(
-                    "Inbox: BookingAccepted {MessageId} уже обработан",
-                    message.MessageId);
+                _logger.LogDebug("Inbox: BookingAccepted {MessageId} уже обработан", message.MessageId);
                 await tx.CommitAsync(ct);
                 return;
             }
 
             var booking = await db.Bookings.FindAsync(new object[] { message.BookingId }, ct);
-            if (booking == null)
+            if (booking == null || booking.Status != BookingStatus.Pending)
             {
-                _logger.LogWarning(
-                    "Bookings: бронь {BookingId} не найдена при Accepted",
-                    message.BookingId);
-                await tx.CommitAsync(ct);
-                return;
-            }
-
-            if (booking.Status != BookingStatus.Pending)
-            {
-                _logger.LogDebug(
-                    "Bookings: бронь {BookingId} уже {Status}, Accepted проигнорирован",
-                    message.BookingId, booking.Status);
                 await tx.CommitAsync(ct);
                 return;
             }
@@ -142,8 +148,7 @@ public class BookingAcceptedSubscriber : BackgroundService
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
-            _logger.LogInformation(
-                "Bookings: бронь {BookingId} → Confirmed", message.BookingId);
+            _logger.LogInformation("Bookings: бронь {BookingId} → Confirmed", message.BookingId);
         }
         catch
         {
@@ -155,8 +160,7 @@ public class BookingAcceptedSubscriber : BackgroundService
     private static bool IsDuplicateKey(Exception ex)
     {
         for (var cur = ex; cur != null; cur = cur.InnerException)
-            if (cur is PostgresException pg &&
-                pg.SqlState == PostgresErrorCodes.UniqueViolation)
+            if (cur is PostgresException pg && pg.SqlState == PostgresErrorCodes.UniqueViolation)
                 return true;
         return false;
     }
