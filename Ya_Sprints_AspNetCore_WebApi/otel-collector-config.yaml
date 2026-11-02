@@ -19,7 +19,7 @@ exporters:
   # Метрики -> Prometheus
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: "sprints"
+   # namespace: "sprints"
 
 service:
   pipelines:

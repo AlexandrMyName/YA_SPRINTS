@@ -92,7 +92,7 @@ Jaeger UI: http://localhost:16686 — здесь вы увидите распр�
 Prometheus: http://localhost:9090 — для прямых запросов к метрикам (например, otel_http_server_request_duration_seconds_count).
 
 
-
+ ID дашборда 17759 19924 (это официальный дашборд для ASP.NET Core от OpenTelemetry) 
 
 
 # TEST DATA
