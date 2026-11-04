@@ -9,5 +9,5 @@ public interface IEntity
 
     [Key]
 
-    Guid Id { get; set; } 
+    Guid Id { get; set; }
 }

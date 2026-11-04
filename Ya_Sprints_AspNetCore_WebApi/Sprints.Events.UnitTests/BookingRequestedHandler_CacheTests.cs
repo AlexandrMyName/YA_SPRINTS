@@ -65,6 +65,23 @@ public class BookingRequestedHandler_CacheTests
             c => c.InvalidateTopEventsAsync(It.IsAny<CancellationToken>()),
             Times.Never,
             "top-10 не инвалидируется на бронь — защита от cache-thrashing");
+
+        // Места должны были уменьшиться с 10 до 7 (10 - 3)
+        mocks.Events.Verify(
+            e => e.UpdateAsync(
+                It.Is<Event>(ev => ev.AvailableSeats == 7),
+                It.IsAny<CancellationToken>()),
+            Times.Once,
+            "места должны были уменьшиться с 10 до 7");
+
+        mocks.Outbox.Verify(
+            o => o.EnqueueAsync(
+                It.IsAny<string>(), // topic
+                It.IsAny<string>(), // key
+                It.IsAny<BookingAccepted>(), // payload (если класс события называется иначе, замените BookingAccepted на ваше имя)
+                It.IsAny<CancellationToken>()),
+            Times.Once,
+            "сообщение об успешной брони должно быть сохранено в Outbox");
     }
 
     // ============================================================

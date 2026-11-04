@@ -1,5 +1,5 @@
 ﻿using Sprints.Events.Application.Dtos.EntitiesDtos;
-using Sprints.Events.Application.Abstractions; 
+using Sprints.Events.Application.Abstractions;
 using Sprints.Events.Application.Internal;
 using Sprints.Events.Application.Dtos;
 using Sprints.Events.Domain.Entities;

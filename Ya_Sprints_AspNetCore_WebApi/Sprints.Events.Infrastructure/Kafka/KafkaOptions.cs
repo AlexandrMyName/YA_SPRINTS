@@ -1,4 +1,4 @@
-﻿  
+﻿
 
 namespace Sprints.Events.Infrastructure.Kafka;
 

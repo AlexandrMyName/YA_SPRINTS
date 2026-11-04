@@ -1,4 +1,4 @@
-﻿using Sprints.Events.Domain.Entities; 
+﻿using Sprints.Events.Domain.Entities;
 
 
 namespace Sprints.Events.Application.Abstractions;

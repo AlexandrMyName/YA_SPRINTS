@@ -1,5 +1,5 @@
 ﻿using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
-using Sprints.Bookings.Application.Internal; 
+using Sprints.Bookings.Application.Internal;
 using Sprints.Bookings.Domain.Entities;
 
 

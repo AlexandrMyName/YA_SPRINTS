@@ -1,22 +1,27 @@
-using Sprints.Events.Middlewares.Extentions.Configurations;
-using Sprints.Events.Application.Abstractions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Sprints.Events.Presentation.Extentions;
-using Sprints.Events.Presentation.Extensions;
-using Sprints.Events.Infrastructure.Security;
-using Sprints.Events.Infrastructure.DI;
-using Microsoft.IdentityModel.Tokens;
-using Sprints.Events.Application.DI;
-using Sprints.Events.Middlewares;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Sprints.Events.Application.Abstractions.Options;
+using Sprints.Events.Application.DI;
+using Sprints.Events.Infrastructure.DI;
+using Sprints.Events.Infrastructure.Security;
+using Sprints.Events.Middlewares;
+using Sprints.Events.Middlewares.Extentions.Configurations;
+using Sprints.Events.Presentation.Extensions;
+using Sprints.Events.Presentation.Extentions;
+using Sprints.Observability;
 using System.Text;
 
 [assembly: ApiController]
 
 namespace Sprints.Events.Api;
 
+
 public class Program
 {
+
+
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -30,7 +35,9 @@ public class Program
 
         builder.Services
             .AddApplication()
-            .AddInfrastructure(builder.Configuration);
+            .AddInfrastructure(builder.Configuration)
+            .AddSprintsObservability(builder.Configuration, "events-service");
+
 
         #region SECURITY
 
@@ -110,6 +117,11 @@ public class Program
 
         #endregion
 
+        // логи в JSON
+        builder.Host.UseSerilog((ctx, cfg) => cfg
+            .ReadFrom.Configuration(ctx.Configuration)
+            .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+
         builder.Host.UseDefaultServiceProvider((context, options) =>
         {
             if (context.HostingEnvironment.IsDevelopment())
@@ -121,8 +133,13 @@ public class Program
 
         var app = builder.Build();
 
+        app.UseSerilogRequestLogging();
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
+
 
         if (app.Environment.IsDevelopment())
         {
@@ -135,7 +152,7 @@ public class Program
             app.UseCors($"{CorsPoliticType.Production}");
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
         app.UseRouting();
 
         app.UseAuthentication();

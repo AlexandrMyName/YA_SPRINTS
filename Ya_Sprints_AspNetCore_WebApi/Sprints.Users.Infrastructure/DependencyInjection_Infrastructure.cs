@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql; 
-using Sprints.Users.Infrastructure.Repositories; 
+using Npgsql;
+using Sprints.Users.Infrastructure.Repositories;
 using Sprints.Users.Application.Abstractions;
-using Sprints.Users.Application.Abstractions.Security; 
+using Sprints.Users.Application.Abstractions.Security;
 using Sprints.Users.Infrastructure.DataAccess.DbContexts;
 using Sprints.Users.Infrastructure.DataAccess.Interceptors;
 using Sprints.Users.Infrastructure.Security;
@@ -30,22 +30,22 @@ public static class DependencyInjection_Infrastructure
         services.AddDbContext<AppDbContext>((sp, options) =>
         {
             options.UseNpgsql(config.GetConnectionString("DefaultConnection"));
-           // options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+            // options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
         });
 
         services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
         services.AddSingleton<IInterceptLockings, InterceptLockings>();
         services.AddScoped<AuditInterceptor>();
 
-        services.AddSingleton<IPasswordHasher, PasswordHasher>();           
-        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();          
-          
-          
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+
+
         //services.AddMassTransit(x =>
         //{
         //    x.AddConsumer<OrderCreatedConsumer>();
         //    //x.AddConsumer<HeavyOrderConsumer, HeavyOrderConsumerDefinition>();
-             
+
         //    x.UsingRabbitMq((context, cfg) =>
         //    {
         //        cfg.Host("localhost", "/", h =>
@@ -63,7 +63,7 @@ public static class DependencyInjection_Infrastructure
         //        cfg.ConfigureEndpoints(context);
         //    });
         //});
-         
+
         return services;
     }
 

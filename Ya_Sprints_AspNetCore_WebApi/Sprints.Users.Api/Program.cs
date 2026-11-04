@@ -1,14 +1,16 @@
-using Sprints.Users.Middlewares.Extentions.Configurations;
-using Sprints.Users.Application.Abstractions.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Sprints.Users.Presentation.Extentions;
-using Sprints.Users.Infrastructure.Security;
-using Sprints.Users.Presentation.Extensions;
-using Sprints.Users.Infrastructure.DI;
-using Microsoft.IdentityModel.Tokens;
-using Sprints.Users.Application.DI;
-using Sprints.Users.Middlewares;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Sprints.Observability;
+using Sprints.Users.Application.Abstractions.Options;
+using Sprints.Users.Application.DI;
+using Sprints.Users.Infrastructure.DI;
+using Sprints.Users.Infrastructure.Security;
+using Sprints.Users.Middlewares;
+using Sprints.Users.Middlewares.Extentions.Configurations;
+using Sprints.Users.Presentation.Extensions;
+using Sprints.Users.Presentation.Extentions;
 using System.Text;
 
 [assembly: ApiController]
@@ -35,7 +37,9 @@ public class Program
         // Слои
         builder.Services
             .AddApplication()
-            .AddInfrastructure(builder.Configuration);
+            .AddInfrastructure(builder.Configuration)
+            .AddSprintsObservability(builder.Configuration, "users-service");
+
 
         #region SECURITY
 
@@ -118,6 +122,11 @@ public class Program
 
         #endregion
 
+        // логи в JSON
+        builder.Host.UseSerilog((ctx, cfg) => cfg
+            .ReadFrom.Configuration(ctx.Configuration)
+            .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+
         builder.Host.UseDefaultServiceProvider((context, options) =>
         {
             if (context.HostingEnvironment.IsDevelopment())
@@ -128,9 +137,13 @@ public class Program
         });
 
         var app = builder.Build();
+        app.UseSerilogRequestLogging();
 
+
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
+
 
         if (app.Environment.IsDevelopment())
         {
@@ -143,13 +156,14 @@ public class Program
             app.UseCors($"{CorsPoliticType.Production}");
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
         app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
+
         app.Run();
     }
 }

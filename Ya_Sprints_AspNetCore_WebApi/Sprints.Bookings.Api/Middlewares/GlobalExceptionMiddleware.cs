@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Net;
-  
+
 
 namespace Sprints.Bookings.Middlewares;
 
@@ -44,24 +44,24 @@ public class GlobalExceptionMiddleware
     {
         // Определяем статус-код
         var statusCode = exception switch
-        {    
-            UnauthorizedAccessException  => (int)HttpStatusCode.Unauthorized,
+        {
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
 
-            ArgumentException            => (int)HttpStatusCode.BadRequest,
-            InvalidOperationException    => (int)HttpStatusCode.BadRequest,
-            KeyNotFoundException         => (int)HttpStatusCode.NotFound,
-            NotImplementedException      => (int)HttpStatusCode.NotImplemented,
-            NoAvailableSeatsException    => (int)HttpStatusCode.Conflict, 
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            InvalidOperationException => (int)HttpStatusCode.BadRequest,
+            KeyNotFoundException => (int)HttpStatusCode.NotFound,
+            NotImplementedException => (int)HttpStatusCode.NotImplemented,
+            NoAvailableSeatsException => (int)HttpStatusCode.Conflict,
             DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict,
 
-            ActiveBookingsLimitExceededException  => (int)HttpStatusCode.Conflict,   
-            BookingAlreadyCancelledException      => (int)HttpStatusCode.Conflict,    
+            ActiveBookingsLimitExceededException => (int)HttpStatusCode.Conflict,
+            BookingAlreadyCancelledException => (int)HttpStatusCode.Conflict,
             CannotCancelConfirmedBookingException => (int)HttpStatusCode.Conflict,
-            EventAlreadyStartedException          => (int)HttpStatusCode.BadRequest,
+            EventAlreadyStartedException => (int)HttpStatusCode.BadRequest,
 
             NoRightsException => (int)HttpStatusCode.Forbidden,
-             
-             
+
+
             _ => (int)HttpStatusCode.InternalServerError
         };
 

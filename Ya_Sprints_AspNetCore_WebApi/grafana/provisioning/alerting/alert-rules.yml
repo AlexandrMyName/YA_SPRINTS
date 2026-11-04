@@ -1,0 +1,51 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: 'Service Health'
+    folder: 'Alerts'
+    interval: 1m
+    rules:
+      - uid: service_down_rule
+        title: 'Service Down'
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 60
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: up
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 1
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                  type: query
+              expression: A
+              refId: C
+              type: classic_conditions 
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: 'Сервис {{ $labels.instance }} перестал отвечать'
+          description: 'Метрика up равна 0. Проверьте контейнеры и логи.'
+        labels:
+          severity: critical

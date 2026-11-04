@@ -1,27 +1,25 @@
-﻿ 
+﻿using System;
 
 namespace Sprints.Events.Domain.Entities;
 
-/// <summary>
-/// Сообщение, ожидающее отправки в Kafka.
-/// Сохраняется в БД в одной транзакции с бизнес-изменениями.
-/// </summary>
 public class OutboxMessage : IEntity
 {
-    public Guid Id { get; set; }           // = MessageId (уходит в Kafka)
-    public string Type { get; private set; } = ""; // "BookingConfirmed"
+    public Guid Id { get; set; }
+    public string Type { get; private set; } = "";
     public string Topic { get; private set; } = "";
     public string Key { get; private set; } = "";
-    public string Payload { get; private set; } = ""; // JSON
+    public string Payload { get; private set; } = "";
     public DateTime CreatedAt { get; private set; }
     public DateTime? ProcessedAt { get; private set; }
     public int Attempts { get; private set; }
     public string? LastError { get; private set; }
 
+    public string? TraceParent { get; private set; }
+
     private OutboxMessage() { }
 
     public static OutboxMessage Create(
-        Guid messageId, string type, string topic, string key, string payload)
+        Guid messageId, string type, string topic, string key, string payload, string? traceParent = null)
         => new()
         {
             Id = messageId,
@@ -29,6 +27,7 @@ public class OutboxMessage : IEntity
             Topic = topic,
             Key = key,
             Payload = payload,
+            TraceParent = traceParent,
             CreatedAt = DateTime.UtcNow,
             Attempts = 0
         };

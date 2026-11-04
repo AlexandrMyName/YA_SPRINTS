@@ -55,7 +55,7 @@ public partial class LoginViewModel : ObservableObject
                 RefreshToken = response.RefreshToken,
                 ExpiresAtUtc = response.ExpiresAtUtc,
                 Login = Login,
-                IsAdmin = JwtUtils.IsAdmin(response.AccessToken)    
+                IsAdmin = JwtUtils.IsAdmin(response.AccessToken)
             };
             await _store.SaveAsync(data);
 

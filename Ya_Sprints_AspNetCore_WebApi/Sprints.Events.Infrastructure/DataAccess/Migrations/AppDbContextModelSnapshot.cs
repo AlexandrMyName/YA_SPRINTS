@@ -112,6 +112,10 @@ namespace Sprints.Events.Infrastructure.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("TraceParent")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(100)

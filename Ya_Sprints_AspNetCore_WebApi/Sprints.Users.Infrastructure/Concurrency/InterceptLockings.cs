@@ -1,6 +1,6 @@
-﻿ 
+﻿
 using Sprints.Users.Application.Abstractions;
-using System.Collections.Concurrent; 
+using System.Collections.Concurrent;
 
 
 namespace Sprints.Users.Infrastructure.Concurrency;
@@ -18,5 +18,5 @@ public class InterceptLockings : IInterceptLockings
 
     public SemaphoreSlim GetOrAddByEventId(Guid eventId)
        => _eventsLocks.GetOrAdd(eventId, _ => new SemaphoreSlim(1, 1));
- 
+
 }

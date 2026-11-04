@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion; 
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sprints.Events.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,7 @@ public class AppDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-         
+
 
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
 
@@ -47,7 +47,7 @@ public class AppDbContext : BaseDbContext
             }
         }
 
-       
+
 
     }
 }

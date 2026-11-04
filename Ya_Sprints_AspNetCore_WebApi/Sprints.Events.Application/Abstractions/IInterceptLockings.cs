@@ -6,6 +6,6 @@ namespace Sprints.Events.Application.Abstractions;
 public interface IInterceptLockings
 {
 
-    SemaphoreSlim GetOrAddByEventId(Guid eventId); 
+    SemaphoreSlim GetOrAddByEventId(Guid eventId);
 
 }

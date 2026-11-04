@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
-using Sprints.Bookings.Application.Abstractions; 
+using Sprints.Bookings.Application.Abstractions;
 
 
 namespace Sprints.Bookings.Infrastructure.DataAccess;

@@ -1,9 +1,9 @@
 ﻿//dotnet add package Microsoft.CodeAnalysis.Workspaces.MSBuild
 //dotnet add package Microsoft.CodeAnalysis.CSharp
 // dotnet run -- "C:\MyApp\MyApp.sln" "MyPlugin"
- 
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild; 
+using Microsoft.CodeAnalysis.MSBuild;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Build.Locator;
@@ -21,7 +21,7 @@ class PluginExtractor
 {
     static async Task Main(string[] args)
     {
-        
+
         if (args.Length < 2)
         {
             Console.WriteLine("Usage: PluginExtractor <path-to-sln-or-csproj> <new-library-name>");

@@ -1,5 +1,5 @@
 ﻿using SprintsASP_NetCore_API.Application.Abstractions;
-using System.Collections.Concurrent; 
+using System.Collections.Concurrent;
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.Concurrency;

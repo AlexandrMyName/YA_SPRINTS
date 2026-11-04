@@ -1,5 +1,5 @@
 ﻿using Sprints.Events.Application.UseCases.DataServices.Contracts;
-using Sprints.Events.Application.UseCases.DataServices; 
+using Sprints.Events.Application.UseCases.DataServices;
 using Microsoft.Extensions.DependencyInjection;
 using Sprints.Events.Application.Abstractions;
 using Sprints.Events.Application.Mapping;

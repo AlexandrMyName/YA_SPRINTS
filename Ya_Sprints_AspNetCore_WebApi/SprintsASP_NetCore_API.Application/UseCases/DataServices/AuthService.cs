@@ -5,7 +5,7 @@ using SprintsASP_NetCore_API.Application.Abstractions.Security;
 using SprintsASP_NetCore_API.Application.Abstractions.Options;
 using SprintsASP_NetCore_API.Application.Abstractions;
 using SprintASP_NetCore_API.Application.Internal;
-using SprintsASP_NetCore_API.Domain.Exceptions; 
+using SprintsASP_NetCore_API.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SprintASP_NetCore_API.Domain.Entities;

@@ -12,7 +12,7 @@ public class MappingDtoProfile : Profile
     public MappingDtoProfile()
     {
 
-       
+
         CreateMap<User, UserInfoDto>();
         CreateMap<User, IUserInfoDto>().As<UserInfoDto>();
     }

@@ -1,5 +1,5 @@
-﻿using Sprints.Bookings.Domain.Entities; 
-using System.Linq.Expressions; 
+﻿using Sprints.Bookings.Domain.Entities;
+using System.Linq.Expressions;
 
 
 namespace Sprints.Bookings.Application.Abstractions;

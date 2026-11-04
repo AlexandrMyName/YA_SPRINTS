@@ -21,7 +21,7 @@ public sealed class ResilientEventCache : IEventCache
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    
+
     public async Task<EventInfoDto?> GetEventAsync(Guid id, CancellationToken ct = default)
     {
         try
@@ -55,11 +55,11 @@ public sealed class ResilientEventCache : IEventCache
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            _logger.LogWarning(ex, "Cache invalidate failed for event {EventId}. Will expire by TTL.", id);
+            _logger.LogWarning(ex, "Redis get failed for event {EventId}. Falling back to DB.", id);
         }
     }
 
-   
+
     public async Task<IReadOnlyList<EventInfoDto>?> GetTopEventsAsync(CancellationToken ct = default)
     {
         try

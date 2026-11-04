@@ -1,4 +1,4 @@
-﻿using Sprints.Bookings.Domain.Entities; 
+﻿using Sprints.Bookings.Domain.Entities;
 
 
 namespace Sprints.Bookings.Application.Internal;

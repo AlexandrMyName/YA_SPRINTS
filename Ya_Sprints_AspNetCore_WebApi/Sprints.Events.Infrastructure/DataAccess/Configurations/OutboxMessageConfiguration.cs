@@ -2,9 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Sprints.Events.Domain.Entities;
 
-
 namespace Sprints.Events.Infrastructure.DataAccess.Configurations;
-
 
 public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage>
 {
@@ -23,7 +21,8 @@ public class OutboxMessageConfiguration : IEntityTypeConfiguration<OutboxMessage
         b.Property(x => x.Attempts).IsRequired();
         b.Property(x => x.LastError).HasMaxLength(2000);
 
-        // Индекс для быстрого поиска необработанных
+        b.Property(x => x.TraceParent).HasMaxLength(100);
+
         b.HasIndex(x => new { x.ProcessedAt, x.CreatedAt });
     }
 }

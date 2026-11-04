@@ -16,7 +16,7 @@ public static class DependencyInjection_Application
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Use cases 
-        services.AddScoped<IBookingService, BookingService>(); 
+        services.AddScoped<IBookingService, BookingService>();
 
         // AutoMapper (профили в этой же сборке)
         services.AddAutoMapper(cfg =>

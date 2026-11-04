@@ -1,0 +1,55 @@
+# сбор метрик со всех сервисов и экспортеров
+
+
+
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
+
+  # Экспортеры инфраструктуры
+  - job_name: 'kafka-exporter'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Проверка доступности сервисов (Health Checks)
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://users-service:8080/swagger/index.html
+        - http://events-service:8080/swagger/index.html
+        - http://bookings-service:8080/swagger/index.html
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+
+  - job_name: 'users-service'
+    static_configs:
+      - targets: ['users-service:8080']
+    metrics_path: /metrics
+
+  - job_name: 'events-service'
+    static_configs:
+      - targets: ['events-service:8080']
+    metrics_path: /metrics
+
+  - job_name: 'bookings-service'
+    static_configs:
+      - targets: ['bookings-service:8080']
+    metrics_path: /metrics

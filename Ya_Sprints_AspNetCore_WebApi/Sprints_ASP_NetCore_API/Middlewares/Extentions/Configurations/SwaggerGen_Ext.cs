@@ -55,6 +55,6 @@ namespace Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations
 
             });
             return services;
-        }    
+        }
     }
 }

@@ -8,7 +8,7 @@ using Sprints.Desktop.Api;
 using Sprints.Desktop.ViewModels;
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;  
+using System.Text.Json.Serialization;
 
 
 namespace Booking.Desktop.Client
@@ -39,7 +39,7 @@ namespace Booking.Desktop.Client
 
             services.AddSingleton<AuthRefresher>();
             services.AddTransient<AuthDelegatingHandler>();
- 
+
             // Общие настройки JSON для Refit  
             var jsonOptions = new JsonSerializerOptions
             {

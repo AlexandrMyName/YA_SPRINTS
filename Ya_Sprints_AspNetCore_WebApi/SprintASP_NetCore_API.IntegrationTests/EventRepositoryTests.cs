@@ -25,12 +25,12 @@ public class EventRepositoryTests : TestBase
             Guid.NewGuid(), "Test Event", "Description",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
 
-        var result = await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
+        var result = await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccesfuly);
 
-        var saved = await repository.GetByIdAsync(ev.Id);
+        var saved = await repository.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.NotNull(saved.Data);
         Assert.Equal("Test Event", saved.Data!.Title);
     }
@@ -42,16 +42,16 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "Old Title", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         ev.Title = "New Title";
-        var result = await repository.UpdateAsync(ev);
-        await repository.SaveChangesAsync();
+        var result = await repository.UpdateAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccesfuly);
 
-        var updated = await repository.GetByIdAsync(ev.Id);
+        var updated = await repository.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.Equal("New Title", updated.Data!.Title);
     }
 
@@ -62,15 +62,15 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "ToDelete", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var result = await repository.DeleteAsync(ev.Id);
-        await repository.SaveChangesAsync();
+        var result = await repository.DeleteAsync(ev.Id, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(result.IsSuccesfuly);
 
-        var deleted = await repository.GetByIdAsync(ev.Id);
+        var deleted = await repository.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.False(deleted.IsSuccesfuly);
     }
 
@@ -83,10 +83,10 @@ public class EventRepositoryTests : TestBase
         var ev2 = Event.Create(Guid.NewGuid(), "Event2", "Desc2",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
 
-        await repository.AddRangeAsync(new[] { ev1, ev2 });
-        await repository.SaveChangesAsync();
+        await repository.AddRangeAsync(new[] { ev1, ev2 }, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var all = await repository.GetAllAsync();
+        var all = await repository.GetAllAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, all.Count());
     }
 
@@ -103,13 +103,12 @@ public class EventRepositoryTests : TestBase
         {
             var ev = Event.Create(Guid.NewGuid(), $"Event{i:D2}", $"Desc{i}",
                 DateTime.UtcNow, DateTime.UtcNow.AddHours(i), i * 2);
-            await repository.AddAsync(ev);
+            await repository.AddAsync(ev, TestContext.Current.CancellationToken);
         }
-        await repository.SaveChangesAsync();
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Первая страница: 5 элементов
-        var page1 = await repository.GetPagedAsync(
-            predicate: null, page: 1, pageSize: 5);
+        var page1 = await repository.GetPagedAsync(predicate: null, page: 1, pageSize: 5, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(10, page1.TotalCount);
 
@@ -117,8 +116,7 @@ public class EventRepositoryTests : TestBase
         Assert.Equal(5, items1.Count);
 
         // Вторая страница: 5 элементов
-        var page2 = await repository.GetPagedAsync(
-            predicate: null, page: 2, pageSize: 5);
+        var page2 = await repository.GetPagedAsync(predicate: null, page: 2, pageSize: 5, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(10, page2.TotalCount);
 
@@ -140,13 +138,12 @@ public class EventRepositoryTests : TestBase
         {
             var ev = Event.Create(Guid.NewGuid(), $"Event{i:D2}", $"Desc{i}",
                 DateTime.UtcNow, DateTime.UtcNow.AddHours(i), i * 2);
-            await repository.AddAsync(ev);
+            await repository.AddAsync(ev, TestContext.Current.CancellationToken);
         }
-        await repository.SaveChangesAsync();
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Фильтр: только те, у кого TotalSeats > 10 (Event06..Event10)
-        var paged = await repository.GetPagedAsync(
-            predicate: e => e.TotalSeats > 10, page: 1, pageSize: 100);
+        var paged = await repository.GetPagedAsync(predicate: e => e.TotalSeats > 10, page: 1, pageSize: 100, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(5, paged.TotalCount);
         Assert.All(paged.Items, e => Assert.True(e.TotalSeats > 10));
@@ -163,10 +160,10 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "VersionTest", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var saved = await repository.GetByIdAsync(ev.Id);
+        var saved = await repository.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.NotNull(saved.Data);
 
         // Имитация изменения строки другим пользователем
@@ -177,8 +174,8 @@ public class EventRepositoryTests : TestBase
 
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(async () =>
         {
-            await repository.UpdateAsync(saved.Data);
-            await repository.SaveChangesAsync();
+            await repository.UpdateAsync(saved.Data, TestContext.Current.CancellationToken);
+            await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
         });
     }
 
@@ -192,7 +189,7 @@ public class EventRepositoryTests : TestBase
         var repository = GetService<IRepository<Event>>();
         var nonExistentId = Guid.NewGuid();
 
-        var deleteResult = await repository.DeleteAsync(nonExistentId);
+        var deleteResult = await repository.DeleteAsync(nonExistentId, TestContext.Current.CancellationToken);
 
         Assert.False(deleteResult.IsSuccesfuly);
         Assert.False(repository.IsExisted(nonExistentId));
@@ -205,8 +202,8 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "Exists", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(repository.IsExisted(ev.Id));
     }
@@ -225,8 +222,8 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "UniqueTitle", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(repository.IsExistedByTitle("UniqueTitle"));
     }
@@ -251,18 +248,18 @@ public class EventRepositoryTests : TestBase
         var ev2 = Event.Create(Guid.NewGuid(), "Event2", "Desc2",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
 
-        await repository.AddRangeAsync(new[] { ev1, ev2 });
-        await repository.SaveChangesAsync();
+        await repository.AddRangeAsync(new[] { ev1, ev2 }, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         ev1.Title = "Updated Event1";
         ev2.Title = "Updated Event2";
 
-        var updateResult = await repository.UpdateRangeAsync(new[] { ev1, ev2 });
-        await repository.SaveChangesAsync();
+        var updateResult = await repository.UpdateRangeAsync(new[] { ev1, ev2 }, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(updateResult.IsSuccesfuly);
 
-        var all = await repository.GetAllAsync();
+        var all = await repository.GetAllAsync(TestContext.Current.CancellationToken);
         Assert.Contains(all, e => e.Title == "Updated Event1");
         Assert.Contains(all, e => e.Title == "Updated Event2");
     }
@@ -278,12 +275,12 @@ public class EventRepositoryTests : TestBase
         var ev3 = Event.Create(Guid.NewGuid(), "Bulk3", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(3), 15);
 
-        var addResult = await repository.AddRangeAsync(new[] { ev1, ev2, ev3 });
-        await repository.SaveChangesAsync();
+        var addResult = await repository.AddRangeAsync(new[] { ev1, ev2, ev3 }, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         Assert.True(addResult.IsSuccesfuly);
 
-        var all = await repository.GetAllAsync();
+        var all = await repository.GetAllAsync(TestContext.Current.CancellationToken);
         Assert.Equal(3, all.Count());
     }
 
@@ -298,12 +295,12 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "TransactionTest", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await using var transaction = await repository.BeginTransactionAsync();
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
-        await transaction.CommitAsync();
+        await using var transaction = await repository.BeginTransactionAsync(TestContext.Current.CancellationToken);
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await transaction.CommitAsync(TestContext.Current.CancellationToken);
 
-        var saved = await repository.GetByIdAsync(ev.Id);
+        var saved = await repository.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.NotNull(saved.Data);
     }
 
@@ -314,15 +311,15 @@ public class EventRepositoryTests : TestBase
         var ev = Event.Create(Guid.NewGuid(), "RollbackTest", "Desc",
             DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
 
-        await using var transaction = await repository.BeginTransactionAsync();
-        await repository.AddAsync(ev);
-        await repository.SaveChangesAsync();
-        await transaction.RollbackAsync();
+        await using var transaction = await repository.BeginTransactionAsync(TestContext.Current.CancellationToken);
+        await repository.AddAsync(ev, TestContext.Current.CancellationToken);
+        await repository.SaveChangesAsync(TestContext.Current.CancellationToken);
+        await transaction.RollbackAsync(TestContext.Current.CancellationToken);
 
         // Свежий scope без кэша
         using var scope = ServiceProvider.CreateScope();
         var freshRepo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
-        var saved = await freshRepo.GetByIdAsync(ev.Id);
+        var saved = await freshRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
 
         Assert.True(saved.Data == null || !saved.IsSuccesfuly);
     }

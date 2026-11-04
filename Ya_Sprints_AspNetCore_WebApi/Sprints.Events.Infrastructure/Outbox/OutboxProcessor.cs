@@ -5,13 +5,10 @@ using Sprints.Events.Infrastructure.DataAccess.DbContexts;
 using Sprints.Events.Application.Abstractions;
 using Microsoft.Extensions.Logging;
 
-
 namespace Sprints.Events.Infrastructure.Outbox;
-
 
 public class OutboxProcessor : BackgroundService
 {
-
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IKafkaPublisher _publisher;
     private readonly ILogger<OutboxProcessor> _logger;
@@ -19,7 +16,6 @@ public class OutboxProcessor : BackgroundService
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
     private const int BatchSize = 20;
     private const int MaxAttempts = 10;
-
 
     public OutboxProcessor(
         IServiceScopeFactory scopeFactory,
@@ -33,7 +29,6 @@ public class OutboxProcessor : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-
         while (!ct.IsCancellationRequested)
         {
             try
@@ -41,10 +36,7 @@ public class OutboxProcessor : BackgroundService
                 await ProcessBatchAsync(ct);
                 await Task.Delay(PollInterval, ct);
             }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                break;
-            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "OutboxProcessor: ошибка в цикле");
@@ -56,7 +48,6 @@ public class OutboxProcessor : BackgroundService
 
     private async Task ProcessBatchAsync(CancellationToken ct)
     {
-
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -72,7 +63,7 @@ public class OutboxProcessor : BackgroundService
         {
             try
             {
-                await _publisher.PublishRawAsync(msg.Topic, msg.Key, msg.Payload, ct);
+                await _publisher.PublishRawAsync(msg.Topic, msg.Key, msg.Payload, msg.TraceParent, ct);
                 msg.MarkProcessed();
             }
             catch (Exception ex)

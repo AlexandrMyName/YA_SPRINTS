@@ -1,0 +1,32 @@
+apiVersion: 1
+
+templates:
+  - orgId: 1
+    name: "custom_email_template"
+    template: |
+      {{ define "custom_email.subject" }}
+      {{ if eq .Status "firing" }}🚨 [FIRING] {{ .CommonLabels.alertname }}{{ else }}✅ [RESOLVED] {{ .CommonLabels.alertname }}{{ end }}
+      {{ end }}
+
+      {{ define "custom_email.body" }}
+      {{ if eq .Status "firing" }}
+      <h2 style="color: red;">🚨 АВАРИЯ: Сервис недоступен</h2>
+      {{ else }}
+      <h2 style="color: green;">✅ ВОССТАНОВЛЕНИЕ: Сервис снова в строю</h2>
+      {{ end }}
+
+      <p><b>Правило:</b> {{ .CommonLabels.alertname }}</p>
+
+      <h3>Детали:</h3>
+      <ul>
+      {{ range .Alerts }}
+        <li><b>Сервис:</b> {{ .Labels.instance }}</li>
+        <li><b>Причина:</b> {{ .Annotations.summary }}</li>
+        <li><b>Время:</b> {{ .StartsAt.Format "02.01.2006 15:04:05" }}</li>
+      {{ end }}
+      </ul>
+
+      <hr/>
+      <p>🔗 <a href="{{ .ExternalURL }}">Открыть Grafana</a></p>
+      <p>📝 <a href="http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Loki%22,%7B%22expr%22:%22%7Bcontainer_name%3D~%5C%22.%2B%5C%22%7D%22%7D%5D">Посмотреть логи в Loki</a></p>
+      {{ end }}

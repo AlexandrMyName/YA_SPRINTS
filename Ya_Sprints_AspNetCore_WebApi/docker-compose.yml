@@ -70,6 +70,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
+      start_period: 60s
 
   # ============================================================
   # Redis (кеш EventsService)
@@ -162,6 +163,8 @@ services:
         condition: service_healthy
       jwt-keys-init:
         condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
     ports:
       - "5001:8080"
     volumes:
@@ -175,7 +178,8 @@ services:
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
       Jwt__PrivateKeyPath: "keys/private.pem"
-      Jwt__PublicKeyPath:  "keys/public.pem"
+      Jwt__PublicKeyPath: "keys/public.pem"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     restart: unless-stopped
 
   events-service:
@@ -189,9 +193,9 @@ services:
         condition: service_healthy
       jwt-keys-init:
         condition: service_completed_successfully
-      # service_started (не service_healthy): сервис должен стартовать,
-      # даже если Redis недоступен — ResilientEventCache деградирует в Null-режим.
       redis:
+        condition: service_healthy
+      otel-collector:
         condition: service_started
     ports:
       - "5002:8080"
@@ -208,12 +212,12 @@ services:
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
       Jwt__PublicKeyPath: "keys/public.pem"
-      # --- Redis / Cache (переопределяем appsettings.json) ---
       Redis__Enabled: "true"
       Redis__ConnectionString: "redis:6379,abortConnect=false,connectTimeout=2000,syncTimeout=2000"
       Redis__InstanceName: "sprints:"
       Cache__EventTtlSeconds: "300"
       Cache__TopEventsTtlSeconds: "60"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     restart: unless-stopped
 
   bookings-service:
@@ -227,6 +231,8 @@ services:
         condition: service_healthy
       jwt-keys-init:
         condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
     ports:
       - "5003:8080"
     volumes:
@@ -242,7 +248,136 @@ services:
       Jwt__Issuer: Sprints.Users
       Jwt__Audience: Sprints.Clients
       Jwt__PublicKeyPath: "keys/public.pem"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
     restart: unless-stopped
+
+  # ============================================================
+  # EXPORTERS (Инфраструктура)
+  # ============================================================
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command: ["--kafka.server=kafka:29092"]
+    ports:
+      - "9308:9308"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml
+    ports:
+      - "9115:9115"
+    restart: unless-stopped
+
+  # ============================================================
+  # OBSERVABILITY STACKё
+  # ============================================================
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: sprints_otel_collector
+    command: ["--config=/etc/otelcol-contrib/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   
+      - "4318:4318"
+      - "8889:8889"
+    depends_on:
+      jaeger:
+        condition: service_started
+    restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    container_name: sprints_jaeger
+    ports:
+      - "16686:16686"  
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sprints_prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--enable-feature=exemplar-storage'
+    restart: unless-stopped
+
+  # --- Логи ---
+  loki:
+    image: grafana/loki:latest
+    container_name: sprints_loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: sprints_promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      loki:
+        condition: service_started
+    restart: unless-stopped
+
+ # --- Визуализация ---
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sprints_grafana
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      # --- SMTP настройки ---
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.yandex.ru:465
+      - GF_SMTP_USER=test@yandex.ru # Укажите почту SMTP  
+      - GF_SMTP_PASSWORD=*** # Укажите пароль от SMTP сервиса
+      - GF_SMTP_FROM_ADDRESS=test@yandex.ru # Укажите почту SMTP  
+      - GF_SMTP_FROM_NAME=Grafana Alerts
+      - GF_SMTP_SKIP_VERIFY=true
+      - GF_SMTP_EHLO_IDENTITY=localhost  
+    restart: unless-stopped
+    depends_on:
+      prometheus:
+        condition: service_started
+      loki:
+        condition: service_started
+      jaeger:
+        condition: service_started
+ 
 
 volumes:
   zookeeper_data:
@@ -253,3 +388,5 @@ volumes:
   bookings_db_data:
   jwt_keys:
   redis_data:
+  prometheus_data:  
+  grafana_data:

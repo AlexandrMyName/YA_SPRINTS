@@ -3,12 +3,12 @@
 
 namespace Sprints.Users.Application.Dtos.EntitiesDtos.Users;
 
- 
+
 public class LoginDto
 {
 
-    [Required] 
+    [Required]
     public string Login { get; set; } = null!;
-    [Required] 
+    [Required]
     public string Password { get; set; } = null!;
 }

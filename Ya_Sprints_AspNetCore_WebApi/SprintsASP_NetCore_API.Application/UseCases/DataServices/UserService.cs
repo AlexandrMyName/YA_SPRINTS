@@ -1,7 +1,7 @@
-﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;  
+﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 using SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users;
 using SprintsASP_NetCore_API.Application.Abstractions;
-using SprintASP_NetCore_API.Application.Internal; 
+using SprintASP_NetCore_API.Application.Internal;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using SprintASP_NetCore_API.Domain.Entities;

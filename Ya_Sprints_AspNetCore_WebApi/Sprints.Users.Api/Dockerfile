@@ -30,6 +30,10 @@ COPY ["Sprints.Users.Application/Sprints.Users.Application.csproj",       "Sprin
 COPY ["Sprints.Users.Infrastructure/Sprints.Users.Infrastructure.csproj", "Sprints.Users.Infrastructure/"]
 COPY ["Sprints.Users.Api/Sprints.Users.Api.csproj",                       "Sprints.Users.Api/"]
 
+# Observability
+COPY ["Sprints.Observability/Sprints.Observability.csproj", "Sprints.Observability/"]
+
+
 RUN dotnet restore "Sprints.Users.Api/Sprints.Users.Api.csproj"
 
 COPY . .

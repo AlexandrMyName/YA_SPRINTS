@@ -1,19 +1,15 @@
-﻿using Sprints.Events.Application.Abstractions;
+﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
-using Confluent.Kafka;
-
+using Sprints.Events.Application.Abstractions;
 
 namespace Sprints.Events.Infrastructure.Kafka;
 
-/// <summary>
-/// Singleton-обёртка над IProducer. Потокобезопасна, создаётся один раз.
-/// Регистрируется как Singleton в DI; Dispose вызывается DI при остановке приложения.
-/// </summary>
 public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
 {
-
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaPublisher> _logger;
 
@@ -25,31 +21,32 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
     public KafkaPublisher(IOptions<KafkaOptions> options, ILogger<KafkaPublisher> logger)
     {
         _logger = logger;
-
         var config = new ProducerConfig
         {
             BootstrapServers = options.Value.BootstrapServers,
             Acks = Acks.All,
             EnableIdempotence = true
         };
-
         _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
-
-    public async Task PublishAsync<T>(
-        string topic, string key, T message, CancellationToken ct = default)
-        where T : class
+    public async Task PublishAsync<T>(string topic, string key, T message, string? traceParent = null, CancellationToken ct = default) where T : class
     {
         var payload = JsonSerializer.Serialize(message, JsonOptions);
-        await PublishRawAsync(topic, key, payload, ct);
+        await PublishRawAsync(topic, key, payload, traceParent, ct);
     }
 
-
-    public async Task PublishRawAsync(
-        string topic, string key, string rawJson, CancellationToken ct = default)
+    public async Task PublishRawAsync(string topic, string key, string rawJson, string? traceParent = null, CancellationToken ct = default)
     {
         var kafkaMessage = new Message<string, string> { Key = key, Value = rawJson };
+
+        var traceIdToInject = traceParent ?? Activity.Current?.Id;
+
+        if (!string.IsNullOrEmpty(traceIdToInject))
+        {
+            kafkaMessage.Headers ??= new Headers();
+            kafkaMessage.Headers.Add("traceparent", Encoding.UTF8.GetBytes(traceIdToInject));
+        }
 
         try
         {
@@ -65,20 +62,10 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
         }
     }
 
-
     public void Dispose()
     {
-        try
-        {
-            _producer.Flush(TimeSpan.FromSeconds(5));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Kafka: ошибка при Flush producer");
-        }
-        finally
-        {
-            _producer.Dispose();
-        }
+        try { _producer.Flush(TimeSpan.FromSeconds(5)); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Kafka: ошибка при Flush"); }
+        finally { _producer.Dispose(); }
     }
 }

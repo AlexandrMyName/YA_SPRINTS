@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
-using Sprints.Events.Application.Abstractions; 
+using Sprints.Events.Application.Abstractions;
 
 
 namespace Sprints.Events.Infrastructure.DataAccess;

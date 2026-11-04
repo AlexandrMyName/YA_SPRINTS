@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Net;
-  
+
 
 namespace Sprints.Users.Middlewares;
 
@@ -44,19 +44,19 @@ public class GlobalExceptionMiddleware
     {
         // Определяем статус-код
         var statusCode = exception switch
-        {   
-            InvalidCredentialsException  => (int)HttpStatusCode.Unauthorized,
+        {
+            InvalidCredentialsException => (int)HttpStatusCode.Unauthorized,
             InvalidRefreshTokenException => (int)HttpStatusCode.Unauthorized,
-            UserAlreadyExistsException   => (int)HttpStatusCode.Conflict,  
-            UnauthorizedAccessException  => (int)HttpStatusCode.Unauthorized, 
-            ArgumentException            => (int)HttpStatusCode.BadRequest,
-            InvalidOperationException    => (int)HttpStatusCode.BadRequest,
-            KeyNotFoundException         => (int)HttpStatusCode.NotFound,
-            NotImplementedException      => (int)HttpStatusCode.NotImplemented, 
-            DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict, 
+            UserAlreadyExistsException => (int)HttpStatusCode.Conflict,
+            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            ArgumentException => (int)HttpStatusCode.BadRequest,
+            InvalidOperationException => (int)HttpStatusCode.BadRequest,
+            KeyNotFoundException => (int)HttpStatusCode.NotFound,
+            NotImplementedException => (int)HttpStatusCode.NotImplemented,
+            DbUpdateConcurrencyException => (int)HttpStatusCode.Conflict,
             NoRightsException => (int)HttpStatusCode.Forbidden,
-             
-             
+
+
             _ => (int)HttpStatusCode.InternalServerError
         };
 

@@ -1,4 +1,4 @@
-﻿using Sprints.Users.Domain.Entities; 
+﻿using Sprints.Users.Domain.Entities;
 
 
 namespace Sprints.Users.Application.Internal;

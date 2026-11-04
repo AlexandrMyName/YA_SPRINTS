@@ -1,5 +1,5 @@
 ﻿using Sprints.Users.Domain.Entities;
-using Sprints.Users.Application.Dtos.EntitiesDtos; 
+using Sprints.Users.Application.Dtos.EntitiesDtos;
 
 
 namespace Sprints.Users.Application.Dtos.EntitiesDtos.Users;

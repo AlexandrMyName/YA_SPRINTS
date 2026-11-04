@@ -1,5 +1,5 @@
-﻿using Sprints.Users.Application.UseCases.DataServices.Contracts; 
-using Sprints.Users.Application.Dtos.EntitiesDtos; 
+﻿using Sprints.Users.Application.UseCases.DataServices.Contracts;
+using Sprints.Users.Application.Dtos.EntitiesDtos;
 using Sprints.Users.Application.Abstractions;
 using Sprints.Users.Application.Internal;
 using Sprints.Users.Application.Dtos;

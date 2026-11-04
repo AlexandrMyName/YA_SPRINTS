@@ -24,7 +24,7 @@ public static class ValidatorHelper
     private static SpecialProperties GetSpecialProperties(Type type)
         => _specialPropertiesCache.GetOrAdd(type, t => new SpecialProperties(t));
 
-    
+
     public static void ValidateObjectRecursive(object obj, List<ValidationResult> errors, string propertyPath = "")
     {
         if (obj == null) return;

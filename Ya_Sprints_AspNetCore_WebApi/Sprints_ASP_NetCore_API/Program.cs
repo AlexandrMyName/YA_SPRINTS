@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SprintASP_NetCore_API.Presentation.Extentions;
 using Sprints_Project_ASP_NetCore_API.Middlewares;
-using Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;   
+using Sprints_Project_ASP_NetCore_API.Middlewares.Extentions.Configurations;
 using Sprints_Project_ASP_NetCore_API.Presentation.Extensions;
 using SprintsASP_NetCore_API.Application.Abstractions.Options;
 using SprintsASP_NetCore_API.Application.DI;
@@ -35,7 +35,7 @@ public class Program
             .AddApiVersioningCustom();          // Presentation
 
         // Слои  
-        builder.Services 
+        builder.Services
             .AddApplication()                          // Application
             .AddInfrastructure(builder.Configuration); // Infrastructure
 
@@ -54,14 +54,14 @@ public class Program
             throw new InvalidOperationException("Jwt:HsKey must be at least 32 characters.");
         var hsKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(hsKeyStr));
 
-        var issuer   = jwtSection["Issuer"];
+        var issuer = jwtSection["Issuer"];
         var audience = jwtSection["Audience"];
 
         builder.Services
             .AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = AuthSchemes.RS256;
-                options.DefaultChallengeScheme    = AuthSchemes.RS256;
+                options.DefaultChallengeScheme = AuthSchemes.RS256;
             })
             .AddJwtBearer(AuthSchemes.RS256, options =>
             {
@@ -99,7 +99,7 @@ public class Program
             });
 
         builder.Services.AddAppAuthorization();
-         
+
         #endregion
 
 

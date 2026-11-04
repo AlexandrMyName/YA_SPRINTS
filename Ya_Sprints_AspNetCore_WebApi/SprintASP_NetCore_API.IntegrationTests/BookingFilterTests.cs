@@ -71,10 +71,7 @@ public class BookingFilterTests : TestBase
             PageSize = 10
         };
 
-        var paged = await repo.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repo.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, paged.TotalCount);
         Assert.All(paged.Items, b => Assert.Equal(BookingStatus.Pending, b.Status));
@@ -90,7 +87,7 @@ public class BookingFilterTests : TestBase
         var eventRepo = GetService<IRepository<Event>>();
         var bookingRepo = GetService<IRepository<Booking>>();
 
-        var ev = (await eventRepo.GetAllAsync()).FirstOrDefault();
+        var ev = (await eventRepo.GetAllAsync(TestContext.Current.CancellationToken)).FirstOrDefault();
         Assert.NotNull(ev);
 
         var filter = new BookingFilterDto
@@ -100,10 +97,7 @@ public class BookingFilterTests : TestBase
             PageSize = 10
         };
 
-        var paged = await bookingRepo.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await bookingRepo.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(4, paged.TotalCount);
         Assert.All(paged.Items, b => Assert.Equal(ev.Id, b.EventId));
@@ -139,7 +133,7 @@ public class BookingFilterTests : TestBase
     //}
     //#endregion
 
-#region Сортировка по CreatedAt DESC  
+    #region Сортировка по CreatedAt DESC  
 
     [Fact]
     public async Task SortByCreatedAtDesc_ShouldReturnSortedBookings()
@@ -149,10 +143,7 @@ public class BookingFilterTests : TestBase
         // Фильтр без условий — берём все
         var filter = new BookingFilterDto { Page = 1, PageSize = 10 };
 
-        var paged = await repo.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repo.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         // Сортировка на клиенте — серверная не поддерживается текущим GetPagedAsync
         var result = paged.Items
@@ -175,10 +166,7 @@ public class BookingFilterTests : TestBase
         var repo = GetService<IRepository<Booking>>();
 
         // Первая страница
-        var page1 = await repo.GetPagedAsync(
-            predicate: null,
-            page: 1,
-            pageSize: 2);
+        var page1 = await repo.GetPagedAsync(predicate: null, page: 1, pageSize: 2, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(4, page1.TotalCount);
 
@@ -186,10 +174,7 @@ public class BookingFilterTests : TestBase
         Assert.Equal(2, items1.Count);
 
         // Вторая страница
-        var page2 = await repo.GetPagedAsync(
-            predicate: null,
-            page: 2,
-            pageSize: 2);
+        var page2 = await repo.GetPagedAsync(predicate: null, page: 2, pageSize: 2, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(4, page2.TotalCount);
 
@@ -221,10 +206,7 @@ public class BookingFilterTests : TestBase
             PageSize = 1
         };
 
-        var paged = await repo.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repo.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, paged.TotalCount);
         Assert.Single(paged.Items);

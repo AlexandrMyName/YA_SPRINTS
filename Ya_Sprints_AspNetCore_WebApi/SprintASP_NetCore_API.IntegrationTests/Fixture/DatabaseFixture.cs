@@ -20,7 +20,7 @@ public class DatabaseFixture : IAsyncLifetime
             .Build();
     }
 
- 
+
     public async ValueTask InitializeAsync()
     {
         await Container.StartAsync();

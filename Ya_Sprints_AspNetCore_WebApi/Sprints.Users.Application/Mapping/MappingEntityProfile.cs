@@ -1,6 +1,6 @@
-﻿using AutoMapper; 
- 
-using Sprints.Users.Application.Dtos.EntitiesDtos.Users; 
+﻿using AutoMapper;
+
+using Sprints.Users.Application.Dtos.EntitiesDtos.Users;
 using Sprints.Users.Domain.Entities;
 
 
@@ -13,7 +13,7 @@ public class MappingEntityProfile : Profile
 
     public MappingEntityProfile()
     {
-         
+
         CreateMap<UserInfoDto, User>()
             .ForMember(d => d.PasswordHash, o => o.Ignore())
             .ForMember(d => d.Role, o => o.Ignore());

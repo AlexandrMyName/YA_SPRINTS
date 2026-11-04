@@ -1,5 +1,5 @@
 ﻿using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos;
-using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintsASP_NetCore_API.Application.Abstractions;
 using SprintASP_NetCore_API.Application.Internal;
 using SprintASP_NetCore_API.Application.Dtos;
 using SprintASP_NetCore_API.Domain.Entities;

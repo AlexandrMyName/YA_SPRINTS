@@ -1,10 +1,10 @@
-﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts; 
+﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 using SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users;
 using SprintsASP_NetCore_API.Application.Dtos.Filters;
 using SprintASP_NetCore_API.Presentation.Extentions;
 using SprintASP_NetCore_API.Application.Dtos;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace SprintASP_NetCore_API.Presentation.Controllers;

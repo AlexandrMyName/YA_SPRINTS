@@ -1,16 +1,15 @@
-﻿using Sprints.Bookings.Application.Abstractions;
+﻿using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
-using Confluent.Kafka;
-
+using Sprints.Bookings.Application.Abstractions;
 
 namespace Sprints.Bookings.Infrastructure.Kafka;
 
-
 public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
 {
-
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaPublisher> _logger;
 
@@ -19,35 +18,38 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-
     public KafkaPublisher(IOptions<KafkaOptions> options, ILogger<KafkaPublisher> logger)
     {
         _logger = logger;
-
         var config = new ProducerConfig
         {
             BootstrapServers = options.Value.BootstrapServers,
             Acks = Acks.All,
             EnableIdempotence = true
         };
-
         _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
-
-    public async Task PublishAsync<T>(
-        string topic, string key, T message, CancellationToken ct = default)
-        where T : class
+    // Сигнатура обновлена: добавлен string? traceParent
+    public async Task PublishAsync<T>(string topic, string key, T message, string? traceParent = null, CancellationToken ct = default) where T : class
     {
         var payload = JsonSerializer.Serialize(message, JsonOptions);
-        await PublishRawAsync(topic, key, payload, ct);
+        await PublishRawAsync(topic, key, payload, traceParent, ct);
     }
 
 
-    public async Task PublishRawAsync(
-        string topic, string key, string rawJson, CancellationToken ct = default)
+    public async Task PublishRawAsync(string topic, string key, string rawJson, string? traceParent = null, CancellationToken ct = default)
     {
         var kafkaMessage = new Message<string, string> { Key = key, Value = rawJson };
+
+        // Используем переданный TraceParent, либо берем текущий (если вызов прямой)
+        var traceIdToInject = traceParent ?? Activity.Current?.Id;
+
+        if (!string.IsNullOrEmpty(traceIdToInject))
+        {
+            kafkaMessage.Headers ??= new Headers();
+            kafkaMessage.Headers.Add("traceparent", Encoding.UTF8.GetBytes(traceIdToInject));
+        }
 
         try
         {

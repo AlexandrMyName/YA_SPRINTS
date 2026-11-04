@@ -21,17 +21,17 @@
 //            {
 //                BootstrapServers = "localhost:9092",
 //                Acks = Acks.All,
-                
+
 //            };
 
 //            using var producer = new ProducerBuilder<string, string>(config).Build();
-             
+
 //            var result = await producer.ProduceAsync("orders", new Message<string, string>
 //            {
 //                Key = Guid.NewGuid().ToString(),
 //                Value = JsonSerializer.Serialize("orderCreated")
 //            }); 
-            
+
 //            // producer.Flush(TimeSpan.FromSeconds(10)); - только без асинхронной функции 
 
 //            Console.WriteLine($"Доставлено: {result.TopicPartitionOffset}");
@@ -139,9 +139,9 @@
 //            {
 //                consumer.Close(); // Корректный сигнал “leave group” + коммит оставшихся офсетом
 //            }
-            
 
-             
+
+
 
 //        }
 //    }

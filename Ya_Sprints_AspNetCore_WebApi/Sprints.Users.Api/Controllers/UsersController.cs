@@ -1,10 +1,10 @@
-﻿using Sprints.Users.Application.UseCases.DataServices.Contracts; 
+﻿using Sprints.Users.Application.UseCases.DataServices.Contracts;
 using Sprints.Users.Application.Dtos.EntitiesDtos.Users;
 using Sprints.Users.Application.Dtos.Filters;
 using Sprints.Users.Presentation.Extentions;
 using Sprints.Users.Application.Dtos;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc; 
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace Sprints.Users.Presentation.Controllers;

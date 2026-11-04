@@ -55,6 +55,15 @@
 - [Проверка сценария](#-проверка-сценария)
 - [Кеширование (Redis)](#-кеширование-(redis))
 
+
+**Часть 3 — Observability (Sprint 10/11):**
+- [Компоненты стека](#-компоненты-стека)
+- [Запуск стека](#-запуск-стека)
+- [Доступ к интерфейсам (UI)](#-доступ-к-интерфейсам-ui)
+- [Файлы конфигурации](#-файлы-конфигурации)
+- [Настройка алертов и Email-уведомлений](#-настройка-алертов-и-email-уведомлений)
+- [Вклад в проект](#-вклад-в-проект)
+- [Лицензия](#-лицензия)
 <br>
 
 ---
@@ -1206,19 +1215,13 @@ Ya_Sprints_AspNetCore_WebApi/
 
 📋 Состав системы
 
-- Users	5001	   sprints_users	   5432	Регистрация, логин, выдача JWT, refresh-токены
-- Events	5002  	sprints_events	  5433	CRUD событий, AvailableSeats
-- Bookings	5003	sprints_bookings	5434	Создание/отмена броней
-  
-Инфраструктура:
 
-- zookeeper — 2181
-- kafka — 9092 (внешний), 29092 (внутренний для Docker)
-- postgres-users — 5432
-- postgres-events — 5433
-- postgres-bookings — 5434
-- redis — 6379
-- 
+- **Users** (5001) — Регистрация, логин, выдача JWT, refresh-токены.
+- **Events** (5002) — CRUD событий, AvailableSeats, кеширование в Redis.
+- **Bookings** (5003) — Создание/отмена броней.
+- **Инфраструктура**: Zookeeper (2181), Kafka (9092), PostgreSQL (5432, 5433, 5434), Redis (6379).
+
+   
 ```Схема
 text
 ┌──────────┐◀── own DB (sprints_events)
@@ -1779,25 +1782,11 @@ await _cache.InvalidateTopEventsAsync();
 - Роллбэк на уже закоммиченной транзакции невозможен структурно — catch находится внутри await using, инвалидация — снаружи.
 
 **Поведение при недоступности Redis**
-- Сервис не падает и клиент не получает 5xx. Это гарантирует несколько слоёв защиты:
-
- 
-**abortConnect=false в connection string	StackExchange.Redis** 
-- не блокирует старт приложения, даже если Redis недоступен
-**connectTimeout=2000, syncTimeout=2000**
-- Быстрая деградация — максимум 2 с на операцию
-**depends_on: service_started (не service_healthy)**
-- EventsService стартует, даже если Redis не прошёл healthcheck
-**ResilientEventCache	try/catch вокруг каждого вызова:**
-- get → null (cache miss), set/invalidate → no-op, ошибка → LogWarning
-**NullEventCache при Redis:Enabled=false**
-- Полное отключение кеша — всё работает без Redis вообще
-**Что видит клиент при упавшем Redis:**
-- HTTP-эндпоинты отвечают 200 OK.
-- Данные приходят из БД (как при cache miss).
-- Время ответа первого запроса может вырасти до 2–4 с (таймауты connectTimeout + syncTimeout), далее — быстрее.
-- В логах сервиса — Warning: Redis get failed for event {id}, не Error.
-- В теле ответа ошибок нет.
+- Сервис не падает и клиент не получает 5xx:
+  
+- В docker-compose.yml для events-service установлено condition: service_healthy для Redis.
+- В ResilientEventCache каждый вызов обернут в try/catch, ошибка логируется как Warning (не Error), клиент получает данные из БД.
+- NullEventCache активируется при Redis:Enabled=false.
 
 Проверка:
 
@@ -1873,10 +1862,10 @@ Sprints.Events.UnitTests — отдельный проект (xUnit + Moq), 13 �
 
  
 **EventsService_CacheTests.cs**
-- cache hit (БД не трогается), cache miss (БД → кеш), negative cache не пишется, top-10 hit/miss, регрессия «take не портит кеш», инвалидация + порядок save → invalidate
+- кеш-хит (БД не трогается), кеш-мисс, регрессия «take не портит кеш» (проверяется, что 2-й клиент получает полный список из кеша), инвалидация.
 **BookingRequestedHandler_CacheTests.cs**
-- успешная бронь инвалидирует event (top — нет), Rejected не инвалидирует, Inbox-дубль не инвалидирует
-- 
+- успешная бронь инвалидирует event:{id} (места реально уменьшаются, проверяется Outbox), дубликат (Inbox) делает ранний выход и не трогает БД.
+  
 Запуск:
 ```bash
 dotnet test Sprints.Events.UnitTests
@@ -1884,34 +1873,101 @@ dotnet test Sprints.Events.UnitTests
 
 - Каждый тест помечен ACK #N в комментариях — маппинг на пункты задания.
 
-**Известные ограничения**
-- Гонка «read vs write»: cache-aside допускает, что читатель, стартовавший до коммита писателя, может положить в кеш устаревший снапшот. Окно ограничено TTL (300 c); IInterceptLockings сериализует только писателей.
-- Для production рассмотрели бы versioned cache keys, для учебного проекта — осознанно принято ограничение.
-- Нет circuit breaker: при падении Redis каждый запрос ждёт до 2 с на Get. Для production добавили бы Polly с CircuitBreakerStrategyOptions (после 3 подряд ошибок — не трогать Redis 30 с).
-- service_started вместо service_healthy: сервис стартует, даже если Redis не прошёл healthcheck. Это осознанно (требование «стартует без Redis»), но означает, что при первом запуске Redis может быть ещё не готов — первые запросы пойдут в БД, кеш заполнится через несколько секунд.
 
 ---
- 
-⚡ Что добавлено в Sprint 9 (итог)
- 
-- Разделение на 3 сервиса	Sprints.Users.*, Sprints.Events.*, Sprints.Bookings.*
-- Своя БД у каждого	3 × postgres:15 в compose
-- Sprints.Contracts	Общий проект с KafkaTopics, BookingConfirmed, BookingRejected
-- Kafka producer (Bookings)	KafkaPublisher (Singleton) + OutboxProcessor
-- Kafka consumer (Events)	BookingConfirmedSubscriber (group = sprints-events)
-- Kafka producer (Events)	KafkaPublisher + OutboxProcessor
-- Kafka consumer (Bookings)	BookingRejectedSubscriber (group = sprints-bookings)
-- Outbox pattern	Таблица outbox_messages в обеих БД
-- Inbox pattern	Таблица inbox_messages в обеих БД
-- Saga	BookingConfirmed → BookingRejected при нехватке мест
-- JWT shared	HsKey / Issuer / Audience — одинаковые в трёх сервисах
-- Topic creation	KafkaTopicInitializer в Events
-- Manual commit	EnableAutoCommit = false + Commit после обработки
-- Message key	EventId.ToString() → порядок в партишне
-- Redis cache	Cache-Aside для event:{id} и top10; `ResilientEventCache` + `NullEventCache`
-- Инвалидация из Kafka	`BookingRequestedHandler` сбрасывает event:{id} после commit (top — только TTL)
-- Unit-тесты кеша	`Sprints.Events.UnitTests` — 13 тестов на hit/miss/invalidation
 
+### 📄 Часть 3 (Observability)
+ 
+**Мониторинг и Трейсинг (Sprint 10/11)**
+
+В проект добавлен полноценный стек Observability (наблюдаемости) для сбора метрик, логов и распределенных трейсов. 
+**Вся инфраструктура поднимается через `docker-compose`.**
+
+## 📦 Компоненты стека
+
+- **OpenTelemetry (OTel)** — SDK для сбора телеметрии из .NET-сервисов (настраивается в библиотеке `Sprints.Observability`).
+- **Prometheus** — база данных временных рядов для метрик.
+- **Grafana** — визуализация метрик и логов, а также модуль оповещений (Alerting).
+- **Jaeger** — распределенный трейсинг (позволяет увидеть путь запроса от API до базы данных).
+- **Loki + Promtail** — централизованный сбор логов.
+- **OTel Collector** — выступает хабом, принимает данные от сервисов и распределяет их (трейсы -> Jaeger, метрики -> Prometheus).
+
+## 🚀 Запуск стека
+
+Все сервисы мониторинга описаны в корневом `docker-compose.yml`. Для запуска:
+
+```bash
+docker compose up -d --build
+```
+
+## 🌐 Доступ к интерфейсам (UI)
+
+- Grafana: http://localhost:3000 (Логин: admin, Пароль: admin)
+- Prometheus: http://localhost:9090
+- Jaeger UI: http://localhost:16686
+- Метрики приложений: http://localhost:5001/metrics (аналогично для 5002 и 5003)
+
+⚙️ Что настроено:
+
+- Метрики: Каждый .NET-сервис собирает HTTP-метрики (Latency, Throughput, Error Rate) и метрики рантайма (.NET GC, ThreadPool). Prometheus скрейпит их каждые 15 секунд.
+- Трейсы: Включен автоматический трейсинг HTTP-запросов (AspNetCore) и запросов к БД (EntityFrameworkCore). Трейсы видны в Jaeger.
+- Логи: Serilog настроен на вывод в JSON-формате, Promtail собирает логи Docker-контейнеров и отправляет их в Loki.
+- Дашборд: При запуске Grafana автоматически подтягивает дашборд spring-api-dashboard.json (через Provisioning), где отображаются графики задержек, RPS, ошибок и логов.
+
+##  📂 Файлы конфигурации
+
+- otel-collector-config.yaml — конфигурация хаба OTel.
+- prometheus.yml — конфигурация сбора метрик (какие эндпоинты опрашивать).
+- promtail-config.yaml — конфигурация сбора логов Docker.
+- grafana/provisioning/ — автоматическая настройка источников данных и дашбордов в Grafana.
+- grafana/provisioning/alerting/ — автоматическая настройка правил алертов и Email-уведомлений.
+
+##  🔔 Настройка алертов и Email-уведомлений
+В проекте настроена автоматическая отправка Email-уведомлений, если сервис начинает работать некорректно 
+(например, если p95 Latency превышает 100 мс или сервис недоступен).
+
+**1. Настройка SMTP в docker-compose.yml**
+Чтобы Grafana могла отправлять письма, в docker-compose.yml для сервиса grafana добавлены переменные окружения SMTP. По умолчанию настроен Gmail (можно заменить на ваш корпоративный сервер):
+
+```yaml
+  grafana:
+    image: grafana/grafana:latest
+    # ...
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.gmail.com:587
+      - GF_SMTP_USER=your-email@gmail.com
+      - GF_SMTP_PASSWORD=your-app-password
+      - GF_SMTP_FROM_ADDRESS=your-email@gmail.com
+```
+**2. Точки контакта (Contact Points)**
+Файл grafana/provisioning/alerting/contact-points.yml автоматически создает канал для отправки писем при старте контейнера:
+
+```yaml
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: Email Alert
+    receivers:
+      - uid: email_receiver
+        type: email
+        settings:
+          addresses: "your-email@gmail.com" # <--- Замените на ваш Email
+```
+
+**3. Правила алертов (Alert Rules)**
+Файл grafana/provisioning/alerting/alert-rules.yml содержит правило, которое проверяет метрику http_server_request_duration_seconds. Если значение p95 превышает 100 мс в течение 5 минут, Grafana отправляет письмо.
+
+4. Как проверить работу алерта
+- Вы можете легко проверить, что уведомления работают:
+
+- Остановите один из сервисов (например, docker compose stop users-service).
+- Подождите пару минут (пока Blackbox зафиксирует падение, а Prometheus передаст данные в Grafana).
+- Проверьте вашу почту. Вы должны получить письмо со статусом FIRING (Тревога).
+- Запустите сервис обратно (docker compose start users-service). Через пару минут должно прийти письмо со статусом RESOLVED (Восстановление).
+- Письмо будет содержать информацию о проблеме, ссылку на дашборд и кнопки для перехода к логам в Loki.
 
 ## 🤝 Вклад в проект
 

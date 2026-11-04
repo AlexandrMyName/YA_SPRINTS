@@ -1,4 +1,4 @@
-﻿ 
+﻿
 
 namespace Sprints.Bookings.Domain.Entities;
 

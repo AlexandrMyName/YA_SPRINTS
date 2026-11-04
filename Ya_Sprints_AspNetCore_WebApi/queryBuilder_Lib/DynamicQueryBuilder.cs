@@ -284,7 +284,7 @@ public class DynamicQueryBuilder<T>
 
         if (method == null)
             throw new NotSupportedException($"Метод '{methodName}' с StringComparison не найден.");
-         
+
         // var comparison = Expression.Constant(StringComparison.OrdinalIgnoreCase); // Добавил OriginalIgnoreCase (регистро независимый метод) НЕ РАБОТАЕТ С EF
 
         return Expression.Call(instance, method, argument/*, comparison*/);

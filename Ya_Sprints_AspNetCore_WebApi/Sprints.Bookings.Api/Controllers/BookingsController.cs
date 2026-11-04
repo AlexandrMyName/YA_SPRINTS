@@ -34,7 +34,7 @@ public class BookingsController : ControllerBase
         var result = await _bookingService.GetFilteredAsync(filter);
         return Ok(result);
     }
-     
+
 
     [HttpPost("events/{eventId:guid}")]
     [ProducesResponseType(typeof(IBookingInfoDto), StatusCodes.Status202Accepted)]

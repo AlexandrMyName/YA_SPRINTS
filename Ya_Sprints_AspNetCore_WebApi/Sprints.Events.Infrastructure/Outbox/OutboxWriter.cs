@@ -1,16 +1,14 @@
-﻿using Sprints.Events.Infrastructure.DataAccess.DbContexts;
+﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Sprints.Events.Application.Abstractions;
 using Sprints.Events.Domain.Entities;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
-
+using Sprints.Events.Infrastructure.DataAccess.DbContexts;
+using System.Diagnostics;
 
 namespace Sprints.Events.Infrastructure.Outbox;
 
-
 public class OutboxWriter : IOutboxWriter
 {
-
     private readonly AppDbContext _db;
     private readonly ILogger<OutboxWriter> _logger;
 
@@ -29,11 +27,8 @@ public class OutboxWriter : IOutboxWriter
         string topic, string key, T payload, CancellationToken ct = default)
         where T : class
     {
-        // MessageId генерируется ЗДЕСЬ и уходит в payload — Inbox на той стороне
-        // будет дедуплицировать по нему.
         var messageId = Guid.NewGuid();
 
-        // Если у контракта есть MessageId — заполняем. Иначе используем анонимный прокси. 
         object payloadWithId = payload switch
         {
             Sprints.Contracts.BookingAccepted ba => ba with { MessageId = messageId },
@@ -43,12 +38,15 @@ public class OutboxWriter : IOutboxWriter
         };
         var json = JsonSerializer.Serialize(payloadWithId, JsonOptions);
 
+        var traceParent = Activity.Current?.Id;
+
         var message = OutboxMessage.Create(
             messageId: messageId,
             type: typeof(T).Name,
             topic: topic,
             key: key,
-            payload: json);
+            payload: json,
+            traceParent: traceParent);
 
         await _db.OutboxMessages.AddAsync(message, ct);
 

@@ -23,6 +23,9 @@ COPY ["Sprints.Events.Application/Sprints.Events.Application.csproj",       "Spr
 COPY ["Sprints.Events.Infrastructure/Sprints.Events.Infrastructure.csproj", "Sprints.Events.Infrastructure/"]
 COPY ["Sprints.Events.Api/Sprints.Events.Api.csproj",                       "Sprints.Events.Api/"]
 
+# Observability
+COPY ["Sprints.Observability/Sprints.Observability.csproj", "Sprints.Observability/"]
+
 RUN dotnet restore "Sprints.Events.Api/Sprints.Events.Api.csproj"
 
 COPY . .

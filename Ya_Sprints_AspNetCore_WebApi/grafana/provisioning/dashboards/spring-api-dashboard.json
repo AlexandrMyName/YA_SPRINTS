@@ -1,0 +1,172 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "title": "HTTP Latency (p95, p99)",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket[$__rate_interval])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_seconds_bucket[$__rate_interval])) by (le))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "title": "Throughput (RPS) & Error Rate",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_request_duration_seconds_count[$__rate_interval]))",
+          "legendFormat": "Total RPS"
+        },
+        {
+          "expr": "sum(rate(http_server_request_duration_seconds_count{http_status_code=~\"5..\"}[$__rate_interval]))",
+          "legendFormat": "5xx Errors RPS"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "title": ".NET GC Heap Size",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(process_runtime_dotnet_gc_heap_size_bytes) by (instance)",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "title": "Kafka Consumer Lag",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(kafka_consumergroup_lag) by (consumergroup)",
+          "legendFormat": "{{consumergroup}}"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "title": "Redis Memory Usage",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "Used Memory"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "title": "Service Health (Blackbox)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "probe_success",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "textMode": "value"
+      }
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 14
+      },
+      "title": "Active Requests",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(http_server_active_requests)",
+          "legendFormat": "Active"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "title": "Total Requests (Last 15m)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "sum(increase(http_server_request_duration_seconds_count[$__range]))",
+          "legendFormat": "Total"
+        }
+      ]
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "title": "Logs (All Containers)",
+      "type": "logs",
+      "datasource": "Loki",
+      "targets": [ { "expr": "{container_name=~\".+\"}" } ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": [],
+  "title": "Sprints API Dashboard",
+  "uid": "sprints-api-dashboard",
+  "version": 2
+}

@@ -11,7 +11,7 @@ public class BaseDbContext : DbContext
 
     private static readonly object _lock = new();
     private static bool _databaseInitialized;
-     
+
 
 
     #region Примеры компиляции
@@ -70,9 +70,9 @@ public class BaseDbContext : DbContext
     //}
 
     #endregion
-     
-    public BaseDbContext(DbContextOptions options ) : base(options)
-    { 
+
+    public BaseDbContext(DbContextOptions options) : base(options)
+    {
 
         //if (!_databaseInitialized)
         //{
@@ -81,7 +81,7 @@ public class BaseDbContext : DbContext
         //        if (!_databaseInitialized)
         //        {
         //            Database.EnsureCreated();
-                    
+
         //            _databaseInitialized = true; 
         //        }
         //    }
@@ -90,7 +90,7 @@ public class BaseDbContext : DbContext
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-       
+
         return await base.SaveChangesAsync(cancellationToken);
     }
 
