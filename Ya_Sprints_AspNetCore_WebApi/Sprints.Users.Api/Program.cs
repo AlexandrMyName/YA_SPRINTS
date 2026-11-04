@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using Sprints.Observability;
 using Sprints.Users.Application.Abstractions.Options;
 using Sprints.Users.Application.DI;
@@ -37,7 +38,7 @@ public class Program
         builder.Services
             .AddApplication()
             .AddInfrastructure(builder.Configuration)
-            .AddSprintsObservability("users-service");
+            .AddSprintsObservability(builder.Configuration, "users-service");
 
 
         #region SECURITY
@@ -120,6 +121,11 @@ public class Program
         builder.Services.AddAppAuthorization(builder.Configuration);
 
         #endregion
+         
+        // логи в JSON
+        builder.Host.UseSerilog((ctx, cfg) => cfg
+            .ReadFrom.Configuration(ctx.Configuration)
+            .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
 
         builder.Host.UseDefaultServiceProvider((context, options) =>
         {
@@ -131,13 +137,13 @@ public class Program
         });
 
         var app = builder.Build();
+        app.UseSerilogRequestLogging();
 
 
-       //  app.UseOpenTelemetryPrometheusScrapingEndpoint();
-
-
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
+         
 
         if (app.Environment.IsDevelopment())
         {
@@ -150,13 +156,14 @@ public class Program
             app.UseCors($"{CorsPoliticType.Production}");
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
         app.UseRouting();
 
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers();
+        app.MapControllers(); 
+
         app.Run();
     }
 }

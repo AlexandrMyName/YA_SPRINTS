@@ -20,10 +20,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{519939AB-0598-4D3E-9286-CEA7CB766262}"
 	ProjectSection(SolutionItems) = preProject
 		Sprints_ASP_NetCore_API\.dockerignore = Sprints_ASP_NetCore_API\.dockerignore
+		alertmanager.yml = alertmanager.yml
+		blackbox.yml = blackbox.yml
 		Dev.txt = Dev.txt
 		docker-compose.yml = docker-compose.yml
 		otel-collector-config.yml = otel-collector-config.yml
 		prometheus.yml = prometheus.yml
+		promtail-config.yml = promtail-config.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefactoringNetCompile_Lib", "RefactoringNetCompile_Lib\RefactoringNetCompile_Lib.csproj", "{26C83053-2F2C-4BFF-9655-ACB6BFEBA720}"
@@ -83,6 +86,27 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Observability", "Observability", "{CF9D2AAE-5846-414E-8A46-84B11BC03E37}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sprints.Observability", "Sprints.Observability\Sprints.Observability.csproj", "{CB990E4F-47AC-4F25-9972-31F1DA871CFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "grafana", "grafana", "{36DA9373-D6C3-4417-8F99-615716EA5B69}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "provisioning", "provisioning", "{17433A07-0A7B-4253-A730-AAE2B99F5EDB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "alerting", "alerting", "{BFEC6EED-5E4B-4B2E-AB32-AB62678F12C3}"
+	ProjectSection(SolutionItems) = preProject
+		grafana\provisioning\alerting\alert-rules.yml = grafana\provisioning\alerting\alert-rules.yml
+		grafana\provisioning\alerting\contact-points.yml = grafana\provisioning\alerting\contact-points.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dashboards", "dashboards", "{58D7459F-C9BF-4761-949E-6E6200ED58C5}"
+	ProjectSection(SolutionItems) = preProject
+		grafana\provisioning\dashboards\dashboards.yml = grafana\provisioning\dashboards\dashboards.yml
+		grafana\provisioning\dashboards\spring-api-dashboard.json = grafana\provisioning\dashboards\spring-api-dashboard.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "datasources", "datasources", "{47647185-5E16-47C0-AC0E-82AFC2D80A7D}"
+	ProjectSection(SolutionItems) = preProject
+		grafana\provisioning\datasources\datasources.yml = grafana\provisioning\datasources\datasources.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -227,6 +251,11 @@ Global
 		{017C0C3C-047B-4CCF-A220-96D6EEB3DC65} = {54DE0A07-EA58-4068-948C-A9234FF481F7}
 		{CF9D2AAE-5846-414E-8A46-84B11BC03E37} = {A465461B-A5E2-4BC6-AF45-1E1E20F70274}
 		{CB990E4F-47AC-4F25-9972-31F1DA871CFA} = {CF9D2AAE-5846-414E-8A46-84B11BC03E37}
+		{36DA9373-D6C3-4417-8F99-615716EA5B69} = {519939AB-0598-4D3E-9286-CEA7CB766262}
+		{17433A07-0A7B-4253-A730-AAE2B99F5EDB} = {36DA9373-D6C3-4417-8F99-615716EA5B69}
+		{BFEC6EED-5E4B-4B2E-AB32-AB62678F12C3} = {17433A07-0A7B-4253-A730-AAE2B99F5EDB}
+		{58D7459F-C9BF-4761-949E-6E6200ED58C5} = {17433A07-0A7B-4253-A730-AAE2B99F5EDB}
+		{47647185-5E16-47C0-AC0E-82AFC2D80A7D} = {17433A07-0A7B-4253-A730-AAE2B99F5EDB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AEEC30C4-F1E7-4B71-BE22-D28291FC6191}

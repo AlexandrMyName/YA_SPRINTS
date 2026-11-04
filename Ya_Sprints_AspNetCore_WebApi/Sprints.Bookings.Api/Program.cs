@@ -11,6 +11,7 @@ using Sprints.Bookings.Middlewares;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using Sprints.Observability;
+using Serilog;
 
 
 [assembly: ApiController]
@@ -35,7 +36,7 @@ public class Program
         builder.Services
             .AddApplication()
             .AddInfrastructure(builder.Configuration)
-            .AddSprintsObservability("bookings-service");
+            .AddSprintsObservability(builder.Configuration, "bookings-service");
 
         #region SECURITY
 
@@ -115,6 +116,12 @@ public class Program
 
         #endregion
 
+        // логи в JSON
+        builder.Host.UseSerilog((ctx, cfg) => cfg
+            .ReadFrom.Configuration(ctx.Configuration)
+            .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter()));
+
+
         builder.Host.UseDefaultServiceProvider((context, options) =>
         {
             if (context.HostingEnvironment.IsDevelopment())
@@ -124,13 +131,14 @@ public class Program
             }
         });
 
-        var app = builder.Build(); 
-        // app.AddSprintsObservability()
+        var app = builder.Build();
+        app.UseSerilogRequestLogging();
 
-        //  app.UseOpenTelemetryPrometheusScrapingEndpoint();
-        
+        app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
+         
 
         if (app.Environment.IsDevelopment())
         {
@@ -143,13 +151,13 @@ public class Program
             app.UseCors($"{CorsPoliticType.Production}");
         }
 
-        app.UseHttpsRedirection();
+        // app.UseHttpsRedirection();
         app.UseRouting();
 
         app.UseAuthentication();
-        app.UseAuthorization();
+        app.UseAuthorization(); 
+        app.MapControllers(); 
 
-        app.MapControllers();
         app.Run();
     }
 }

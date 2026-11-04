@@ -1,0 +1,51 @@
+# Правило: Если p95 Latency превышает 100 мс в течение 5 минут, отправлять Email
+
+
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: 'API Alerts'
+    folder: 'Alerts'
+    interval: 1m
+    rules:
+      - uid: high_latency_rule
+        title: High Latency (p95 > 100ms)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le))
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0.1 # 100ms в секундах
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                  type: query
+              refId: C
+              type: classic_conditions
+        labels:
+          severity: warning
+        contactpoints:
+          - email_receiver
+        annotations:
+          summary: "API Latency is high (p95 > 100ms)"
+          description: "The API has been responding slower than 100ms (p95) for the last 5 minutes."

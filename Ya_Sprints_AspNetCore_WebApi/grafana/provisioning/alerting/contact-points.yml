@@ -1,0 +1,14 @@
+# Настройка Email для алертов
+
+
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Email Alert
+    receivers:
+      - uid: email_receiver
+        type: email
+        settings:
+          addresses: "Sasha1999sasha931@yandex.ru"  
+        disableResolveMessage: false

@@ -1,0 +1,7 @@
+
+# Не используется (т.к. алерты в Grafana, не в Prometheus)
+route:
+  receiver: 'null'
+
+receivers:
+  - name: 'null'

@@ -1,0 +1,8 @@
+# Проверка, что сервисы отдают HTTP 200
+
+modules:
+  http_2xx:
+    prober: http
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200, 204, 301, 302, 401]
