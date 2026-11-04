@@ -1,6 +1,5 @@
 # Настройка Email для алертов
 
-
 apiVersion: 1
 
 contactPoints:
@@ -10,5 +9,8 @@ contactPoints:
       - uid: email_receiver
         type: email
         settings:
-          addresses: "Sasha1999sasha931@yandex.ru"  
+          addresses: "Sasha1999sasha931@yandex.ru"
+          singleEmail: false
+          subject: '{{ template "custom_email.subject" . }}'
+          message: '{{ template "custom_email.body" . }}'
         disableResolveMessage: false

@@ -346,7 +346,8 @@ services:
         condition: service_started
     restart: unless-stopped
 
-  # --- Визуализация ---
+ # --- Визуализация ---
+
   grafana:
     image: grafana/grafana:latest
     container_name: sprints_grafana
@@ -358,6 +359,16 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      # --- SMTP настройки ---
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.yandex.ru:465
+      - GF_SMTP_USER=test@yandex.ru # Укажите почту SMTP  
+      - GF_SMTP_PASSWORD=*** # Укажите пароль от SMTP сервиса
+      - GF_SMTP_FROM_ADDRESS=test@yandex.ru # Укажите почту SMTP  
+      - GF_SMTP_FROM_NAME=Grafana Alerts
+      - GF_SMTP_SKIP_VERIFY=true
+      - GF_SMTP_EHLO_IDENTITY=localhost  
     restart: unless-stopped
     depends_on:
       prometheus:
@@ -366,6 +377,7 @@ services:
         condition: service_started
       jaeger:
         condition: service_started
+ 
 
 volumes:
   zookeeper_data:

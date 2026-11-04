@@ -1,28 +1,26 @@
-# Правило: Если p95 Latency превышает 100 мс в течение 5 минут, отправлять Email
-
-
 apiVersion: 1
-
 groups:
   - orgId: 1
-    name: 'API Alerts'
+    name: 'Service Health'
     folder: 'Alerts'
     interval: 1m
     rules:
-      - uid: high_latency_rule
-        title: High Latency (p95 > 100ms)
+      - uid: service_down_rule
+        title: 'Service Down'
         condition: C
         data:
           - refId: A
             relativeTimeRange:
-              from: 600
+              from: 60
               to: 0
             datasourceUid: prometheus
             model:
-              expr: histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le))
+              editorMode: code
+              expr: up
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
+              range: false
               refId: A
           - refId: C
             datasourceUid: __expr__
@@ -30,8 +28,8 @@ groups:
               conditions:
                 - evaluator:
                     params:
-                      - 0.1 # 100ms в секундах
-                    type: gt
+                      - 1
+                    type: lt
                   operator:
                     type: and
                   query:
@@ -40,12 +38,14 @@ groups:
                   reducer:
                     type: last
                   type: query
+              expression: A
               refId: C
-              type: classic_conditions
-        labels:
-          severity: warning
-        contactpoints:
-          - email_receiver
+              type: classic_conditions 
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
         annotations:
-          summary: "API Latency is high (p95 > 100ms)"
-          description: "The API has been responding slower than 100ms (p95) for the last 5 minutes."
+          summary: 'Сервис {{ $labels.instance }} перестал отвечать'
+          description: 'Метрика up равна 0. Проверьте контейнеры и логи.'
+        labels:
+          severity: critical
