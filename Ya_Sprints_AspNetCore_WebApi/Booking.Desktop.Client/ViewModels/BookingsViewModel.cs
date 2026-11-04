@@ -202,7 +202,7 @@ public partial class BookingsViewModel : ObservableObject
             var status = booking.Source.Status;
 
             // Rejected — точно финал
-            if (status ==   BookingStatus.Rejected)
+            if (status == BookingStatus.Rejected)
             {
                 _logger.LogInformation("Poll: booking {Id} → Rejected", bookingId);
                 return;
@@ -243,7 +243,7 @@ public partial class BookingsViewModel : ObservableObject
 
             all.AddRange(items);
 
-            if (items.Count < pageSize) break; 
+            if (items.Count < pageSize) break;
             if (paged!.TotalCount > 0 && all.Count >= paged.TotalCount) break;
 
             page++;

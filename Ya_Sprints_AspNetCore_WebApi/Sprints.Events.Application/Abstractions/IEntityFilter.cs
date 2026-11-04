@@ -1,5 +1,5 @@
-﻿using Sprints.Events.Domain.Entities; 
-using System.Linq.Expressions; 
+﻿using Sprints.Events.Domain.Entities;
+using System.Linq.Expressions;
 
 
 namespace Sprints.Events.Application.Abstractions;

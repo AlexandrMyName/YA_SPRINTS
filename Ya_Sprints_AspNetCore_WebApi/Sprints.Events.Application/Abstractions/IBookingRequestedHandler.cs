@@ -1,4 +1,4 @@
-﻿using Sprints.Contracts; 
+﻿using Sprints.Contracts;
 
 
 namespace Sprints.Events.Application.Abstractions;

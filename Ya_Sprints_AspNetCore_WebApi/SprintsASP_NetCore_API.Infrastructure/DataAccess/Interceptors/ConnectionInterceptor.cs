@@ -19,7 +19,7 @@ public class ConnectionInterceptor : DbConnectionInterceptor
         Console.WriteLine("Настройки сессии Postgres применены успешно.");
     }
 
-    
+
     public override Task ConnectionOpenedAsync(DbConnection connection, ConnectionEndEventData eventData, CancellationToken cancellationToken = default)
     {
 

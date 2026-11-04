@@ -1,5 +1,5 @@
-﻿using SprintASP_NetCore_API.Domain.Entities; 
-using System.Linq.Expressions; 
+﻿using SprintASP_NetCore_API.Domain.Entities;
+using System.Linq.Expressions;
 
 
 namespace SprintsASP_NetCore_API.Application.Abstractions;

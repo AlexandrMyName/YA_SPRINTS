@@ -12,7 +12,7 @@ public class BookingInfoDto : IBookingInfoDto
     /// Идентификатор бронирования
     /// </summary>
     public Guid Id { get; set; }
-     
+
     /// <summary>
     /// Идентификатор пользователя 
     /// (осуществивший бронирование)
@@ -39,12 +39,12 @@ public class BookingInfoDto : IBookingInfoDto
     /// </summary>
     public DateTime? ProcessedAt { get; set; }
 
-   
+
 }
 
 public interface IBookingInfoDto : IEntityDto
 {
-   
+
     /// <summary>
     /// Идентификатор пользователя 
     /// (осуществивший бронирование)

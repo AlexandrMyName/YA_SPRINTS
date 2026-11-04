@@ -36,7 +36,7 @@ public static class ObservabilityExtensions
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddRuntimeInstrumentation() 
+                .AddRuntimeInstrumentation()
                 .AddPrometheusExporter());
 
         return services;

@@ -1,4 +1,4 @@
-﻿ 
+﻿
 using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
 using SprintASP_NetCore_API.Application.Filters;
 

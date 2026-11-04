@@ -47,7 +47,7 @@ public abstract class TestBase : IAsyncLifetime
     protected T GetService<T>() => ServiceProvider.GetRequiredService<T>();
 
     protected async Task ClearDatabaseAsync()
-    { 
+    {
 
         await DbContext.Database.ExecuteSqlRawAsync(@"
             TRUNCATE TABLE

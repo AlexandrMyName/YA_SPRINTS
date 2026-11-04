@@ -1,4 +1,4 @@
-﻿ 
+﻿
 
 namespace SprintASP_NetCore_API.Domain.Entities;
 

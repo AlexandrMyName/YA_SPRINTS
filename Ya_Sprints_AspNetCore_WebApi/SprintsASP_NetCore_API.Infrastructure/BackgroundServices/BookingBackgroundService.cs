@@ -1,7 +1,7 @@
 ﻿using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
 using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
 using SprintsASP_NetCore_API.Application.Abstractions;
-using Microsoft.Extensions.DependencyInjection; 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SprintASP_NetCore_API.Domain.Entities;
@@ -13,14 +13,14 @@ namespace SprintASP_NetCore_API.Infrastructure.BackgroundServices;
 public class BookingBackgroundService : BackgroundService
 {
 
-    public BookingBackgroundService(IServiceScopeFactory scopeFactory, ILogger<BookingBackgroundService> logger )
+    public BookingBackgroundService(IServiceScopeFactory scopeFactory, ILogger<BookingBackgroundService> logger)
     {
-        _scopeFactory = scopeFactory;  
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
     private ILogger<BookingBackgroundService> _logger;
-    private readonly IServiceScopeFactory _scopeFactory;  
+    private readonly IServiceScopeFactory _scopeFactory;
 
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
@@ -34,7 +34,7 @@ public class BookingBackgroundService : BackgroundService
         {
             try
             {
-                 
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
 
@@ -47,20 +47,20 @@ public class BookingBackgroundService : BackgroundService
                         // И более высокоуровневый сервис:
                         var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
                         var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
-                        
+
                         // Работаем с репозиторием/сервисом
                         var bookings = await bookingRepo.GetAllAsync();
-                         
+
                         var pendingBookings = await bookingService.GetPendingBookingsAsync();
 
                         if (pendingBookings.Count() > 0)
-                        { 
+                        {
                             var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, bookingService, eventService, stoppingToken));
                             await Task.WhenAll(tasks);
                         }
-                        else continue; 
-                    } 
-                }  
+                        else continue;
+                    }
+                }
             }
             catch (OperationCanceledException operationCanceledExcept)
             {
@@ -82,11 +82,11 @@ public class BookingBackgroundService : BackgroundService
     /// <param name="booking"></param>
     /// <param name="stoppingToken"></param>
     /// <returns></returns>
-    private async Task ProcessBookingAsync(IBookingInfoDto booking, IBookingService bookingService, IEventService eventService,  CancellationToken stoppingToken)
+    private async Task ProcessBookingAsync(IBookingInfoDto booking, IBookingService bookingService, IEventService eventService, CancellationToken stoppingToken)
     {
         try
         {
-  
+
             // 1. Имитация внешнего вызова (до семафора)
             await Task.Delay(ProcessingDelay, stoppingToken);
 
@@ -100,7 +100,7 @@ public class BookingBackgroundService : BackgroundService
                 if (!eventResult.IsSuccesfuly || eventResult.Data == null)
                 {
                     // Событие не найдено - отклоняем бронь
-                    booking.Status =  BookingStatus.Rejected;
+                    booking.Status = BookingStatus.Rejected;
                     booking.ProcessedAt = DateTime.UtcNow;
                     await bookingService.UpdateBookingAsync(booking);
                     _logger.LogWarning($"Бронирование {booking.Id} отклонено: событие {booking.EventId} не найдено");
@@ -110,7 +110,7 @@ public class BookingBackgroundService : BackgroundService
                 var eventEntity = eventResult.Data;
 
                 // 4. Подтверждаем бронь
-                booking.Status =  BookingStatus.Confirmed;
+                booking.Status = BookingStatus.Confirmed;
                 booking.ProcessedAt = DateTime.UtcNow;
                 await bookingService.UpdateBookingAsync(booking);
             }

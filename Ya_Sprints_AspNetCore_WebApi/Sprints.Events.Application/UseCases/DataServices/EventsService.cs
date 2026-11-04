@@ -166,7 +166,7 @@ public class EventsService : IEventService
 
         return await AddRangeAsync(prepared);
     }
- 
+
 
     public async Task<IResultDto<IEventInfoDto>> UpdateEventAsync(IEventInfoDto item)
     {
@@ -367,7 +367,7 @@ public class EventsService : IEventService
         }
     }
 
-   
+
     public async Task<IResultDto<IEventInfoDto>> UpdateRangeAsync(IEnumerable<IEventInfoDto> items)
     {
         var itemList = items.ToList();
@@ -483,10 +483,12 @@ public class EventsService : IEventService
     }
 
 
+    // FIX: если 100 запросов одновременно придут на пустой кеш, только 1 поток пойдет в базу, а остальные 99 подождут, получат данные и заберут их из кеша.
     public async Task<IReadOnlyList<IEventInfoDto>> GetTopAsync(int take = 10, CancellationToken ct = default)
     {
-        // Ключ events:top10 — всегда про 10. Если клиент просит меньше - режем на выдаче,
-        // но кешируем/читаем из БД всегда 10. Это исключает cache poisoning по параметру take.
+        // LOW 3: Валидация take перенесена в сервис (защита от take <= 0)
+        if (take <= 0) take = 10;
+
         const int cacheSize = 10;
         if (take > cacheSize) take = cacheSize;
 
@@ -499,16 +501,39 @@ public class EventsService : IEventService
             return cached.Take(take).Cast<IEventInfoDto>().ToList();
         }
 
-        // Популярность = занятые места = TotalSeats - AvailableSeats
-        var entities = await _repository.GetOrderedAsync(
-            q => q.OrderByDescending(e => e.TotalSeats - e.AvailableSeats),
-            cacheSize,
-            ct);
+        // MEDIUM 2: Защита от Stampede (схлопывание запросов).
+        //  статический ключ для блокировки именно Топа.
+        var semaphore = _interceptLockings.GetOrAddByEventId(Guid.Empty);
+        await semaphore.WaitAsync(ct);
 
-        var dtos = _mapper.Map<List<EventInfoDto>>(entities);
-        await _cache.SetTopEventsAsync(dtos, ct);
+        try
+        {
+            // Double-check locking: пока мы ждали семафор, другой поток уже мог сходить в БД и обновить кеш
+            cached = await _cache.GetTopEventsAsync(ct);
+            if (cached is not null)
+            {
+                _logger.LogInformation("Топ событий из кеша (после ожидания): {Count}", cached.Count);
+                return cached.Take(take).Cast<IEventInfoDto>().ToList();
+            }
 
-        _logger.LogInformation("Топ событий из БД: {Count}", dtos.Count);
-        return dtos.Take(take).Cast<IEventInfoDto>().ToList();
+            _logger.LogInformation("Топ событий из БД (промах кеша, пошли в базу)");
+
+            // MEDIUM 1: Популярность считается как ПРОЦЕНТ продаж: (TotalSeats - AvailableSeats) / TotalSeats
+
+            var entities = await _repository.GetOrderedAsync(
+                q => q.OrderByDescending(e => e.TotalSeats == 0 ? 0 : (double)(e.TotalSeats - e.AvailableSeats) / e.TotalSeats),
+                cacheSize,
+                ct);
+
+            var dtos = _mapper.Map<List<EventInfoDto>>(entities);
+            await _cache.SetTopEventsAsync(dtos, ct);
+
+            _logger.LogInformation("Топ событий из БД: {Count}", dtos.Count);
+            return dtos.Take(take).Cast<IEventInfoDto>().ToList();
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 }

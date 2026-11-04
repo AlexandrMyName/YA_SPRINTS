@@ -139,7 +139,7 @@ public class Program
 
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
-         
+
 
         if (app.Environment.IsDevelopment())
         {
@@ -158,7 +158,7 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers(); 
+        app.MapControllers();
         app.Run();
     }
 }

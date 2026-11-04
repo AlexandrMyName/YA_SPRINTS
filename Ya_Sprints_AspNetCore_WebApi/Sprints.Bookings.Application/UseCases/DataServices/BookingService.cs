@@ -117,7 +117,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
             "Бронь создана, ожидает подтверждения от Events");
     }
 
- 
+
 
     public async Task<IResultDto<IBookingInfoDto>> CancelBookingAsync(
         Guid bookingId, Guid userId, bool isAdmin)
@@ -149,7 +149,7 @@ public class BookingService : BaseDataService<IBookingInfoDto, Booking>, IBookin
         }
     }
 
- 
+
 
     public async Task<IResultDto<IBookingInfoDto>> UpdateBookingAsync(IBookingInfoDto item)
     {

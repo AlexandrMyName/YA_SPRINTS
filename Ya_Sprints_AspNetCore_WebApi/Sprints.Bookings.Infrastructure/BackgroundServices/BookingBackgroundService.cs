@@ -75,7 +75,7 @@ public class BookingBackgroundService : BackgroundService
                 await using var tx = await db.Database.BeginTransactionAsync(stoppingToken);
 
                 try
-                { 
+                {
                     var entity = await db.Bookings.FindAsync(new object[] { booking.Id }, stoppingToken);
                     if (entity == null)
                     {
@@ -85,7 +85,7 @@ public class BookingBackgroundService : BackgroundService
                     }
 
                     // entity.Confirm();
-                     
+
                     await outbox.EnqueueAsync(
                         topic: KafkaTopics.BookingRequested,
                         key: booking.EventId.ToString(),

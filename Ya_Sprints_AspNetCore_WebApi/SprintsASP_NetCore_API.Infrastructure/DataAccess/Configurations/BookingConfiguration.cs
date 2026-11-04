@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;  
-using SprintASP_NetCore_API.Domain.Entities; 
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SprintASP_NetCore_API.Domain.Entities;
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.DataAccess.Configurations;
@@ -20,20 +20,20 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         //// Настройка свойства Version для использования xmin
         //builder.Property(e => e.Version).IsRowVersion();
         builder.Property<uint>("xmin").IsRowVersion();
-         
-        builder.Property(b => b.CreatedAt) .IsRequired();
+
+        builder.Property(b => b.CreatedAt).IsRequired();
 
         builder.Property(b => b.ProcessedAt);
-         
+
         // Храним Enum как строку
         builder.Property(b => b.Status)
             .IsRequired()
             .HasConversion<string>();
 
         // настройка связей
-        builder.HasOne(b => b.Event)                
-            .WithMany(e => e.Bookings)             
-            .HasForeignKey(b => b.EventId)           
+        builder.HasOne(b => b.Event)
+            .WithMany(e => e.Bookings)
+            .HasForeignKey(b => b.EventId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne<User>()

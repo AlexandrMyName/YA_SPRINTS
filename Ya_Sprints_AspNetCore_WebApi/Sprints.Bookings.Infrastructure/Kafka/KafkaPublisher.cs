@@ -37,7 +37,7 @@ public sealed class KafkaPublisher : IKafkaPublisher, IDisposable
         await PublishRawAsync(topic, key, payload, traceParent, ct);
     }
 
-  
+
     public async Task PublishRawAsync(string topic, string key, string rawJson, string? traceParent = null, CancellationToken ct = default)
     {
         var kafkaMessage = new Message<string, string> { Key = key, Value = rawJson };

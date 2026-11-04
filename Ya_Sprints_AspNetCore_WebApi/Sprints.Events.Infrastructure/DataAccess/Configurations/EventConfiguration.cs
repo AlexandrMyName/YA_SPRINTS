@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;  
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Sprints.Events.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,16 +16,16 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedNever();
-       
+
         // Настройка свойства Version для использования xmin
         // builder.Property(e => e.Version).IsRowVersion();
-        builder.Property<uint>("xmin") .IsRowVersion();
+        builder.Property<uint>("xmin").IsRowVersion();
 
         builder.Property(e => e.Title)
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(e => e.Description) 
+        builder.Property(e => e.Description)
             .HasMaxLength(1000);
 
         builder.Property(e => e.StartAt)
@@ -34,8 +34,8 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
          .IsRequired();
 
 
-        builder.Property(e => e.TotalSeats).IsRequired(); 
+        builder.Property(e => e.TotalSeats).IsRequired();
         builder.Property(e => e.AvailableSeats).IsRequired();
-         
+
     }
 }

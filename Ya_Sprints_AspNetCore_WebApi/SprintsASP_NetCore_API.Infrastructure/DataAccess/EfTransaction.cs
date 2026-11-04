@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
-using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintsASP_NetCore_API.Application.Abstractions;
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.DataAccess;

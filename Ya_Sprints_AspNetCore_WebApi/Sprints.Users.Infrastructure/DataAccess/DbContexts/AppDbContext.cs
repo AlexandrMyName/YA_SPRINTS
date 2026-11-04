@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion; 
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sprints.Users.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,14 +10,14 @@ public class AppDbContext : BaseDbContext
 {
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-      
+
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-     
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-         
+
 
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
 
@@ -46,7 +46,7 @@ public class AppDbContext : BaseDbContext
             }
         }
 
-       
+
 
     }
 }

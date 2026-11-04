@@ -1,11 +1,11 @@
 ﻿using Sprints.Events.Infrastructure.DataAccess;
-using Sprints.Events.Application.Abstractions; 
+using Sprints.Events.Application.Abstractions;
 using Sprints.Events.Application.Internal;
 using Sprints.Events.Application.Dtos;
 using Sprints.Events.Domain.Entities;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
- 
+
 
 
 namespace Sprints.Events.Infrastructure.Repositories;
@@ -65,7 +65,7 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
         return Task.FromResult(PaginatedResult<T>.Create(items, total, page, pageSize));
     }
 
-   
+
 
     public async Task<IResultEntity<T>> AddAsync(T item, CancellationToken ct = default)
     {
@@ -131,7 +131,7 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
         return ResultEntity<T>.Ok("Успешно");
     }
 
-   
+
 
     public bool IsExisted(Guid id) => _items.ContainsKey(id);
 
@@ -147,7 +147,7 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
         }
         return false;
     }
-     
+
 
     public Task<ITransaction> BeginTransactionAsync(CancellationToken ct = default)
         => Task.FromResult<ITransaction>(new NullTransaction());
@@ -155,8 +155,14 @@ public class BaseInMemoryRepository<T> : IRepository<T> where T : class, IEntity
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
         => Task.FromResult(_items.Count);
 
-    public Task<IReadOnlyList<T>> GetOrderedAsync(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy, int take, CancellationToken ct = default)
+    public Task<IReadOnlyList<T>> GetOrderedAsync(
+       Func<IQueryable<T>, IOrderedQueryable<T>> orderBy,
+       int take,
+       CancellationToken ct = default)
     {
-        throw new NotImplementedException("DEPRICATED");
+        var query = _items.Values.AsQueryable();
+        var orderedQuery = orderBy(query);
+        IReadOnlyList<T> result = orderedQuery.Take(take).ToList();
+        return Task.FromResult(result);
     }
 }

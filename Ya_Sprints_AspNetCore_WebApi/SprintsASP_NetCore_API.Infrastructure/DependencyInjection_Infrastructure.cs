@@ -13,7 +13,7 @@ using SprintsASP_NetCore_API.Infrastructure.Concurrency;
 using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
 using SprintsASP_NetCore_API.Infrastructure.DataAccess.Interceptors;
 using SprintsASP_NetCore_API.Infrastructure.Security;
- 
+
 
 namespace SprintsASP_NetCore_API.Infrastructure.DI;
 
@@ -35,8 +35,8 @@ public static class DependencyInjection_Infrastructure
         services.AddScoped(typeof(IRepository<>), typeof(EfCoreRepository<>));
         services.AddScoped<AuditInterceptor>();
 
-        services.AddSingleton<IPasswordHasher, PasswordHasher>();           
-        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();          
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
         // Concurrency (in-memory locks)  
         services.AddSingleton<IInterceptLockings, InterceptLockings>();
@@ -52,7 +52,7 @@ public static class DependencyInjection_Infrastructure
         //{
         //    x.AddConsumer<OrderCreatedConsumer>();
         //    //x.AddConsumer<HeavyOrderConsumer, HeavyOrderConsumerDefinition>();
-             
+
         //    x.UsingRabbitMq((context, cfg) =>
         //    {
         //        cfg.Host("localhost", "/", h =>
@@ -70,7 +70,7 @@ public static class DependencyInjection_Infrastructure
         //        cfg.ConfigureEndpoints(context);
         //    });
         //});
-         
+
         return services;
     }
 

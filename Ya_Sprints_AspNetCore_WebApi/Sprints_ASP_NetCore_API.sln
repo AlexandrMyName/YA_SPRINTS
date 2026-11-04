@@ -95,6 +95,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "alerting", "alerting", "{BF
 	ProjectSection(SolutionItems) = preProject
 		grafana\provisioning\alerting\alert-rules.yml = grafana\provisioning\alerting\alert-rules.yml
 		grafana\provisioning\alerting\contact-points.yml = grafana\provisioning\alerting\contact-points.yml
+		grafana\provisioning\alerting\notification-policies.yml = grafana\provisioning\alerting\notification-policies.yml
+		grafana\provisioning\alerting\templates.yml = grafana\provisioning\alerting\templates.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dashboards", "dashboards", "{58D7459F-C9BF-4761-949E-6E6200ED58C5}"

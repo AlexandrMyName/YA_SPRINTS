@@ -1,12 +1,12 @@
 ﻿using Sprints.Bookings.Infrastructure.DataAccess.DbContexts;
 using Sprints.Bookings.Application.Abstractions;
-using Sprints.Bookings.Infrastructure.DataAccess; 
+using Sprints.Bookings.Infrastructure.DataAccess;
 using Sprints.Bookings.Application.Internal;
 using Sprints.Bookings.Application.Dtos;
 using Sprints.Bookings.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-  
+
 
 namespace Sprints.Bookings.Infrastructure.Repositories;
 

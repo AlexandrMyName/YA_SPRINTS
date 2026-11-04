@@ -1,13 +1,13 @@
 ﻿using SprintsASP_NetCore_API.Application.Abstractions.Security;
 using SprintsASP_NetCore_API.Application.Abstractions.Options;
 using SprintASP_NetCore_API.Domain.Entities;
-using System.IdentityModel.Tokens.Jwt; 
-using Microsoft.IdentityModel.Tokens; 
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text;
- 
+
 
 namespace SprintsASP_NetCore_API.Infrastructure.Security;
 

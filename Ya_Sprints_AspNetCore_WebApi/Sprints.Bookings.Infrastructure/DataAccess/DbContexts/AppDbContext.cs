@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion; 
+﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Sprints.Bookings.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +10,7 @@ public class AppDbContext : BaseDbContext
 {
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-     
+
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -18,7 +18,7 @@ public class AppDbContext : BaseDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-         
+
 
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
 
@@ -47,7 +47,7 @@ public class AppDbContext : BaseDbContext
             }
         }
 
-       
+
 
     }
 }

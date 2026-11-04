@@ -58,10 +58,7 @@ public class EventFilterTests : TestBase
             PageSize = 10
         };
 
-        var paged = await repository.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repository.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, paged.TotalCount);
         Assert.Equal("Alpha", paged.Items.First().Title);
@@ -85,10 +82,7 @@ public class EventFilterTests : TestBase
             PageSize = 10
         };
 
-        var paged = await repository.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repository.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, paged.TotalCount);
         Assert.Contains(paged.Items, e => e.Title == "Beta");
@@ -105,10 +99,7 @@ public class EventFilterTests : TestBase
         // Фильтр без условий — берём все, потом сортируем на клиенте
         var filter = new EventFilterDto { Page = 1, PageSize = 10 };
 
-        var paged = await repository.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repository.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         var result = paged.Items
             .OrderByDescending(e => e.Title)
@@ -129,10 +120,7 @@ public class EventFilterTests : TestBase
         var repository = GetService<IRepository<Event>>();
 
         // Страница 1: 2 элемента из 4
-        var page1 = await repository.GetPagedAsync(
-            predicate: null,
-            page: 1,
-            pageSize: 2);
+        var page1 = await repository.GetPagedAsync(predicate: null, page: 1, pageSize: 2, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(4, page1.TotalCount);
 
@@ -140,10 +128,7 @@ public class EventFilterTests : TestBase
         Assert.Equal(2, items1.Count);
 
         // Страница 2: оставшиеся 2 элемента
-        var page2 = await repository.GetPagedAsync(
-            predicate: null,
-            page: 2,
-            pageSize: 2);
+        var page2 = await repository.GetPagedAsync(predicate: null, page: 2, pageSize: 2, ct: TestContext.Current.CancellationToken);
 
         Assert.Equal(4, page2.TotalCount);
 
@@ -173,10 +158,7 @@ public class EventFilterTests : TestBase
             PageSize = 10
         };
 
-        var paged = await repository.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repository.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, paged.TotalCount);
         Assert.Equal("Delta", paged.Items.First().Title);
@@ -196,10 +178,7 @@ public class EventFilterTests : TestBase
             PageSize = 10
         };
 
-        var paged = await repository.GetPagedAsync(
-            filter.ToPredicate(),
-            filter.Page!.Value,
-            filter.PageSize!.Value);
+        var paged = await repository.GetPagedAsync(filter.ToPredicate(), filter.Page!.Value, filter.PageSize!.Value, TestContext.Current.CancellationToken);
 
         Assert.Equal(1, paged.TotalCount);
         Assert.Equal("Beta", paged.Items.First().Title);

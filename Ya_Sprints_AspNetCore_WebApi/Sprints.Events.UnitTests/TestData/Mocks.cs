@@ -72,7 +72,7 @@ internal sealed class EventsServiceMocks
                     availableSeats: e.AvailableSeats))
                 .ToList());
     }
-}  
+}
 
 internal sealed class BookingRequestedHandlerMocks
 {

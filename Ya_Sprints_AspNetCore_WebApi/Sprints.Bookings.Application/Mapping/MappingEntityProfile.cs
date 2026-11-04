@@ -1,4 +1,4 @@
-﻿using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;  
+﻿using Sprints.Bookings.Application.Dtos.EntitiesDtos.Bookings;
 using Sprints.Bookings.Domain.Entities;
 using AutoMapper;
 
@@ -10,10 +10,10 @@ public class MappingEntityProfile : Profile
 {
 
     public MappingEntityProfile()
-    { 
+    {
 
         CreateMap<BookingInfoDto, Booking>();
         CreateMap<IBookingInfoDto, Booking>();
-        CreateMap<IBookingInfoDto, IBooking>().As<Booking>(); 
+        CreateMap<IBookingInfoDto, IBooking>().As<Booking>();
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Sprints.Bookings.Application.Abstractions;
 using Sprints.Bookings.Domain.Entities;
 using Sprints.Bookings.Infrastructure.DataAccess.DbContexts;
-using System.Diagnostics;  
+using System.Diagnostics;
 
 namespace Sprints.Bookings.Infrastructure.Outbox;
 

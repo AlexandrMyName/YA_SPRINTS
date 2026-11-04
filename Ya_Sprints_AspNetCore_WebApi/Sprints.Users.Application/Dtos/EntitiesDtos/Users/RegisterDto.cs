@@ -2,7 +2,7 @@
 
 
 namespace Sprints.Users.Application.Dtos.EntitiesDtos.Users;
-  
+
 
 public class RegisterDto
 {

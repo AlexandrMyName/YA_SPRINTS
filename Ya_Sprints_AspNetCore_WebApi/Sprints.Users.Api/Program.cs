@@ -121,7 +121,7 @@ public class Program
         builder.Services.AddAppAuthorization(builder.Configuration);
 
         #endregion
-         
+
         // логи в JSON
         builder.Host.UseSerilog((ctx, cfg) => cfg
             .ReadFrom.Configuration(ctx.Configuration)
@@ -143,7 +143,7 @@ public class Program
         app.UseOpenTelemetryPrometheusScrapingEndpoint();
         app.InitializeDataBases()
            .UseMiddleware<GlobalExceptionMiddleware>();
-         
+
 
         if (app.Environment.IsDevelopment())
         {
@@ -162,7 +162,7 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapControllers(); 
+        app.MapControllers();
 
         app.Run();
     }

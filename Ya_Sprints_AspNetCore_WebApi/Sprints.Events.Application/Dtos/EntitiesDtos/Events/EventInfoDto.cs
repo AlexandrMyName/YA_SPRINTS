@@ -11,10 +11,6 @@ namespace Sprints.Events.Application.Dtos.EntitiesDtos.Events;
 /// </summary>
 public class EventInfoDto : IEventInfoDto
 {
-    /// <summary>
-    /// Уникальный идентификатор
-    /// </summary>
-    [Required(ErrorMessage = "Идентификатор события обязателен")]
 
     public required Guid Id { get; set; }
 

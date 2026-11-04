@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography; 
+using System.Security.Cryptography;
 
 
 namespace SprintsASP_NetCore_API.Infrastructure.Security;

@@ -1,5 +1,5 @@
 ﻿using Sprints.Events.Application.Dtos.EntitiesDtos.Bookings;
-using Sprints.Events.Application.Dtos.EntitiesDtos.Events;    
+using Sprints.Events.Application.Dtos.EntitiesDtos.Events;
 using Sprints.Events.Domain.Entities;
 using AutoMapper;
 
@@ -14,11 +14,11 @@ public class MappingDtoProfile : Profile
 
         // Event: Entity → DTO  
         CreateMap<Event, EventInfoDto>();
-        CreateMap<Event, IEventInfoDto>().As<EventInfoDto>();    
+        CreateMap<Event, IEventInfoDto>().As<EventInfoDto>();
 
         CreateMap<CreateEventDto, Event>()
             .ForMember(dest => dest.AvailableSeats, opt => opt.MapFrom(src => src.TotalSeats));
 
-        CreateMap<CreateEventDto, EventInfoDto>(); 
+        CreateMap<CreateEventDto, EventInfoDto>();
     }
 }

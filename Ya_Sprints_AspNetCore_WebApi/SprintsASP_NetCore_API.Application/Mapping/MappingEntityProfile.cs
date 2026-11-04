@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
 using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
- 
-using SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users; 
+
+using SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users;
 using SprintASP_NetCore_API.Domain.Entities;
 
 

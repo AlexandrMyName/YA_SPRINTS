@@ -2,13 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions; 
-using Moq;  
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using SprintASP_NetCore_API.Application.Mapping;
 using SprintASP_NetCore_API.Application.UseCases.DataServices;
 using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;
-using SprintASP_NetCore_API.Domain.Entities; 
-using SprintASP_NetCore_API.Infrastructure.Repositories; 
+using SprintASP_NetCore_API.Domain.Entities;
+using SprintASP_NetCore_API.Infrastructure.Repositories;
 using SprintsASP_NetCore_API.Application.Abstractions;
 using SprintsASP_NetCore_API.Application.Abstractions.Options;
 using SprintsASP_NetCore_API.Application.Abstractions.Security;
@@ -18,7 +18,7 @@ using SprintsASP_NetCore_API.Domain.Exceptions;
 using SprintsASP_NetCore_API.Infrastructure.Concurrency;
 using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
 using SprintsASP_NetCore_API.Infrastructure.Security;
-using Xunit;  
+using Xunit;
 
 namespace Tests;
 
@@ -64,8 +64,8 @@ public class Tests_AuthService : IDisposable
         // Логгеры — моки
         services.AddSingleton<ILogger<AuthService>>(sp => Mock.Of<ILogger<AuthService>>());
         services.AddSingleton<ILogger<UserService>>(sp => Mock.Of<ILogger<UserService>>());
-        services.AddSingleton<ILogger<BaseDataService< IUserInfoDto, User>>>(
-            sp => Mock.Of<ILogger<BaseDataService< IUserInfoDto, User>>>());
+        services.AddSingleton<ILogger<BaseDataService<IUserInfoDto, User>>>(
+            sp => Mock.Of<ILogger<BaseDataService<IUserInfoDto, User>>>());
 
         // AutoMapper с боевыми профилями
         var mapperConfig = new MapperConfiguration(cfg =>
@@ -79,8 +79,8 @@ public class Tests_AuthService : IDisposable
     }
 
     public void Dispose() => _serviceProvider?.Dispose();
- 
- 
+
+
     private static RegisterDto NewRegisterDto(string login, string password = "pwd123456")
         => new() { Login = login, Password = password };
 
@@ -192,7 +192,7 @@ public class Tests_AuthService : IDisposable
 
         await auth.RegisterAsync(NewRegisterDto("refresh_check"));
 
-        var all = await refreshRepo.GetAllAsync();
+        var all = await refreshRepo.GetAllAsync(TestContext.Current.CancellationToken);
         Assert.Single(all);
         Assert.True(all.First().IsActive);
     }
@@ -255,7 +255,7 @@ public class Tests_AuthService : IDisposable
         Assert.NotEqual(login1.Data!.RefreshToken, login2.Data!.RefreshToken);
 
         // В БД теперь 3 refresh-записи: register + 2 login
-        var all = await refreshRepo.GetAllAsync();
+        var all = await refreshRepo.GetAllAsync(TestContext.Current.CancellationToken);
         Assert.Equal(3, all.Count());
     }
 
@@ -335,7 +335,7 @@ public class Tests_AuthService : IDisposable
 
         Assert.True(result.IsSuccesfuly);
 
-        var tokens = await refreshRepo.GetAllAsync();
+        var tokens = await refreshRepo.GetAllAsync(TestContext.Current.CancellationToken);
         Assert.All(tokens, t => Assert.False(t.IsActive));
     }
 

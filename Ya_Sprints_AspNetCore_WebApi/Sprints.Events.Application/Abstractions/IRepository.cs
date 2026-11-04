@@ -1,5 +1,5 @@
 ﻿using Sprints.Events.Application.Internal;
-using Sprints.Events.Application.Dtos; 
+using Sprints.Events.Application.Dtos;
 using Sprints.Events.Domain.Entities;
 using System.Linq.Expressions;
 
@@ -31,7 +31,7 @@ public interface IRepository<T> where T : class, IEntity
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<T>> GetOrderedAsync(Func<IQueryable<T>,
-        IOrderedQueryable<T>> orderBy, 
-        int take, 
+        IOrderedQueryable<T>> orderBy,
+        int take,
         CancellationToken ct = default);
 }

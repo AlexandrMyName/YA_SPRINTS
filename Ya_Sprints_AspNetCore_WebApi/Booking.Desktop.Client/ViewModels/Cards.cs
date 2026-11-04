@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Sprints.Desktop.Api; 
+using Sprints.Desktop.Api;
 
 
 namespace Booking.Desktop.Client.ViewModels;

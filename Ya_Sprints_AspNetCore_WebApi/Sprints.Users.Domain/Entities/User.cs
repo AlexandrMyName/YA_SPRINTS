@@ -1,14 +1,14 @@
-﻿  
+﻿
 
 namespace Sprints.Users.Domain.Entities;
 
 
 public interface IUser : IEntity
 {
-     
-    string Login { get;  } 
-    string PasswordHash { get;   } 
-    UserRole Role { get;   }
+
+    string Login { get; }
+    string PasswordHash { get; }
+    UserRole Role { get; }
     DateTime CreatedAt { get; }
     void PromoteToAdmin();
     void DemoteToUser();

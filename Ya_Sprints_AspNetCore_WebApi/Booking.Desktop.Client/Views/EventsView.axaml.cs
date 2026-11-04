@@ -22,12 +22,11 @@ public partial class EventsView : UserControl
 
     private void Card_DoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (sender is not Control { DataContext: EventCardVm vm }) return;
-        if (DataContext is not EventsViewModel viewModel) return;
-
-        viewModel.SelectCard(vm);
+        if (DataContext is EventsViewModel vm && vm.EditCommand.CanExecute(null))
+        {
+            vm.EditCommand.Execute(null);
+        }
     }
-
     private void TopCard_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: EventCardVm vm }) return;

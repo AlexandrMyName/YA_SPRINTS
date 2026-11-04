@@ -1,12 +1,12 @@
 ﻿using Sprints.Events.Infrastructure.DataAccess.DbContexts;
 using Sprints.Events.Application.Abstractions;
-using Sprints.Events.Infrastructure.DataAccess; 
+using Sprints.Events.Infrastructure.DataAccess;
 using Sprints.Events.Application.Internal;
 using Sprints.Events.Application.Dtos;
 using Sprints.Events.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-  
+
 
 namespace Sprints.Events.Infrastructure.Repositories;
 

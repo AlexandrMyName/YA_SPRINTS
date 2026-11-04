@@ -1,4 +1,4 @@
-﻿using SprintASP_NetCore_API.Domain.Entities; 
+﻿using SprintASP_NetCore_API.Domain.Entities;
 
 
 namespace SprintsASP_NetCore_API.Application.Abstractions;

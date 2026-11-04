@@ -1,6 +1,6 @@
 ﻿
 using Sprints.Bookings.Domain.Exceptions;
-using Sprints.Bookings.Domain.ValueObjects; 
+using Sprints.Bookings.Domain.ValueObjects;
 
 
 namespace Sprints.Bookings.Domain.Entities;
@@ -43,13 +43,13 @@ public class Booking : IBooking
     /// Идентификатор бронирования
     /// </summary>
     public Guid Id { get; set; }
-     
+
     /// <summary>
     /// Идентификатор пользователя
     /// (Осуществивший бронирование)
     /// </summary>
     public Guid UserId { get; private set; }
-     
+
     /// <summary>
     /// ID события
     /// </summary>
@@ -68,8 +68,8 @@ public class Booking : IBooking
     /// <summary>
     /// Дата и время обработки
     /// </summary>
-    public DateTime? ProcessedAt { get; set; }  
-      
+    public DateTime? ProcessedAt { get; set; }
+
 
 
     private Booking() { }
@@ -87,7 +87,7 @@ public class Booking : IBooking
             Status = status,
         };
     }
-     
+
 
     public void Confirm()
     {
@@ -125,4 +125,3 @@ public class Booking : IBooking
 }
 
 
- 

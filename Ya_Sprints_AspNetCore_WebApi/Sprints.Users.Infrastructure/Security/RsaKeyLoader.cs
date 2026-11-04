@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography; 
+using System.Security.Cryptography;
 
 
 namespace Sprints.Users.Infrastructure.Security;

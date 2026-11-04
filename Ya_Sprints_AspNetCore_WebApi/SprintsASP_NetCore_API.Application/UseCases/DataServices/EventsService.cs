@@ -32,7 +32,7 @@ public class EventsService : IEventService
         _logger = logger;
         _mapper = mapper;
     }
-     
+
 
     public async Task ReleaseSeatsAndUpdateAsync(Guid eventId, int count)
     {
@@ -61,7 +61,7 @@ public class EventsService : IEventService
             semaphore.Release();
         }
     }
-     
+
 
     public async Task<IResultDto<IEventInfoDto>> CreateEventAsync(ICreateEventDto dto)
     {
@@ -134,7 +134,7 @@ public class EventsService : IEventService
 
             prepared.Add(_mapper.Map<EventInfoDto>(d));
         }
-         
+
         return await AddRangeAsync(prepared);
     }
 
@@ -149,7 +149,7 @@ public class EventsService : IEventService
         return ResultDto<IEventInfoDto>.Fail(result.Reason ?? "");
     }
 
-     
+
 
     public async Task<IResultDto<IEventInfoDto>> AddAsync(IEventInfoDto item)
     {
@@ -244,7 +244,7 @@ public class EventsService : IEventService
         }
     }
 
-   
+
 
     public async Task<IResultDto<IEventInfoDto>> AddRangeAsync(IEnumerable<IEventInfoDto> items)
     {
@@ -333,7 +333,7 @@ public class EventsService : IEventService
                 sem.Release();
         }
     }
- 
+
 
     public async Task<IEnumerable<IEventInfoDto>> GetAllAsync()
     {

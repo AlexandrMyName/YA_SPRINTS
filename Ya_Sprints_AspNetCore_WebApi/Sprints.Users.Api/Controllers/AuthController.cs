@@ -1,6 +1,6 @@
-﻿using Sprints.Users.Application.UseCases.DataServices.Contracts; 
+﻿using Sprints.Users.Application.UseCases.DataServices.Contracts;
 using Sprints.Users.Application.Dtos.EntitiesDtos.Users;
-using Sprints.Users.Application.Dtos.EntitiesDtos.Auth; 
+using Sprints.Users.Application.Dtos.EntitiesDtos.Auth;
 using Sprints.Users.Presentation.Extentions;
 using Sprints.Users.Filters.ActionFilters;
 using Microsoft.AspNetCore.Authorization;

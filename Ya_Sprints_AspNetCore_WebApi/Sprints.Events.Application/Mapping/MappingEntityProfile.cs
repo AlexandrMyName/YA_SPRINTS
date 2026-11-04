@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Sprints.Events.Application.Dtos.EntitiesDtos.Bookings;
-using Sprints.Events.Application.Dtos.EntitiesDtos.Events; 
+using Sprints.Events.Application.Dtos.EntitiesDtos.Events;
 using Sprints.Events.Domain.Entities;
 
 
@@ -16,7 +16,7 @@ public class MappingEntityProfile : Profile
 
         CreateMap<EventInfoDto, Event>();
         CreateMap<IEventInfoDto, Event>();
-        CreateMap<IEventInfoDto, IEvent>().As<Event>(); 
+        CreateMap<IEventInfoDto, IEvent>().As<Event>();
 
     }
 }

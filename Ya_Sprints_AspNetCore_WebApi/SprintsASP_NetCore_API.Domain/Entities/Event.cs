@@ -1,5 +1,5 @@
-﻿ 
-using System.ComponentModel.DataAnnotations; 
+﻿
+using System.ComponentModel.DataAnnotations;
 
 
 
@@ -29,12 +29,12 @@ public class Event : IEvent
     public Guid Id { get; set; }
     public required string Title { get; set; } = null!;
     public string? Description { get; set; }
-    public required DateTime StartAt { get; set; } 
-    public required DateTime EndAt { get; set; }  
+    public required DateTime StartAt { get; set; }
+    public required DateTime EndAt { get; set; }
 
     public int TotalSeats { get; set; } = default!;
     public int AvailableSeats { get; set; } = default!;
-     
+
 
     // Навигационное свойство (один ко многим)
     public ICollection<Booking> Bookings { get; private set; } = new List<Booking>();
@@ -50,9 +50,9 @@ public class Event : IEvent
         StartAt = startAt;
         EndAt = endAt;
         TotalSeats = totalSeats;
-        AvailableSeats = totalSeats; 
+        AvailableSeats = totalSeats;
     }
-      
+
 
     public static Event Create(Guid id, string title, string? description, DateTime startAt, DateTime endAt, int totalSeats)
     {
@@ -88,4 +88,4 @@ public class Event : IEvent
         else return false;
     }
 
-} 
+}

@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.DependencyInjection;  
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
 using Xunit;
 using Moq;
 using SprintsASP_NetCore_API.Infrastructure.DataAccess.DbContexts;
-using SprintsASP_NetCore_API.Application.Abstractions; 
+using SprintsASP_NetCore_API.Application.Abstractions;
 using SprintsASP_NetCore_API.Infrastructure.Concurrency;
 using SprintASP_NetCore_API.Infrastructure.Repositories;
 using SprintASP_NetCore_API.Application.UseCases.DataServices;
@@ -75,8 +75,8 @@ namespace Tests
             var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
             var testEvent = Event.Create(Guid.NewGuid(), "Test Event", "Desc", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 10);
-            await repo.AddAsync(testEvent);
-            await repo.SaveChangesAsync();
+            await repo.AddAsync(testEvent, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var result = await service.GetAllAsync();
 
@@ -106,8 +106,8 @@ namespace Tests
             var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
             var testEvent = Event.Create(Guid.NewGuid(), "Test", "Desc", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 10);
-            await repo.AddAsync(testEvent);
-            await repo.SaveChangesAsync();
+            await repo.AddAsync(testEvent, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var result = await service.GetByIdAsync(testEvent.Id);
 
@@ -150,7 +150,7 @@ namespace Tests
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccesfuly);
-            var added = await repo.GetByIdAsync(dto.Id);
+            var added = await repo.GetByIdAsync(dto.Id, TestContext.Current.CancellationToken);
             Assert.NotNull(added.Data);
             Assert.Equal(dto.Title, added.Data.Title);
         }
@@ -164,8 +164,8 @@ namespace Tests
 
             var id = Guid.NewGuid();
             var existing = Event.Create(id, "Existing", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
-            await repo.AddAsync(existing);
-            await repo.SaveChangesAsync();
+            await repo.AddAsync(existing, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var dto = new EventInfoDto
             {
@@ -191,8 +191,8 @@ namespace Tests
             var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
             var testEvent = Event.Create(Guid.NewGuid(), "Old Title", "Desc", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 10);
-            await repo.AddAsync(testEvent);
-            await repo.SaveChangesAsync();
+            await repo.AddAsync(testEvent, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var dto = new EventInfoDto
             {
@@ -208,7 +208,7 @@ namespace Tests
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccesfuly);
-            var updated = await repo.GetByIdAsync(testEvent.Id);
+            var updated = await repo.GetByIdAsync(testEvent.Id, TestContext.Current.CancellationToken);
             Assert.Equal("New Title", updated.Data.Title);
             Assert.Equal(20, updated.Data.TotalSeats);
         }
@@ -242,14 +242,14 @@ namespace Tests
             var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
             var testEvent = Event.Create(Guid.NewGuid(), "ToDelete", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
-            await repo.AddAsync(testEvent);
-            await repo.SaveChangesAsync();
+            await repo.AddAsync(testEvent, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var result = await service.DeleteAsync(testEvent.Id);
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccesfuly);
-            var deleted = await repo.GetByIdAsync(testEvent.Id);
+            var deleted = await repo.GetByIdAsync(testEvent.Id, TestContext.Current.CancellationToken);
             Assert.False(deleted.IsSuccesfuly);
         }
 
@@ -282,7 +282,7 @@ namespace Tests
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccesfuly);
-            var all = await repo.GetAllAsync();
+            var all = await repo.GetAllAsync(TestContext.Current.CancellationToken);
             Assert.Equal(2, all.Count());
         }
 
@@ -295,8 +295,8 @@ namespace Tests
 
             var ev1 = Event.Create(Guid.NewGuid(), "Old1", "Desc1", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
             var ev2 = Event.Create(Guid.NewGuid(), "Old2", "Desc2", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10);
-            await repo.AddRangeAsync(new[] { ev1, ev2 });
-            await repo.SaveChangesAsync();
+            await repo.AddRangeAsync(new[] { ev1, ev2 }, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var dtos = new List<EventInfoDto>
             {
@@ -308,8 +308,8 @@ namespace Tests
 
             Assert.NotNull(result);
             Assert.True(result.IsSuccesfuly);
-            var updated1 = await repo.GetByIdAsync(ev1.Id);
-            var updated2 = await repo.GetByIdAsync(ev2.Id);
+            var updated1 = await repo.GetByIdAsync(ev1.Id, TestContext.Current.CancellationToken);
+            var updated2 = await repo.GetByIdAsync(ev2.Id, TestContext.Current.CancellationToken);
             Assert.Equal("New1", updated1.Data.Title);
             Assert.Equal(6, updated1.Data.TotalSeats);
             Assert.Equal("New2", updated2.Data.Title);
@@ -324,8 +324,8 @@ namespace Tests
             var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
             var testEvent = Event.Create(Guid.NewGuid(), "Test", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
-            repo.AddAsync(testEvent).Wait();
-            repo.SaveChangesAsync().Wait();
+            repo.AddAsync(testEvent, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
+            repo.SaveChangesAsync(TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
 
             var result = service.IsExisted(testEvent.Id);
 
@@ -351,8 +351,8 @@ namespace Tests
             var repo = scope.ServiceProvider.GetRequiredService<IRepository<Event>>();
 
             var testEvent = Event.Create(Guid.NewGuid(), "UniqueTitle", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5);
-            repo.AddAsync(testEvent).Wait();
-            repo.SaveChangesAsync().Wait();
+            repo.AddAsync(testEvent, TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
+            repo.SaveChangesAsync(TestContext.Current.CancellationToken).Wait(TestContext.Current.CancellationToken);
 
             var result = service.IsExistedByTitle("UniqueTitle");
 
@@ -382,8 +382,8 @@ namespace Tests
                 Event.Create(Guid.NewGuid(), "Alpha", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(1), 5),
                 Event.Create(Guid.NewGuid(), "Beta", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10)
             };
-            await repo.AddRangeAsync(events);
-            await repo.SaveChangesAsync();
+            await repo.AddRangeAsync(events, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var filter = new EventFilterDto { Title = "Alpha" };
 
@@ -408,8 +408,8 @@ namespace Tests
                 Event.Create(Guid.NewGuid(), "Past", "", now.AddDays(-5), now.AddDays(-4), 5),
                 Event.Create(Guid.NewGuid(), "Future", "", now.AddDays(1), now.AddDays(2), 10)
             };
-            await repo.AddRangeAsync(events);
-            await repo.SaveChangesAsync();
+            await repo.AddRangeAsync(events, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var filter = new EventFilterDto { From = now.AddDays(-2) };
 
@@ -433,8 +433,8 @@ namespace Tests
                 Event.Create(Guid.NewGuid(), "Past", "", now.AddDays(-5), now.AddDays(-4), 5),
                 Event.Create(Guid.NewGuid(), "Future", "", now.AddDays(1), now.AddDays(2), 10)
             };
-            await repo.AddRangeAsync(events);
-            await repo.SaveChangesAsync();
+            await repo.AddRangeAsync(events, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var filter = new EventFilterDto { To = now.AddDays(-3) };
 
@@ -458,8 +458,8 @@ namespace Tests
         Event.Create(Guid.NewGuid(), "Alpha", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(2), 10),
         Event.Create(Guid.NewGuid(), "Beta",  "", DateTime.UtcNow, DateTime.UtcNow.AddHours(3), 15)
     };
-            await repo.AddRangeAsync(events);
-            await repo.SaveChangesAsync();
+            await repo.AddRangeAsync(events, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var filter = new EventFilterDto
             {
@@ -492,8 +492,8 @@ namespace Tests
             var events = Enumerable.Range(1, 5).Select(i =>
                 Event.Create(Guid.NewGuid(), $"Event {i}", "", DateTime.UtcNow, DateTime.UtcNow.AddHours(i), i * 5)
             ).ToArray();
-            await repo.AddRangeAsync(events);
-            await repo.SaveChangesAsync();
+            await repo.AddRangeAsync(events, TestContext.Current.CancellationToken);
+            await repo.SaveChangesAsync(TestContext.Current.CancellationToken);
 
             var filter = new EventFilterDto
             {

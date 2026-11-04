@@ -2,7 +2,7 @@
 
 
 namespace SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users;
-  
+
 
 public class RegisterDto
 {

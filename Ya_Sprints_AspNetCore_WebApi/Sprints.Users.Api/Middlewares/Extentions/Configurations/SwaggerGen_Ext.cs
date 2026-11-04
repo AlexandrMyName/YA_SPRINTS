@@ -57,5 +57,5 @@ public static class SwaggerGen_Ext
 
         });
         return services;
-    }    
+    }
 }

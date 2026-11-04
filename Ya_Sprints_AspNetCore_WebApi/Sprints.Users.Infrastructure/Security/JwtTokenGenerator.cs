@@ -1,13 +1,13 @@
 ﻿using Sprints.Users.Application.Abstractions.Security;
 using Sprints.Users.Application.Abstractions.Options;
 using Sprints.Users.Domain.Entities;
-using System.IdentityModel.Tokens.Jwt; 
-using Microsoft.IdentityModel.Tokens; 
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text;
- 
+
 
 namespace Sprints.Users.Infrastructure.Security;
 

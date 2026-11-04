@@ -7,7 +7,7 @@ using SprintASP_NetCore_API.Infrastructure.Repositories;
 using SprintsASP_NetCore_API.Application.Abstractions;
 using SprintASP_NetCore_API.Application.Mapping;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.DependencyInjection; 
+using Microsoft.Extensions.DependencyInjection;
 using SprintsASP_NetCore_API.Domain.Exceptions;
 using SprintASP_NetCore_API.Domain.Entities;
 using System.Collections.Concurrent;
@@ -103,7 +103,7 @@ public class BookingServiceTests : IDisposable
         var result = await bookingService.CreateBookingAsync(ev.Id, user.Id);
 
         Assert.True(result.IsSuccesfuly);
-        var updated = await eventRepo.GetByIdAsync(ev.Id);
+        var updated = await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.Equal(initialSeats - 1, updated.Data.AvailableSeats);
     }
 
@@ -141,7 +141,7 @@ public class BookingServiceTests : IDisposable
         }
 
         Assert.Equal(3, ids.Count);
-        var updated = await eventRepo.GetByIdAsync(ev.Id);
+        var updated = await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.Equal(0, updated.Data.AvailableSeats);
     }
 
@@ -210,12 +210,12 @@ public class BookingServiceTests : IDisposable
         var user = await CreateTestUserAsync();
 
         await bookingService.CreateBookingAsync(ev.Id, user.Id);
-        var initialAfterCreate = (await eventRepo.GetByIdAsync(ev.Id)).Data.AvailableSeats;
+        var initialAfterCreate = (await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken)).Data.AvailableSeats;
         Assert.Equal(2, initialAfterCreate);
 
         await eventService.ReleaseSeatsAndUpdateAsync(ev.Id, 1);
 
-        var finalSeats = (await eventRepo.GetByIdAsync(ev.Id)).Data.AvailableSeats;
+        var finalSeats = (await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken)).Data.AvailableSeats;
         Assert.Equal(3, finalSeats);
     }
 
@@ -456,12 +456,12 @@ public class BookingServiceTests : IDisposable
 
         var created = await bookingService.CreateBookingAsync(ev.Id, user.Id);
 
-        var seatsAfterBooking = (await eventRepo.GetByIdAsync(ev.Id)).Data.AvailableSeats;
+        var seatsAfterBooking = (await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken)).Data.AvailableSeats;
         Assert.Equal(2, seatsAfterBooking);
 
         await bookingService.CancelBookingAsync(created.Data.Id, user.Id, isAdmin: false);
 
-        var seatsAfterCancel = (await eventRepo.GetByIdAsync(ev.Id)).Data.AvailableSeats;
+        var seatsAfterCancel = (await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken)).Data.AvailableSeats;
         Assert.Equal(3, seatsAfterCancel);
     }
 
@@ -599,7 +599,7 @@ public class BookingServiceTests : IDisposable
 
         Assert.Equal(5, successCount);
         Assert.Equal(15, exceptionCount);
-        var final = await eventRepo.GetByIdAsync(ev.Id);
+        var final = await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.Equal(0, final.Data.AvailableSeats);
     }
 
@@ -627,7 +627,7 @@ public class BookingServiceTests : IDisposable
 
         using var finalScope = _serviceProvider.CreateScope();
         var eventRepo = finalScope.ServiceProvider.GetRequiredService<IRepository<Event>>();
-        var final = await eventRepo.GetByIdAsync(ev.Id);
+        var final = await eventRepo.GetByIdAsync(ev.Id, TestContext.Current.CancellationToken);
         Assert.Equal(0, final.Data.AvailableSeats);
     }
 

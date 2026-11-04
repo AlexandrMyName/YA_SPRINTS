@@ -245,9 +245,17 @@ public class EventsService_CacheTests
             .Select(i => EventBuilder.Create(title: $"Event {i}"))
             .ToList();
 
+        // Эмулируем реальный кеш (изначально пустой)
+        IReadOnlyList<EventInfoDto>? cachedData = null;
+
         mocks.Cache
             .Setup(c => c.GetTopEventsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyList<EventInfoDto>?)null);
+            .ReturnsAsync(() => cachedData); // Возвращаем текущее состояние кеша
+
+        mocks.Cache
+            .Setup(c => c.SetTopEventsAsync(It.IsAny<IReadOnlyList<EventInfoDto>>(), It.IsAny<CancellationToken>()))
+            .Callback<IReadOnlyList<EventInfoDto>, CancellationToken>((data, ct) => cachedData = data) // Сохраняем в "кеш"
+            .Returns(Task.CompletedTask);
 
         mocks.Repository
             .Setup(r => r.GetOrderedAsync(
@@ -271,6 +279,20 @@ public class EventsService_CacheTests
                 It.IsAny<CancellationToken>()),
             Times.Once,
             "в кеш всегда пишется полный топ-10, обрезаем только на выдаче");
+
+        // When: второй клиент просит 10
+        var second = await sut.GetTopAsync(10);
+
+        // Then: второй клиент получил 10 из кеша (а не 3, как было бы, если бы мы кешировали урезанный список)
+        Assert.Equal(10, second.Count);
+
+        mocks.Repository.Verify(
+            r => r.GetOrderedAsync(
+                It.IsAny<Func<IQueryable<Event>, IOrderedQueryable<Event>>>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once,
+            "второй запрос должен обслуживаться из кеша, без повторного похода в БД");
     }
 
     // ============================================================

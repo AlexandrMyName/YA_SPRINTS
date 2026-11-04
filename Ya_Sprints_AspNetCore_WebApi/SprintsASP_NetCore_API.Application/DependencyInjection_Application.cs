@@ -1,5 +1,5 @@
-﻿ 
-using Microsoft.Extensions.DependencyInjection; 
+﻿
+using Microsoft.Extensions.DependencyInjection;
 using SprintASP_NetCore_API.Application.Mapping;
 using SprintASP_NetCore_API.Application.UseCases.DataServices;
 using SprintASP_NetCore_API.Application.UseCases.DataServices.Contracts;

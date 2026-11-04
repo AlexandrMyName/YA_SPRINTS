@@ -1,5 +1,5 @@
 ﻿using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Bookings;
-using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;   
+using SprintASP_NetCore_API.Application.Dtos.EntitiesDtos.Events;
 using SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users;
 using SprintASP_NetCore_API.Domain.Entities;
 using AutoMapper;
@@ -15,7 +15,7 @@ public class MappingDtoProfile : Profile
 
         // Event: Entity → DTO  
         CreateMap<Event, EventInfoDto>();
-        CreateMap<Event, IEventInfoDto>().As<EventInfoDto>();    
+        CreateMap<Event, IEventInfoDto>().As<EventInfoDto>();
 
         CreateMap<CreateEventDto, Event>()
             .ForMember(dest => dest.AvailableSeats, opt => opt.MapFrom(src => src.TotalSeats));

@@ -1,5 +1,5 @@
-﻿using Sprints.Bookings.Application.UseCases.DataServices.Contracts; 
-using Sprints.Bookings.Application.Dtos.EntitiesDtos; 
+﻿using Sprints.Bookings.Application.UseCases.DataServices.Contracts;
+using Sprints.Bookings.Application.Dtos.EntitiesDtos;
 using Sprints.Bookings.Application.Abstractions;
 using Sprints.Bookings.Application.Internal;
 using Sprints.Bookings.Application.Dtos;

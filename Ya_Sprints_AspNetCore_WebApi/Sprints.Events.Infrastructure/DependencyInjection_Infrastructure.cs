@@ -42,7 +42,7 @@ public static class DependencyInjection_Infrastructure
 
         return services;
     }
-     
+
     /// <summary>
     /// Кеширование
     /// </summary>
@@ -69,7 +69,7 @@ public static class DependencyInjection_Infrastructure
                     + ",abortConnect=false,connectTimeout=2000,syncTimeout=2000";
                 o.InstanceName = redisSection.GetValue<string>("InstanceName") ?? "sprints:";
             });
-             
+
             services.AddSingleton<RedisEventCache>();
             services.AddSingleton<IEventCache>(sp =>
                 new ResilientEventCache(
@@ -78,7 +78,7 @@ public static class DependencyInjection_Infrastructure
         }
         else
         {
-         
+
             services.AddSingleton<IEventCache, NullEventCache>();
         }
 

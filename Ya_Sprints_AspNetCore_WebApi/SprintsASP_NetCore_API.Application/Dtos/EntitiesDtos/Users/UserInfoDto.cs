@@ -1,5 +1,5 @@
 ﻿using SprintASP_NetCore_API.Domain.Entities;
-using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos; 
+using Sprints_Project_ASP_NetCore_API.Application.Dtos.EntitiesDtos;
 
 
 namespace SprintsASP_NetCore_API.Application.Dtos.EntitiesDtos.Users;

@@ -1,12 +1,12 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography; 
+using System.Security.Cryptography;
 
 
 namespace Sprints.Events.Infrastructure.Security;
 
 
 public static class RsaKeyLoader
-{ 
+{
 
     public static RsaSecurityKey LoadPublicKey(string path)
     {
